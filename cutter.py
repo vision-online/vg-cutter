@@ -37,9 +37,22 @@ from PIL import Image
 START = time.time()
 MAX_MINUTES = float(os.environ.get("MAX_MINUTES", "50"))
 MAX_FRAMES = int(os.environ.get("MAX_FRAMES", "40"))
+MAX_TRIES = int(os.environ.get("MAX_TRIES", "3"))
 
-SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").rstrip("/")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY") or ""
+SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip().rstrip("/")
+SUPABASE_KEY = (os.environ.get("SUPABASE_KEY") or "").strip()
+
+
+def key_role():
+    """Which kind of key this is, read from inside it -- without ever
+    printing the key. 'service_role' is right; 'anon' cannot write."""
+    try:
+        import base64
+        part = SUPABASE_KEY.split(".")[1]
+        part += "=" * (-len(part) % 4)
+        return json.loads(base64.urlsafe_b64decode(part)).get("role", "?")
+    except Exception:
+        return "not a legacy JWT key (sb_... keys are not accepted here)"
 
 
 def log(*a):
@@ -64,16 +77,21 @@ def sb_headers(extra=None):
 
 
 def fetch_products():
-    """Every real frame. Settings rows have ids starting __ and are skipped."""
-    url = (SUPABASE_URL + "/rest/v1/products"
-           "?select=id,data&id=not.like.__*&order=id.asc&limit=3000")
+    """Every real frame. Settings rows have ids starting __ and are
+    skipped here in Python: in the database's LIKE language an underscore
+    is a wildcard, so a 'not like __*' filter would hide every frame."""
+    url = (SUPABASE_URL + "/rest/v1/products?select=id,data&order=id.asc&limit=3000")
     r = requests.get(url, headers=sb_headers(), timeout=60)
-    r.raise_for_status()
+    if not r.ok:
+        raise RuntimeError("database answered %d: %s" % (r.status_code, r.text[:200]))
     rows = r.json() or []
     out = []
     for row in rows:
+        rid = str(row.get("id") or "")
+        if rid.startswith("__"):
+            continue
         data = row.get("data") if isinstance(row.get("data"), dict) else {}
-        data["id"] = row.get("id")
+        data["id"] = rid
         out.append(data)
     return out
 
@@ -108,8 +126,8 @@ def save_product(product):
 # ---------------------------------------------------------------- cloudinary
 
 def cloudinary_config():
-    name = os.environ.get("CLOUDINARY_NAME") or ""
-    preset = os.environ.get("CLOUDINARY_PRESET") or ""
+    name = (os.environ.get("CLOUDINARY_NAME") or "").strip()
+    preset = (os.environ.get("CLOUDINARY_PRESET") or "").strip()
     if name and preset:
         return name, preset
     for key in ("settings", "cloudinary", "shop"):
@@ -373,7 +391,9 @@ def cut(photo_bytes, front=True):
 
 def front_photo(p):
     ang = p.get("anglePhotos") if isinstance(p.get("anglePhotos"), dict) else {}
-    for v in (p.get("originalUrl"), ang.get("front"), p.get("url")):
+    # the photo AS TAKEN first (d16.62 admin uploads it plain); the
+    # sharpened copies only if that is all an older frame has
+    for v in (p.get("rawFrontUrl"), p.get("originalUrl"), ang.get("front"), p.get("url")):
         if isinstance(v, str) and v.startswith("http"):
             return v
     return None
@@ -381,22 +401,99 @@ def front_photo(p):
 
 def angle_photo(p):
     ang = p.get("anglePhotos") if isinstance(p.get("anglePhotos"), dict) else {}
-    v = ang.get("angle")
-    if isinstance(v, str) and v.startswith("http"):
-        return v
+    for v in (p.get("rawAngleUrl"), ang.get("angle")):
+        if isinstance(v, str) and v.startswith("http"):
+            return v
     for g in (p.get("gallery") or []):
         if isinstance(g, dict) and g.get("view") == "angle" and str(g.get("url", "")).startswith("http"):
             return g["url"]
     return None
 
 
+def side_photo(p):
+    ang = p.get("anglePhotos") if isinstance(p.get("anglePhotos"), dict) else {}
+    for v in (p.get("rawSideUrl"), p.get("sidePhoto"), ang.get("side")):
+        if isinstance(v, str) and v.startswith("http"):
+            return v
+    return None
+
+
 def waiting(p):
     """A frame is waiting if it has a photo but no ready cut-out."""
     if p.get("tryOnLocked"):
-        return False          # a cut-out the shop supplied by hand: never touch
+        return False
+    if p.get("tryOnOk") is False:
+        return False          # try-on switched off by hand in admin: leave it          # a cut-out the shop supplied by hand: never touch
+    if (p.get("tryOnFails") or 0) >= MAX_TRIES:
+        return False          # already rejected: waiting for a better photo
     if p.get("tryOnReady") and p.get("tryOnUrl"):
         return False
     return bool(front_photo(p))
+
+
+def plain_reason(err):
+    """Turn a technical failure into something a photographer can act on."""
+    t = str(err).lower()
+    if "no frame" in t or "nothing" in t or "empty" in t:
+        return "no frame found in the photo"
+    if "cloudinary" in t:
+        return "the photo store refused the upload"
+    if "timed out" in t or "timeout" in t or "connection" in t:
+        return "the photo could not be downloaded"
+    if "lens" in t:
+        return "the lenses could not be made clear"
+    return "the photo could not be cut (%s)" % str(err)[:80]
+
+
+def alert_numbers():
+    """Numbers to message, from the shop settings: number:key, number:key."""
+    raw = os.environ.get("ALERT_NUMBERS") or ""
+    if not raw:
+        for key in ("settings", "shop"):
+            s = fetch_setting(key) or {}
+            raw = s.get("alertWhatsApp") or s.get("alertNumbers") or ""
+            if raw:
+                break
+    out = []
+    for part in str(raw).replace(";", ",").split(","):
+        part = part.strip()
+        if not part:
+            continue
+        num, _, key = part.partition(":")
+        num = "".join(ch for ch in num if ch.isdigit())
+        if num and key.strip():
+            out.append((num, key.strip()))
+    return out
+
+
+def whatsapp(text):
+    """Message the shop. Free service, so a failure here is never fatal."""
+    for num, key in alert_numbers():
+        try:
+            requests.get("https://api.callmebot.com/whatsapp.php",
+                         params={"phone": num, "text": text, "apikey": key},
+                         timeout=45)
+            log("    alert sent to %s" % num[-4:])
+        except Exception as e:
+            log("    alert to %s failed: %s" % (num[-4:], str(e)[:80]))
+
+
+def health(patch):
+    """The line the admin health check reads."""
+    try:
+        import datetime
+        now = datetime.datetime.utcnow().isoformat() + "Z"
+        rows = requests.get(SUPABASE_URL + "/rest/v1/products?select=id,data&id=eq.__robot",
+                            headers=sb_headers(), timeout=30).json() or []
+        keep = (rows[0].get("data") if rows else None) or {}
+        keep.update(patch)
+        keep["lastRun"] = now
+        requests.post(SUPABASE_URL + "/rest/v1/products?on_conflict=id",
+                      headers=sb_headers({"Prefer": "resolution=merge-duplicates,return=minimal"}),
+                      data=json.dumps([{"id": "__robot", "data": keep, "updated_at": now}]),
+                      timeout=30)
+    except Exception as e:
+        log("Could not write the health note: %s" % str(e)[:120])
 
 
 def download(url):
@@ -410,7 +507,18 @@ def main():
         log("STOP: SUPABASE_URL or SUPABASE_KEY is missing from the repository secrets.")
         return 1
 
-    products = fetch_products()
+    log("Database: %s  key: %s" % (SUPABASE_URL, key_role()))
+    try:
+        products = fetch_products()
+    except Exception as e:
+        msg = str(e)
+        if "401" in msg or "403" in msg or "JWT" in msg:
+            log("STOP: the database rejected the key. Replace the SUPABASE_KEY secret "
+                "with the service_role key (Supabase -> Settings -> API Keys -> Legacy).")
+        else:
+            log("STOP: could not read the database: %s" % msg[:300])
+        health({"ok": False, "error": msg[:300]})
+        return 1
     todo = [p for p in products if waiting(p)]
     log("Catalogue: %d frames. Waiting for a cut-out: %d." % (len(products), len(todo)))
     if not todo:
@@ -425,6 +533,7 @@ def main():
     log("Cloudinary: %s / %s" % (cname, cpreset))
 
     done = failed = 0
+    rejected = []
     for p in todo[:MAX_FRAMES]:
         if out_of_time():
             log("Time is up for this run; the rest go in the next one.")
@@ -439,25 +548,47 @@ def main():
             p["tryOnNumbers"] = nums
             p["tryOnCutBy"] = "robot"
 
-            a_src = angle_photo(p)
-            if a_src and not p.get("tryOnAngleUrl") and not out_of_time():
-                try:
-                    apng, _ = cut(download(a_src), front=False)
-                    p["tryOnAngleUrl"] = cloudinary_upload(
-                        apng, "tryon45-" + str(pid), cname, cpreset)
-                    log("    45 degree cut too")
-                except Exception as e:
-                    log("    45 degree photo skipped: %s" % str(e)[:120])
+            for src, field, label in ((angle_photo(p), "tryOnAngleUrl", "45 degree"),
+                                      (side_photo(p), "tryOnSideUrl", "90 degree side")):
+                if src and not p.get(field) and not out_of_time():
+                    try:
+                        png2, _ = cut(download(src), front=False)
+                        p[field] = cloudinary_upload(
+                            png2, "tryon-" + field + "-" + str(pid), cname, cpreset)
+                        log("    %s cut too" % label)
+                    except Exception as e:
+                        log("    %s photo skipped: %s" % (label, str(e)[:110]))
 
+            p.pop("tryOnFail", None)
+            p["tryOnFails"] = 0
             save_product(p)
             done += 1
             log("    done -> %s" % url)
         except Exception as e:
             failed += 1
-            log("    FAILED: %s" % str(e)[:200])
+            why = plain_reason(e)
+            tries = (p.get("tryOnFails") or 0) + 1
+            p["tryOnFails"] = tries
+            p["tryOnFail"] = why
+            p["tryOnReady"] = False
+            try:
+                save_product(p)
+            except Exception:
+                pass
+            log("    FAILED (%d of %d): %s" % (tries, MAX_TRIES, why))
+            if tries >= MAX_TRIES:
+                rejected.append("%s: %s" % (p.get("name") or pid, why))
 
-    log("Finished. Cut %d, failed %d, still waiting %d."
-        % (done, failed, max(0, len(todo) - done)))
+    if rejected:
+        whatsapp("Vision Gallery - frames rejected\n\n" + "\n".join(rejected[:10]) +
+                 "\n\nThese frames are NOT on the website. Please take a proper "
+                 "photo again and save it in admin.")
+
+    health({"ok": True, "cut": done, "failed": failed,
+            "rejectedNow": len(rejected),
+            "waiting": max(0, len(todo) - done)})
+    log("Finished. Cut %d, failed %d, rejected %d, still waiting %d."
+        % (done, failed, len(rejected), max(0, len(todo) - done)))
     return 0
 
 
