@@ -34,7 +34,15 @@ jobs:
           SUPABASE_URL: https://oscpunukbyosckrmopeh.supabase.co
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           RECUT: ${{ github.event.inputs.recut }}
-        run: python pending.py
+        # whatever the look says is copied onto the run's summary page,
+        # so it can be read without opening the log
+        run: |
+          set +e
+          python pending.py > look.txt 2>&1
+          code=$?
+          cat look.txt
+          { echo "### What the robot found"; echo '```'; cat look.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit $code
 
       - name: Install the cutter
         if: steps.look.outputs.waiting != '0'
@@ -56,7 +64,35 @@ jobs:
           CLOUDINARY_PRESET: ${{ secrets.CLOUDINARY_PRESET }}
           ALERT_NUMBERS: ${{ secrets.ALERT_NUMBERS }}
           RECUT: ${{ github.event.inputs.recut }}
-        run: python cutter.py
+        run: |
+          set +e
+          python cutter.py > cut.txt 2>&1
+          code=$?
+          cat cut.txt
+          { echo "### What the robot did"; echo '```'; grep -v "^::" cut.txt | tail -n 80; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit $code
+
+      - name: Write the robot's report into the repo
+        # Always, even after a failure: robot-log.txt in the repo is
+        # readable by anyone helping, without opening GitHub's logs.
+        if: always()
+        run: |
+          {
+            echo "Run $GITHUB_RUN_NUMBER  $(date -u)"
+            echo "Trigger: $GITHUB_EVENT_NAME"
+            echo
+            echo "--- what the robot found ---"
+            cat look.txt 2>/dev/null || echo "(the look did not run)"
+            echo
+            echo "--- what the robot did ---"
+            { grep -v '^::' cut.txt 2>/dev/null | tail -n 80; } || echo "(the cutter did not run)"
+          } > robot-log.txt
+          git config user.name  "vg-cutter"
+          git config user.email "vg-cutter@users.noreply.github.com"
+          git add robot-log.txt
+          git commit -m "robot log, run $GITHUB_RUN_NUMBER" || exit 0
+          git pull --rebase --quiet || true
+          git push || true
 
       - name: Stay awake
         # GitHub switches off a schedule if the repository sits untouched
