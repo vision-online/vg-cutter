@@ -67,8 +67,11 @@ def waiting(p):
 def main():
     now = datetime.datetime.utcnow().isoformat() + "Z"
     state = {"lastLook": now, "ok": False}
+    failed = False
+    recut = (os.environ.get("RECUT") or "").strip()
     if not SUPABASE_URL or not SUPABASE_KEY:
         print("STOP: the SUPABASE_KEY secret is missing or empty.")
+        failed = True
     else:
         print("Database: %s  key: %s" % (SUPABASE_URL, key_role()))
     count = 0
@@ -79,10 +82,14 @@ def main():
         rejected = sum(1 for p in frames if (p.get("tryOnFails") or 0) >= MAX_TRIES)
         state = {"lastLook": now, "ok": True, "waiting": count,
                  "rejected": rejected, "frames": len(frames)}
-        print("Frames: %d. Waiting: %d. Rejected: %d." % (len(frames), count, rejected))
+        if recut:
+            count = max(count, 1)     # a trial cut was asked for: wake the cutter
+        print("Frames: %d. Waiting: %d. Rejected: %d.%s" % (len(frames), count, rejected,
+              ("  Trial re-cut asked for: " + recut) if recut else ""))
     except Exception as e:
         state["error"] = str(e)[:300]
-        print("Could not read the database: %s" % str(e)[:200])
+        print("STOP: could not read the database: %s" % str(e)[:200])
+        failed = True
 
     # The health line in admin reads this row.
     try:
@@ -99,6 +106,8 @@ def main():
     if out:
         with open(out, "a") as f:
             f.write("waiting=%d\n" % count)
+    if failed:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

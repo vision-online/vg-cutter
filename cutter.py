@@ -520,6 +520,19 @@ def main():
         health({"ok": False, "error": msg[:300]})
         return 1
     todo = [p for p in products if waiting(p)]
+    recut = (os.environ.get("RECUT") or "").strip()
+    if recut:
+        # a trial: cut one frame again even though it already has a cut-out
+        if recut.lower() == "first":
+            pick = next((p for p in products if front_photo(p) and not p.get("tryOnLocked")), None)
+        else:
+            pick = next((p for p in products if str(p.get("id")) == recut or str(p.get("sku")) == recut), None)
+        if pick is None:
+            log("Trial re-cut: no frame matched '%s'." % recut)
+        elif pick not in todo:
+            pick["tryOnFails"] = 0
+            todo.insert(0, pick)
+            log("Trial re-cut of %s (%s)." % (pick.get("id"), (pick.get("name") or "")[:40]))
     log("Catalogue: %d frames. Waiting for a cut-out: %d." % (len(products), len(todo)))
     if not todo:
         log("Nothing to do.")
