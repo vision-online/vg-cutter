@@ -1,9 +1,55 @@
-Run 17  Thu Sep 17 22:50:44 UTC 2026
-Trigger: schedule
+Run 18  Thu Sep 17 23:07:44 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-STOP: could not read the database: database answered 403: {"code":"42501","details":null,"hint":"Grant the required privileges to the current role with: GRANT SELECT ON public.products TO service_role;","message":"permission denied for
-Could not write the health note: database answered 403: {"code":"42501","details":null,"hint":"Grant the required privileges to the current role with: GRANT SELECT ON public.products 
+Frames: 19. Waiting: 17. Rejected: 0.
 
 --- what the robot did ---
+Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
+Catalogue: 19 frames. Waiting for a cut-out: 17.
+Cloudinary: vg_upload / vg_upload
+--- p1788790420289shci : IMG-20260907-WA0013.jpg
+A new version of the following files was downloaded from https://huggingface.co/ZhengPeng7/BiRefNet:
+- BiRefNet_config.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+A new version of the following files was downloaded from https://huggingface.co/ZhengPeng7/BiRefNet:
+- birefnet.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+Model loaded: ZhengPeng7/BiRefNet
+    FAILED (1 of 3): the photo store refused the upload
+--- p1789109493867aad7 : Sheet gray
+    FAILED (1 of 3): the photo store refused the upload
+--- p17892249696909pgu : Skechers
+    FAILED (1 of 3): the photo store refused the upload
+--- pmtyjadff35 : VG-1001 Frames
+    FAILED (1 of 3): the photo store refused the upload
+--- pmtyjmyfc78 : Visibilla
+    FAILED (1 of 3): the photo store refused the upload
+--- pmtzl3ql140 : VG-1002 Frames
+    FAILED (1 of 3): the photo store refused the upload
+--- pmtzl57qf92 : VG-1003 Frames
+    FAILED (1 of 3): the photo store refused the upload
+--- pmtzn859c27 : New cat eye
+    FAILED (1 of 3): the photo store refused the upload
+--- pmtzt59ej89 : VG-1004 Frames
+    FAILED (1 of 3): the photo store refused the upload
+--- pmtztljhi39 : VG-1005 Frames
+    FAILED (1 of 3): the photo store refused the upload
+--- pmtzvby3x13 : VG-1006 Frames
+    FAILED (1 of 3): the photo store refused the upload
+--- pmu1e5xfr15 : VG-1007 Frames
+    FAILED (1 of 3): the photo store refused the upload
+--- pmu1eepls58 : VG-1008 Frames
+    FAILED (1 of 3): the photo store refused the upload
+--- pmu4g6b4x96 : Ocelot
+    FAILED (1 of 3): the photo store refused the upload
+--- pmu4gg5u210 : Eyeconic
+    FAILED (1 of 3): the photo store refused the upload
+--- pmu4h3h9579 : Heart stone
+    FAILED (1 of 3): the photo store refused the upload
+--- pmu4hbhsm89 : Sizzler
+    FAILED (1 of 3): the photo store refused the upload
+Finished. Cut 0, failed 17, rejected 0, still waiting 17.
