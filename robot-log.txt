@@ -1,5 +1,5 @@
-Run 16  Thu Sep 17 22:49:46 UTC 2026
-Trigger: workflow_dispatch
+Run 17  Thu Sep 17 22:50:44 UTC 2026
+Trigger: schedule
 
 --- what the robot found ---
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
