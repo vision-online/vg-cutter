@@ -8,6 +8,11 @@ on:
   schedule:
     - cron: '*/10 * * * *'
   workflow_dispatch:
+    inputs:
+      recut:
+        description: 'Trial: type first to re-cut one frame, or a frame id'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -28,6 +33,7 @@ jobs:
         env:
           SUPABASE_URL: https://oscpunukbyosckrmopeh.supabase.co
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          RECUT: ${{ github.event.inputs.recut }}
         run: python pending.py
 
       - name: Install the cutter
@@ -49,6 +55,7 @@ jobs:
           CLOUDINARY_NAME: ${{ secrets.CLOUDINARY_NAME }}
           CLOUDINARY_PRESET: ${{ secrets.CLOUDINARY_PRESET }}
           ALERT_NUMBERS: ${{ secrets.ALERT_NUMBERS }}
+          RECUT: ${{ github.event.inputs.recut }}
         run: python cutter.py
 
       - name: Stay awake
