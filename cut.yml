@@ -1,0 +1,56 @@
+name: Cut frame photos
+
+# The robot wakes every hour, asks the shop database which frames are
+# still waiting for a try-on picture, cuts them, and writes them back.
+# The "Run workflow" button does the same thing immediately.
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cut:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install
+        run: pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
+
+      - name: Keep the model between runs
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: birefnet-cache-v1
+
+      - name: Cut whatever is waiting
+        env:
+          SUPABASE_URL: https://oscpunukbyosckrmopeh.supabase.co
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          CLOUDINARY_NAME: ${{ secrets.CLOUDINARY_NAME }}
+          CLOUDINARY_PRESET: ${{ secrets.CLOUDINARY_PRESET }}
+        run: python cutter.py
+
+      - name: Stay awake
+        # GitHub switches off an hourly robot if the repository sits
+        # untouched for 60 days. A dated note every three weeks keeps
+        # it running for ever without anyone remembering to do it.
+        run: |
+          if [ ! -f last-run.txt ] || [ -n "$(find last-run.txt -mtime +21)" ]; then
+            date -u > last-run.txt
+            git config user.name  "vg-cutter"
+            git config user.email "vg-cutter@users.noreply.github.com"
+            git add last-run.txt
+            git commit -m "robot still alive" || exit 0
+            git push
+          fi
