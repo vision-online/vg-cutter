@@ -19,6 +19,12 @@ on:
 permissions:
   contents: write
 
+# Only one robot at a time: a new look waits until the running cut has
+# finished, so two runs never cut the same frames at once.
+concurrency:
+  group: cut-out-robot
+  cancel-in-progress: false
+
 jobs:
   cut:
     runs-on: ubuntu-latest
