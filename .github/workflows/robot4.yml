@@ -1,0 +1,1100 @@
+name: Cut-out robot
+
+# The whole robot lives in this one file. Every ten minutes it takes a
+# ten-second look at the shop database; only when a frame is waiting
+# does it install the cutter and do the work. "Run workflow" does it
+# now; the Trial box takes: first (re-cut one frame), a frame id, or
+# reset (forgive rejected frames and try them again).
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+    inputs:
+      recut:
+        description: 'Trial: first / a frame id / reset'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  cut:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Unpack the robot
+        run: |
+          cat > vg_look.py <<'PYEOF'
+          """
+          The ten-second look.
+
+          This runs every ten minutes and does almost nothing: it asks the shop
+          database whether any frame is waiting for a cut-out, and writes down that
+          the robot is alive. Only if something IS waiting does the real cutter get
+          woken, with its half-gigabyte of libraries and its model.
+
+          Deliberately written with nothing but what Python already has, so this
+          step needs no installing at all. An idle day therefore costs seconds, not
+          minutes -- which is what makes running every ten minutes sensible.
+          """
+
+          import datetime
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip().rstrip("/")
+          SUPABASE_KEY = (os.environ.get("SUPABASE_KEY") or "").strip()
+
+
+          def key_role():
+              try:
+                  import base64
+                  part = SUPABASE_KEY.split(".")[1]
+                  part += "=" * (-len(part) % 4)
+                  return json.loads(base64.urlsafe_b64decode(part)).get("role", "?")
+              except Exception:
+                  return "not a legacy JWT key"
+          MAX_TRIES = int(os.environ.get("MAX_TRIES", "3"))
+
+
+          def call(path, method="GET", body=None, prefer=None):
+              req = urllib.request.Request(SUPABASE_URL + path, method=method)
+              req.add_header("apikey", SUPABASE_KEY)
+              req.add_header("Authorization", "Bearer " + SUPABASE_KEY)
+              req.add_header("Content-Type", "application/json")
+              if prefer:
+                  req.add_header("Prefer", prefer)
+              data = json.dumps(body).encode() if body is not None else None
+              try:
+                  with urllib.request.urlopen(req, data, timeout=45) as r:
+                      text = r.read().decode() or "[]"
+              except urllib.error.HTTPError as e:
+                  raise RuntimeError("database answered %d: %s" % (e.code, e.read().decode()[:200]))
+              try:
+                  return json.loads(text)
+              except Exception:
+                  return []
+
+
+          def waiting(p):
+              if p.get("tryOnLocked"):
+                  return False
+              if p.get("tryOnOk") is False:
+                  return False          # try-on switched off by hand in admin: leave it
+              if (p.get("tryOnFails") or 0) >= MAX_TRIES:
+                  return False
+              if p.get("tryOnReady") and p.get("tryOnUrl"):
+                  return False
+              ang = p.get("anglePhotos") if isinstance(p.get("anglePhotos"), dict) else {}
+              return bool(p.get("rawFrontUrl") or p.get("originalUrl") or ang.get("front") or p.get("url"))
+
+
+          def main():
+              now = datetime.datetime.utcnow().isoformat() + "Z"
+              state = {"lastLook": now, "ok": False}
+              failed = False
+              recut = (os.environ.get("RECUT") or "").strip()
+              if not SUPABASE_URL or not SUPABASE_KEY:
+                  print("::error::STOP: the SUPABASE_KEY secret is missing or empty.")
+                  failed = True
+              else:
+                  print("::notice::Database %s, key role: %s" % (SUPABASE_URL, key_role()))
+              count = 0
+              try:
+                  rows = call("/rest/v1/products?select=id,data&limit=3000")
+                  frames = [r.get("data") or {} for r in rows if not str(r.get("id") or "").startswith("__")]
+                  if recut.lower() == "reset":
+                      # forgive every rejection: the fault was ours (a wrong secret),
+                      # not the photos. The cutter then tries them all again.
+                      cleared = []
+                      for r in rows:
+                          d = r.get("data") or {}
+                          if str(r.get("id") or "").startswith("__"):
+                              continue
+                          if (d.get("tryOnFails") or 0) > 0:
+                              d["tryOnFails"] = 0
+                              d.pop("tryOnFail", None)
+                              cleared.append({"id": str(r.get("id")), "data": d, "updated_at": now})
+                      if cleared:
+                          call("/rest/v1/products?on_conflict=id", "POST", cleared,
+                               "resolution=merge-duplicates,return=minimal")
+                      print("Reset: %d frame(s) forgiven and back in the queue." % len(cleared))
+                      recut = ""
+                  count = sum(1 for p in frames if waiting(p))
+                  rejected = sum(1 for p in frames if (p.get("tryOnFails") or 0) >= MAX_TRIES)
+                  # say WHY, so a rejection can be read from the run page
+                  reasons = {}
+                  for p in frames:
+                      if (p.get("tryOnFails") or 0) >= 1 and p.get("tryOnFail"):
+                          reasons.setdefault(str(p.get("tryOnFail"))[:160], []).append(str(p.get("name") or p.get("id"))[:24])
+                  for why, names in sorted(reasons.items(), key=lambda kv: -len(kv[1]))[:6]:
+                      print("  %d frame(s): %s  [%s]" % (len(names), why, ", ".join(names[:4])))
+                  state = {"lastLook": now, "ok": True, "waiting": count,
+                           "rejected": rejected, "frames": len(frames)}
+                  if recut:
+                      count = max(count, 1)     # a trial cut was asked for: wake the cutter
+                  print("::notice::Frames: %d. Waiting: %d. Rejected: %d.%s" % (len(frames), count, rejected,
+                        ("  Trial re-cut asked for: " + recut) if recut else ""))
+              except Exception as e:
+                  state["error"] = str(e)[:300]
+                  print("::error::STOP: could not read the database: %s" % str(e)[:200].replace("\n", " "))
+                  failed = True
+
+              # The health line in admin reads this row.
+              try:
+                  old = call("/rest/v1/products?select=id,data&id=eq.__robot")
+                  keep = (old[0].get("data") if old else None) or {}
+                  keep.update(state)
+                  call("/rest/v1/products?on_conflict=id", "POST",
+                       [{"id": "__robot", "data": keep, "updated_at": now}],
+                       "resolution=merge-duplicates,return=minimal")
+              except Exception as e:
+                  print("Could not write the health note: %s" % str(e)[:150])
+
+              out = os.environ.get("GITHUB_OUTPUT")
+              if out:
+                  with open(out, "a") as f:
+                      f.write("waiting=%d\n" % count)
+              if failed:
+                  raise SystemExit(1)
+
+
+          if __name__ == "__main__":
+              main()
+          PYEOF
+          cat > vg_cut.py <<'PYEOF'
+          """
+          Vision Gallery — the cut-out robot.
+
+          Runs by itself on GitHub Actions. Every hour it asks the shop's own
+          database which frames are still waiting for a try-on picture, cuts each
+          one, puts the cut-out on Cloudinary, and writes the address back onto the
+          frame. Nobody opens Colab, nobody renames a file, nobody presses anything.
+
+          The cutting method is the one the shop settled on, unchanged:
+
+            1. no erosion or trimming rule anywhere -- the rim is NEVER thinned
+            2. a first mask from the full BiRefNet
+            3. a trimap: a band of "unknown" either side of the rim edge
+            4. alpha matting in that band, so the edge is soft and a crystal or
+               tinted rim keeps its see-through look instead of being cut to a line
+            5. the inner lens cleared to full transparency, the outer rim untouched
+            6. for the front try-on only: the arms removed end piece to end piece,
+               by dropping outer columns that are too short to be a rim
+
+          What it needs to be told (GitHub -> Settings -> Secrets):
+            SUPABASE_URL   the shop database address
+            SUPABASE_KEY   the service_role key (a robot cannot sign in like a person)
+          Cloudinary is read from the shop's own settings row; it can also be given
+          as CLOUDINARY_NAME and CLOUDINARY_PRESET if it is ever missing there.
+          """
+
+          import io
+          import json
+          import os
+          import sys
+          import time
+
+          import numpy as np
+          import requests
+          from PIL import Image
+
+          START = time.time()
+          MAX_MINUTES = float(os.environ.get("MAX_MINUTES", "50"))
+          MAX_FRAMES = int(os.environ.get("MAX_FRAMES", "40"))
+          MAX_TRIES = int(os.environ.get("MAX_TRIES", "3"))
+
+          SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip().rstrip("/")
+          SUPABASE_KEY = (os.environ.get("SUPABASE_KEY") or "").strip()
+
+
+          def key_role():
+              """Which kind of key this is, read from inside it -- without ever
+              printing the key. 'service_role' is right; 'anon' cannot write."""
+              try:
+                  import base64
+                  part = SUPABASE_KEY.split(".")[1]
+                  part += "=" * (-len(part) % 4)
+                  return json.loads(base64.urlsafe_b64decode(part)).get("role", "?")
+              except Exception:
+                  return "not a legacy JWT key (sb_... keys are not accepted here)"
+
+
+          def log(*a):
+              print(*a, flush=True)
+
+
+          def out_of_time():
+              return (time.time() - START) / 60.0 > MAX_MINUTES
+
+
+          # ---------------------------------------------------------------- database
+
+          def sb_headers(extra=None):
+              h = {
+                  "apikey": SUPABASE_KEY,
+                  "Authorization": "Bearer " + SUPABASE_KEY,
+                  "Content-Type": "application/json",
+              }
+              if extra:
+                  h.update(extra)
+              return h
+
+
+          def fetch_products():
+              """Every real frame. Settings rows have ids starting __ and are
+              skipped here in Python: in the database's LIKE language an underscore
+              is a wildcard, so a 'not like __*' filter would hide every frame."""
+              url = (SUPABASE_URL + "/rest/v1/products?select=id,data&order=id.asc&limit=3000")
+              r = requests.get(url, headers=sb_headers(), timeout=60)
+              if not r.ok:
+                  raise RuntimeError("database answered %d: %s" % (r.status_code, r.text[:200]))
+              rows = r.json() or []
+              out = []
+              for row in rows:
+                  rid = str(row.get("id") or "")
+                  if rid.startswith("__"):
+                      continue
+                  data = row.get("data") if isinstance(row.get("data"), dict) else {}
+                  data["id"] = rid
+                  out.append(data)
+              return out
+
+
+          def fetch_setting(key):
+              url = (SUPABASE_URL + "/rest/v1/products?select=id,data&id=eq.__" + key)
+              try:
+                  r = requests.get(url, headers=sb_headers(), timeout=30)
+                  if not r.ok:
+                      return None
+                  rows = r.json() or []
+                  return rows[0]["data"] if rows and isinstance(rows[0].get("data"), dict) else None
+              except Exception:
+                  return None
+
+
+          def save_product(product):
+              """Write the frame back, whole, exactly as the admin does."""
+              import datetime
+              body = [{
+                  "id": str(product["id"]),
+                  "data": product,
+                  "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+              }]
+              r = requests.post(
+                  SUPABASE_URL + "/rest/v1/products?on_conflict=id",
+                  headers=sb_headers({"Prefer": "resolution=merge-duplicates,return=minimal"}),
+                  data=json.dumps(body), timeout=60)
+              r.raise_for_status()
+
+
+          # ---------------------------------------------------------------- cloudinary
+
+          def cloudinary_candidates(products):
+              """Every (cloud name, preset) pair worth trying, best guess first.
+              Names: the GitHub secret, the shop's saved settings, and the cloud
+              name that every existing photo URL already carries. Presets: the
+              secret and the shop settings."""
+              names, presets = [], []
+              def add(lst, v, src):
+                  v = (v or "").strip()
+                  if v and v not in [x for x, _ in lst]:
+                      lst.append((v, src))
+              add(names, os.environ.get("CLOUDINARY_NAME"), "secret")
+              add(presets, os.environ.get("CLOUDINARY_PRESET"), "secret")
+              for key in ("settings", "cloudinary", "shop"):
+                  st = fetch_setting(key) or {}
+                  c = st.get("cloudinary") if isinstance(st.get("cloudinary"), dict) else st
+                  if isinstance(c, dict):
+                      add(names, c.get("name"), "shop settings")
+                      add(presets, c.get("preset"), "shop settings")
+              import re
+              for p in products:
+                  for v in (p.get("url"), p.get("originalUrl"), p.get("rawFrontUrl")):
+                      m = re.search(r"res\.cloudinary\.com/([^/]+)/", str(v or ""))
+                      if m:
+                          add(names, m.group(1), "photo URLs")
+                          break
+              return [(n, ns, pr, ps) for n, ns in names for pr, ps in presets]
+
+
+          def cloudinary_probe(products):
+              """Try each candidate with a 2x2 transparent PNG until Cloudinary accepts."""
+              test = io.BytesIO()
+              Image.new("RGBA", (2, 2), (0, 0, 0, 0)).save(test, "PNG")
+              tried = []
+              for name, ns, preset, ps in cloudinary_candidates(products):
+                  try:
+                      cloudinary_upload(test.getvalue(), "vg-robot-test", name, preset)
+                      log("Cloudinary accepted a test upload: cloud %s (from %s), preset %s (from %s)."
+                          % (name, ns, preset, ps))
+                      return name, preset
+                  except Exception as e:
+                      tried.append("cloud %s (%s) + preset %s (%s): %s" % (name, ns, preset, ps, str(e)[:90]))
+              for t in tried:
+                  log("  tried " + t)
+              return None, None
+
+
+          def cloudinary_upload(png_bytes, public_hint, name, preset):
+              r = requests.post(
+                  "https://api.cloudinary.com/v1_1/%s/image/upload" % name,
+                  data={"upload_preset": preset},
+                  files={"file": (public_hint + ".png", png_bytes, "image/png")},
+                  timeout=180)
+              if not r.ok:
+                  raise RuntimeError("Cloudinary refused: %s %s" % (r.status_code, r.text[:200]))
+              j = r.json()
+              url = j.get("secure_url") or j.get("url")
+              if not url:
+                  raise RuntimeError("Cloudinary gave no address back")
+              return url
+
+
+          # ---------------------------------------------------------------- the model
+
+          _model = None
+
+
+          def model():
+              global _model
+              if _model is None:
+                  import torch
+                  from transformers import AutoModelForImageSegmentation
+                  wanted = os.environ.get("BIREFNET_MODEL", "ZhengPeng7/BiRefNet")
+                  try:
+                      m = AutoModelForImageSegmentation.from_pretrained(wanted, trust_remote_code=True)
+                      log("Model loaded:", wanted)
+                  except Exception as e:
+                      log("Full model would not load (%s). Using the lite model instead." % str(e)[:120])
+                      m = AutoModelForImageSegmentation.from_pretrained(
+                          "ZhengPeng7/BiRefNet_lite", trust_remote_code=True)
+                  m.eval()
+                  torch.set_grad_enabled(False)
+                  torch.set_num_threads(int(os.environ.get("THREADS", "4")))
+                  _model = m
+              return _model
+
+
+          def coarse_mask(img):
+              """BiRefNet's own opinion of the frame, as a 0..1 mask at photo size."""
+              import cv2
+              import torch
+              from torchvision import transforms
+              prep = transforms.Compose([
+                  transforms.Resize((1024, 1024)),
+                  transforms.ToTensor(),
+                  transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+              ])
+              x = prep(img).unsqueeze(0)
+              with torch.no_grad():
+                  pred = model()(x)[-1].sigmoid().cpu()[0, 0].numpy()
+              pred = cv2.resize(pred, img.size, interpolation=cv2.INTER_LINEAR)
+              return pred.astype(np.float32)
+
+
+          # ---------------------------------------------------------------- the method
+
+          def make_trimap(mask01, band_px):
+              """
+              0 = surely background, 1 = surely frame, 0.5 = unknown.
+              The unknown band straddles the rim edge, so the matting -- not a hard
+              threshold -- decides every pixel near the rim. The rim itself is never
+              eroded; erosion only marks what is safely inside.
+              """
+              import cv2
+              hard = (mask01 > 0.5).astype(np.uint8)
+              k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (band_px * 2 + 1, band_px * 2 + 1))
+              sure_fg = cv2.erode(hard, k)
+              sure_bg = 1 - cv2.dilate(hard, k)
+              tri = np.full(hard.shape, 0.5, np.float32)
+              tri[sure_fg == 1] = 1.0
+              tri[sure_bg == 1] = 0.0
+              return tri
+
+
+          def matte(img, trimap):
+              """Continuous alpha in the unknown band, at a reduced size for speed."""
+              import cv2
+              from pymatting import estimate_alpha_lkm, estimate_alpha_cf
+              rgb = np.asarray(img.convert("RGB")).astype(np.float64) / 255.0
+              H, W = trimap.shape
+              scale = min(1.0, 900.0 / max(H, W))
+              if scale < 1.0:
+                  sw, sh = int(W * scale), int(H * scale)
+                  rgb_s = cv2.resize(rgb, (sw, sh), interpolation=cv2.INTER_AREA)
+                  tri_s = cv2.resize(trimap, (sw, sh), interpolation=cv2.INTER_NEAREST)
+              else:
+                  rgb_s, tri_s = rgb, trimap
+              try:
+                  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+              except Exception:
+                  a = estimate_alpha_cf(rgb_s, tri_s.astype(np.float64))
+              a = np.clip(a, 0, 1)
+              if scale < 1.0:
+                  a = cv2.resize(a.astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)
+              a = np.where(trimap == 1.0, 1.0, np.where(trimap == 0.0, 0.0, a))
+              return a.astype(np.float32)
+
+
+          def _border(mask):
+              b = np.zeros_like(mask, dtype=bool)
+              b[0, :] = b[-1, :] = b[:, 0] = b[:, -1] = True
+              return b & mask
+
+
+          def largest_component(alpha):
+              """Keep the frame; drop stray specks the model may have kept."""
+              from scipy import ndimage
+              lab, n = ndimage.label(alpha > 0.5)
+              if n <= 1:
+                  return alpha
+              sizes = ndimage.sum(alpha > 0.5, lab, range(1, n + 1))
+              keep = int(np.argmax(sizes)) + 1
+              out = alpha.copy()
+              out[(lab != keep) & (lab != 0)] = 0.0
+              return out
+
+
+          def lens_holes(alpha):
+              """The enclosed openings inside the rim -- i.e. the two lenses."""
+              from scipy import ndimage
+              frame = alpha > 0.5
+              not_frame = ~frame
+              outside = ndimage.binary_propagation(_border(not_frame), mask=not_frame)
+              holes = not_frame & ~outside
+              lab, n = ndimage.label(holes)
+              if n == 0:
+                  return np.zeros_like(holes), outside
+              sizes = ndimage.sum(holes, lab, range(1, n + 1))
+              big = [i + 1 for i, s in enumerate(sizes) if s > holes.size * 0.004]
+              return np.isin(lab, big), outside
+
+
+          def clear_inner_lens(alpha):
+              """
+              Make the glass fully transparent -- including a tinted or mirrored
+              lens the model kept as solid, and a hinge tongue showing through the
+              corner. The outer rim is not touched: nothing here operates on it.
+              """
+              import cv2
+              lens, outside = lens_holes(alpha)
+              if not lens.any():
+                  return alpha
+              k = cv2.getStructuringElement(
+                  cv2.MORPH_ELLIPSE, (int(alpha.shape[1] * 0.024) | 1,) * 2)
+              lens_closed = cv2.morphologyEx(lens.astype(np.uint8), cv2.MORPH_CLOSE, k).astype(bool)
+              lens_closed &= ~outside
+              out = alpha.copy()
+              out[lens_closed] = 0.0
+              return out
+
+
+          def cut_end_to_end(alpha):
+              """
+              The front try-on picture: arms removed, end pieces kept.
+
+              Walking in from each side, a column belonging to an arm is far
+              shorter than a column belonging to a rim. Columns shorter than 12%
+              of the frame's depth are dropped; the walk stops at the first proper
+              column, which is the end piece. Nothing is thinned: whole columns of
+              arm are dropped, never a pixel of what is kept.
+              """
+              # measure with the solid part only: the soft edge the matting adds
+              # around a thin arm must not make it look as deep as a rim
+              A = alpha > 0.5
+              heights = A.sum(axis=0)
+              if not heights.any():
+                  return alpha
+              depth = float(heights.max())
+              thin = heights < depth * 0.12
+              W = alpha.shape[1]
+              left = 0
+              while left < W and (heights[left] == 0 or thin[left]):
+                  left += 1
+              right = W - 1
+              while right > left and (heights[right] == 0 or thin[right]):
+                  right -= 1
+              out = alpha.copy()
+              out[:, :left] = 0.0
+              out[:, right + 1:] = 0.0
+              return out
+
+
+          def measurements(alpha):
+              """Lens centres, widths, bridge and front width, in pixels and as
+              fractions of the front width -- the numbers the try-on engine uses."""
+              from scipy import ndimage
+              lens, _ = lens_holes(alpha)
+              ys, xs = np.where(alpha > 0.2)
+              if not xs.size:
+                  return {}
+              front_w = int(xs.max() - xs.min() + 1)
+              front_h = int(ys.max() - ys.min() + 1)
+              out = {"frontWidthPx": front_w, "frontHeightPx": front_h}
+              lab, n = ndimage.label(lens)
+              if n < 1:
+                  return out
+              boxes = []
+              for i in range(1, n + 1):
+                  yy, xx = np.where(lab == i)
+                  boxes.append((xx.min(), xx.max(), yy.min(), yy.max(), xx.size))
+              boxes.sort(key=lambda b: -b[4])
+              boxes = sorted(boxes[:2], key=lambda b: b[0])
+              eyes = []
+              for (x0, x1, y0, y1, _s) in boxes:
+                  eyes.append({
+                      "centreX": float((x0 + x1) / 2.0),
+                      "centreY": float((y0 + y1) / 2.0),
+                      "widthPx": int(x1 - x0 + 1),
+                      "heightPx": int(y1 - y0 + 1),
+                      "centreXFrac": float(((x0 + x1) / 2.0 - xs.min()) / front_w),
+                  })
+              out["lenses"] = eyes
+              if len(boxes) == 2:
+                  out["bridgePx"] = int(boxes[1][0] - boxes[0][1])
+                  out["pupilGapPx"] = float(eyes[1]["centreX"] - eyes[0]["centreX"])
+              return out
+
+
+          # ---------------------------------------------------------------- reading
+          # The shop's own rules for shape, rim type, material and colour, moved
+          # from the phone (where they ran on a weak cut) onto the robot's clean
+          # cut. Every reading is a suggestion: it fills an empty box in admin and
+          # never overwrites a choice the shop made.
+
+          NAMED_COLOURS = [
+              ("black", (27, 27, 32)), ("gunmetal", (75, 78, 85)), ("grey", (141, 141, 149)),
+              ("silver", (185, 188, 194)), ("white", (236, 239, 242)),
+              ("brown", (107, 74, 42)), ("tortoise", (122, 74, 30)), ("gold", (154, 115, 40)), ("amber", (156, 86, 32)),
+              ("navy", (29, 47, 87)), ("blue", (47, 91, 140)), ("green", (47, 107, 69)), ("forest", (34, 80, 58)),
+              ("red", (166, 48, 48)), ("burgundy", (107, 31, 46)), ("pink", (192, 122, 142)),
+              ("purple", (91, 58, 104)), ("plum", (77, 42, 86)),
+              ("light blue", (143, 179, 217)), ("light purple", (183, 156, 207)), ("light pink", (227, 180, 196)),
+              ("light grey", (196, 198, 204)), ("light green", (157, 201, 168)), ("light brown", (184, 145, 106)),
+              ("transparent blue", (169, 196, 222)), ("transparent purple", (195, 169, 214)),
+              ("transparent brown", (201, 168, 130)), ("transparent pink", (230, 194, 207)), ("transparent green", (180, 212, 188)),
+          ]
+
+
+          def name_colour(rgb, bg_lum):
+              r, g, b = rgb
+              lum = r * .299 + g * .587 + b * .114
+              mx, mn = max(rgb), min(rgb)
+              sat = (mx - mn) / mx if mx else 0
+              if sat < 0.10 and bg_lum > 0 and abs(lum - bg_lum) < 28:
+                  return "transparent"
+              if sat < 0.10 and lum > 205:
+                  return "white"
+              best, bd = "black", 1e18
+              for n, c in NAMED_COLOURS:
+                  d = (r - c[0]) ** 2 * 0.3 + (g - c[1]) ** 2 * 0.59 + (b - c[2]) ** 2 * 0.11
+                  if d < bd:
+                      bd, best = d, n
+              return best
+
+
+          def read_colours(rgb, alpha, bg_lum):
+              """Top and bottom band of the rim: two names, and whether they differ."""
+              H = alpha.shape[0]
+              solid = alpha >= 0.8
+              out = []
+              for y0, y1 in ((0, int(H * 0.40)), (int(H * 0.60), H)):
+                  m = solid[y0:y1]
+                  px = rgb[y0:y1][m]
+                  out.append(px.reshape(-1, 3).mean(axis=0) if px.size else None)
+              top, bot = out
+              if top is None:
+                  return None
+              tn = name_colour(tuple(top), bg_lum)
+              bn = name_colour(tuple(bot), bg_lum) if bot is not None else tn
+              hx = lambda c: "#%02x%02x%02x" % tuple(int(round(v)) for v in c)
+              return {"top": tn.title(), "bottom": bn.title(), "topHex": hx(top),
+                      "bottomHex": hx(bot) if bot is not None else hx(top), "twoTone": tn != bn}
+
+
+          def read_shape(alpha):
+              """Shape, rim type and material from the two lens openings.
+
+              Everything about the OPENING is judged from the enclosed hole itself
+              (lens_holes), never from "anything transparent inside its box": the
+              corners of a round lens's box lie outside the frame and would make
+              every round frame read as square. The RIM is judged from the alpha
+              just outside the hole."""
+              from scipy import ndimage
+              H, W = alpha.shape
+              OPEN = 40 / 255.0
+              lens, _ = lens_holes(alpha)
+              lab, n = ndimage.label(lens)
+              if n < 2:
+                  # no enclosed openings: a full rim always makes two, so this is a
+                  # half rim or rimless front. Shape cannot be read; the rim can.
+                  return {"shape": "", "rim": "Half rim", "material": "", "shapeSure": False,
+                          "rimSure": False, "detail": {"holes": int(n)}}
+              sizes = ndimage.sum(lens, lab, range(1, n + 1))
+              idx = [i + 1 for i in sorted(range(n), key=lambda i: -sizes[i])[:2]]
+              holes = []
+              for i in idx:
+                  yy, xx = np.where(lab == i)
+                  holes.append((int(xx.min()), int(xx.max()), int(yy.min()), int(yy.max()), lab == i))
+              holes.sort(key=lambda b: b[0])
+              per = []
+              for i, (x0, x1, y0, y1, hole) in enumerate(holes):
+                  bw, bh = x1 - x0 + 1, y1 - y0 + 1
+                  if bw < 8 or bh < 8:
+                      return None
+                  rows = hole[y0:y1 + 1].sum(axis=1).astype(float)      # opening width per row
+                  q = max(1, bh // 4)
+                  top_w, bot_w, mid_w = rows[:q].mean(), rows[-q:].mean(), rows.max()
+                  fill = float(hole.sum()) / (bw * bh)                    # 0.785 circle, ~0.95 square
+                  outer = (i == 0)
+                  # the top edge of the opening, outer band vs inner band (cat eye lifts the outer)
+                  def edge_top(f0, f1):
+                      tops = []
+                      for x in range(x0 + int(round(bw * f0)), min(x1, x0 + int(round(bw * f1))) + 1):
+                          col = np.where(hole[:, x])[0]
+                          if col.size: tops.append(col.min() - y0)
+                      return float(np.mean(tops)) if tops else 0.0
+                  outer_edge = edge_top(0.05, 0.30) if outer else edge_top(0.70, 0.95)
+                  inner_edge = edge_top(0.70, 0.95) if outer else edge_top(0.05, 0.30)
+                  lift = (inner_edge - outer_edge) / bh
+                  # the opening's outer side: does it reach further out at the top than at the bottom?
+                  def outer_reach(f0, f1):
+                      vals = []
+                      for y in range(y0 + int(round(bh * f0)), min(y1, y0 + int(round(bh * f1))) + 1):
+                          r = np.where(hole[y])[0]
+                          if r.size: vals.append((x0 + bw - r.min()) if outer else (r.max() - x0))
+                      return float(np.mean(vals)) if vals else 0.0
+                  flare = (outer_reach(0.05, 0.25) - outer_reach(0.75, 0.95)) / bw
+                  # rim thickness above and below, thinnest of three columns
+                  def thick(xf, d):
+                      cx = min(x1, x0 + int(round(bw * xf)))
+                      col = np.where(hole[:, cx])[0]
+                      if not col.size: return 0
+                      y = (col.min() - 1) if d < 0 else (col.max() + 1)
+                      k = 0
+                      while 0 <= y < H and alpha[y, cx] >= OPEN and k < H:
+                          k += 1; y += d
+                      return k
+                  rim_top = min(thick(0.3, -1), thick(0.5, -1), thick(0.7, -1))
+                  rim_bot = min(thick(0.3, 1), thick(0.5, 1), thick(0.7, 1))
+                  per.append(dict(ratio=bw / bh, fill=fill, topBot=top_w / bot_w if bot_w else 9.0,
+                                  lift=lift, flare=flare, rimTop=rim_top, rimBot=rim_bot, bh=bh))
+              m = lambda k: (per[0][k] + per[1][k]) / 2
+              ratio, fill, top_bot = m("ratio"), m("fill"), m("topBot")
+              lift, flare, rim_top, rim_bot, bh = m("lift"), m("flare"), m("rimTop"), m("rimBot"), m("bh")
+              if lift > 0.08: shape = "Cat eye"
+              elif rim_top > 0 and rim_bot > 0 and rim_top > rim_bot * 2.4: shape = "Browline"
+              elif top_bot > 1.35 and fill < 0.88: shape = "Aviator"          # teardrop: wide top, narrow bottom
+              elif flare > 0.08 or (top_bot > 1.12 and fill >= 0.80): shape = "Wayfarer"
+              elif ratio < 1.15: shape = "Square" if fill >= 0.86 else "Round"
+              else: shape = "Rectangle" if fill >= 0.86 else "Oval"
+              rim = "Rimless" if (rim_bot == 0 and rim_top == 0) else ("Half rim" if rim_bot == 0 else "Full rim")
+              rel = rim_top / bh if bh else 0
+              material = "" if rim == "Rimless" else ("Metal" if rel <= 0.06 else ("Acetate" if rel >= 0.10 else ""))
+              shape_sure = not ((0.82 < fill < 0.90) or (0.05 < lift < 0.11) or (1.25 < top_bot < 1.45) or
+                                (1.08 < ratio < 1.22 and shape in ("Square", "Round", "Rectangle", "Oval")))
+              rim_sure = rim_bot >= 3 if rim == "Full rim" else True
+              return {"shape": shape, "rim": rim, "material": material,
+                      "shapeSure": bool(shape_sure), "rimSure": bool(rim_sure),
+                      "detail": {k: round(float(v), 3) for k, v in
+                                 dict(ratio=ratio, fill=fill, topBot=top_bot, lift=lift, flare=flare,
+                                      rimTop=rim_top, rimBot=rim_bot).items()}}
+
+
+          def read_frame(img, alpha):
+              """What a camera can see about the frame, from the finished cut."""
+              out = {}
+              try:
+                  rgb = np.asarray(img.convert("RGB"))
+                  H, W = alpha.shape
+                  border = np.concatenate([rgb[0, :], rgb[-1, :], rgb[:, 0], rgb[:, -1]]).astype(np.float64)
+                  bg_lum = float((border[:, 0] * .299 + border[:, 1] * .587 + border[:, 2] * .114).mean())
+                  col = read_colours(rgb, alpha, bg_lum)
+                  if col: out["colour"] = col
+              except Exception as e:
+                  out["colourError"] = str(e)[:80]
+              try:
+                  geo = read_shape(alpha)
+                  if geo: out["geometry"] = geo
+              except Exception as e:
+                  out["shapeError"] = str(e)[:80]
+              return out
+
+
+          def apply_reading(p, reading):
+              """Fill the boxes the shop left empty. Never overwrite a choice."""
+              filled = []
+              was_auto = set(p.get("autoFields") or [])
+              def put(field, value, sure=True):
+                  if not value: return
+                  if p.get(field) and field not in was_auto: return
+                  if p.get(field) == value: return
+                  p[field] = value; was_auto.add(field); filled.append(field + ("" if sure else "?"))
+              col = reading.get("colour") or {}
+              geo = reading.get("geometry") or {}
+              if col:
+                  put("colour", col.get("top"), True)
+                  if col.get("twoTone"): put("colour2", col.get("bottom"), False)
+              if geo:
+                  put("shape", geo.get("shape"), geo.get("shapeSure", False))
+                  put("rim", geo.get("rim"), geo.get("rimSure", False))
+                  put("material", geo.get("material"), False)
+              p["autoFields"] = sorted(was_auto)
+              p["robotRead"] = reading
+              return filled
+
+
+          def cut(photo_bytes, front=True):
+              """One photo in, one transparent PNG (and its numbers) out."""
+              import cv2
+              img = Image.open(io.BytesIO(photo_bytes)).convert("RGB")
+              if max(img.size) > 1600:
+                  s = 1600.0 / max(img.size)
+                  img = img.resize((int(img.width * s), int(img.height * s)), Image.LANCZOS)
+
+              m = coarse_mask(img)                                  # step 2
+              m = largest_component(m)
+              band_px = max(6, min(24, int(round(12 * max(img.size) / 1440.0))))
+              tri = make_trimap(m, band_px)                         # step 3
+              a = matte(img, tri)                                   # step 4
+              a = clear_inner_lens(a)                               # step 5
+              if front:
+                  a = cut_end_to_end(a)                             # step 6
+
+              nums = measurements(a)
+              nums["reading"] = read_frame(img, a) if front else {}
+              rgba = np.dstack([np.asarray(img), (a * 255).round().astype(np.uint8)])
+              ys, xs = np.where(a > 0.02)
+              if ys.size:
+                  pad = 4
+                  y0, y1 = max(0, ys.min() - pad), min(a.shape[0], ys.max() + pad + 1)
+                  x0, x1 = max(0, xs.min() - pad), min(a.shape[1], xs.max() + pad + 1)
+                  rgba = rgba[y0:y1, x0:x1]
+              buf = io.BytesIO()
+              Image.fromarray(rgba, "RGBA").save(buf, "PNG", optimize=True)
+              return buf.getvalue(), nums
+
+
+          # ---------------------------------------------------------------- the round
+
+          def front_photo(p):
+              ang = p.get("anglePhotos") if isinstance(p.get("anglePhotos"), dict) else {}
+              # the photo AS TAKEN first (d16.62 admin uploads it plain); the
+              # sharpened copies only if that is all an older frame has
+              for v in (p.get("rawFrontUrl"), p.get("originalUrl"), ang.get("front"), p.get("url")):
+                  if isinstance(v, str) and v.startswith("http"):
+                      return v
+              return None
+
+
+          def angle_photo(p):
+              ang = p.get("anglePhotos") if isinstance(p.get("anglePhotos"), dict) else {}
+              for v in (p.get("rawAngleUrl"), ang.get("angle")):
+                  if isinstance(v, str) and v.startswith("http"):
+                      return v
+              for g in (p.get("gallery") or []):
+                  if isinstance(g, dict) and g.get("view") == "angle" and str(g.get("url", "")).startswith("http"):
+                      return g["url"]
+              return None
+
+
+          def side_photo(p):
+              ang = p.get("anglePhotos") if isinstance(p.get("anglePhotos"), dict) else {}
+              for v in (p.get("rawSideUrl"), p.get("sidePhoto"), ang.get("side")):
+                  if isinstance(v, str) and v.startswith("http"):
+                      return v
+              return None
+
+
+          def waiting(p):
+              """A frame is waiting if it has a photo but no ready cut-out."""
+              if p.get("tryOnLocked"):
+                  return False
+              if p.get("tryOnOk") is False:
+                  return False          # try-on switched off by hand in admin: leave it          # a cut-out the shop supplied by hand: never touch
+              if (p.get("tryOnFails") or 0) >= MAX_TRIES:
+                  return False          # already rejected: waiting for a better photo
+              if p.get("tryOnReady") and p.get("tryOnUrl"):
+                  return False
+              return bool(front_photo(p))
+
+
+          def plain_reason(err):
+              """Turn a technical failure into something a photographer can act on."""
+              t = str(err).lower()
+              if "no frame" in t or "nothing" in t or "empty" in t:
+                  return "no frame found in the photo"
+              if "cloudinary" in t:
+                  return "the photo store refused the upload (%s)" % str(err)[len("Cloudinary refused: "):][:120]
+              if "timed out" in t or "timeout" in t or "connection" in t:
+                  return "the photo could not be downloaded"
+              if "lens" in t:
+                  return "the lenses could not be made clear"
+              return "the photo could not be cut (%s)" % str(err)[:80]
+
+
+          def alert_numbers():
+              """Numbers to message, from the shop settings: number:key, number:key."""
+              raw = os.environ.get("ALERT_NUMBERS") or ""
+              if not raw:
+                  for key in ("settings", "shop"):
+                      s = fetch_setting(key) or {}
+                      raw = s.get("alertWhatsApp") or s.get("alertNumbers") or ""
+                      if raw:
+                          break
+              out = []
+              for part in str(raw).replace(";", ",").split(","):
+                  part = part.strip()
+                  if not part:
+                      continue
+                  num, _, key = part.partition(":")
+                  num = "".join(ch for ch in num if ch.isdigit())
+                  if num and key.strip():
+                      out.append((num, key.strip()))
+              return out
+
+
+          def whatsapp(text):
+              """Message the shop. Free service, so a failure here is never fatal."""
+              for num, key in alert_numbers():
+                  try:
+                      requests.get("https://api.callmebot.com/whatsapp.php",
+                                   params={"phone": num, "text": text, "apikey": key},
+                                   timeout=45)
+                      log("    alert sent to %s" % num[-4:])
+                  except Exception as e:
+                      log("    alert to %s failed: %s" % (num[-4:], str(e)[:80]))
+
+
+          def health(patch):
+              """The line the admin health check reads."""
+              try:
+                  import datetime
+                  now = datetime.datetime.utcnow().isoformat() + "Z"
+                  rows = requests.get(SUPABASE_URL + "/rest/v1/products?select=id,data&id=eq.__robot",
+                                      headers=sb_headers(), timeout=30).json() or []
+                  keep = (rows[0].get("data") if rows else None) or {}
+                  keep.update(patch)
+                  keep["lastRun"] = now
+                  requests.post(SUPABASE_URL + "/rest/v1/products?on_conflict=id",
+                                headers=sb_headers({"Prefer": "resolution=merge-duplicates,return=minimal"}),
+                                data=json.dumps([{"id": "__robot", "data": keep, "updated_at": now}]),
+                                timeout=30)
+              except Exception as e:
+                  log("Could not write the health note: %s" % str(e)[:120])
+
+
+          def download(url):
+              r = requests.get(url, timeout=120)
+              r.raise_for_status()
+              return r.content
+
+
+          def main():
+              if not SUPABASE_URL or not SUPABASE_KEY:
+                  log("STOP: SUPABASE_URL or SUPABASE_KEY is missing from the repository secrets.")
+                  return 1
+
+              log("Database: %s  key: %s" % (SUPABASE_URL, key_role()))
+              try:
+                  products = fetch_products()
+              except Exception as e:
+                  msg = str(e)
+                  if "401" in msg or "403" in msg or "JWT" in msg:
+                      log("::error::STOP: the database rejected the key. Replace the SUPABASE_KEY secret "
+                          "with the service_role key (Supabase -> Settings -> API Keys -> Legacy).")
+                  else:
+                      log("::error::STOP: could not read the database: %s" % msg[:300].replace("\n", " "))
+                  health({"ok": False, "error": msg[:300]})
+                  return 1
+              todo = [p for p in products if waiting(p)]
+              recut = (os.environ.get("RECUT") or "").strip()
+              if recut:
+                  # a trial: cut one frame again even though it already has a cut-out
+                  if recut.lower() == "first":
+                      pick = next((p for p in products if front_photo(p) and not p.get("tryOnLocked")), None)
+                  else:
+                      pick = next((p for p in products if str(p.get("id")) == recut or str(p.get("sku")) == recut), None)
+                  if pick is None:
+                      log("Trial re-cut: no frame matched '%s'." % recut)
+                  elif pick not in todo:
+                      pick["tryOnFails"] = 0
+                      todo.insert(0, pick)
+                      log("Trial re-cut of %s (%s)." % (pick.get("id"), (pick.get("name") or "")[:40]))
+              log("Catalogue: %d frames. Waiting for a cut-out: %d." % (len(products), len(todo)))
+              if not todo:
+                  log("Nothing to do.")
+                  return 0
+
+              cname, cpreset = cloudinary_probe(products)
+              if not cname:
+                  log("::error::STOP: Cloudinary refused every cloud name / preset combination, so nothing "
+                      "was cut. The lines above list what was tried and what Cloudinary said. Fix: in "
+                      "Cloudinary -> Settings -> Upload, confirm the Unsigned preset name, and put it in the "
+                      "CLOUDINARY_PRESET secret exactly.")
+                  health({"ok": False, "error": "Cloudinary refused every candidate"})
+                  return 1
+
+              done = failed = 0
+              rejected = []
+              for p in todo[:MAX_FRAMES]:
+                  if out_of_time():
+                      log("Time is up for this run; the rest go in the next one.")
+                      break
+                  pid = p.get("id")
+                  try:
+                      log("--- %s : %s" % (pid, (p.get("name") or "")[:50]))
+                      png, nums = cut(download(front_photo(p)), front=True)
+                      url = cloudinary_upload(png, "tryon-" + str(pid), cname, cpreset)
+                      p["tryOnUrl"] = url
+                      p["tryOnReady"] = True
+                      reading = nums.pop("reading", {}) or {}
+                      p["tryOnNumbers"] = nums
+                      p["tryOnCutBy"] = "robot"
+                      if reading:
+                          filled = apply_reading(p, reading)
+                          if filled:
+                              log("    read from the photo: " + ", ".join(filled))
+
+                      for src, field, label in ((angle_photo(p), "tryOnAngleUrl", "45 degree"),
+                                                (side_photo(p), "tryOnSideUrl", "90 degree side")):
+                          if src and not p.get(field) and not out_of_time():
+                              try:
+                                  png2, _ = cut(download(src), front=False)
+                                  p[field] = cloudinary_upload(
+                                      png2, "tryon-" + field + "-" + str(pid), cname, cpreset)
+                                  log("    %s cut too" % label)
+                              except Exception as e:
+                                  log("    %s photo skipped: %s" % (label, str(e)[:110]))
+
+                      p.pop("tryOnFail", None)
+                      p["tryOnFails"] = 0
+                      save_product(p)
+                      done += 1
+                      log("    done -> %s" % url)
+                  except Exception as e:
+                      failed += 1
+                      why = plain_reason(e)
+                      tries = (p.get("tryOnFails") or 0) + 1
+                      p["tryOnFails"] = tries
+                      p["tryOnFail"] = why
+                      p["tryOnReady"] = False
+                      try:
+                          save_product(p)
+                      except Exception:
+                          pass
+                      log("::warning::%s FAILED (%d of %d): %s" % (pid, tries, MAX_TRIES, why))
+                      if tries >= MAX_TRIES:
+                          rejected.append("%s: %s" % (p.get("name") or pid, why))
+
+              if rejected:
+                  whatsapp("Vision Gallery - frames rejected\n\n" + "\n".join(rejected[:10]) +
+                           "\n\nThese frames are NOT on the website. Please take a proper "
+                           "photo again and save it in admin.")
+
+              health({"ok": True, "cut": done, "failed": failed,
+                      "rejectedNow": len(rejected),
+                      "waiting": max(0, len(todo) - done)})
+              log("::notice::Finished. Cut %d, failed %d, rejected %d, still waiting %d.%s"
+                  % (done, failed, len(rejected), max(0, len(todo) - done),
+                     ("  Rejected: " + "; ".join(rejected[:5])) if rejected else ""))
+              return 0
+
+
+          if __name__ == "__main__":
+              sys.exit(main())
+          PYEOF
+          cat > vg_requirements.txt <<'PYEOF'
+          torch==2.4.1
+          torchvision==0.19.1
+          transformers==4.44.2
+          timm==1.0.9
+          einops==0.8.0
+          kornia==0.7.3
+          pillow==10.4.0
+          numpy==1.26.4
+          scipy==1.14.1
+          pymatting==1.1.12
+          opencv-python-headless==4.10.0.84
+          requests==2.32.3
+          PYEOF
+          echo "robot unpacked: $(wc -l < vg_look.py) + $(wc -l < vg_cut.py) lines"
+
+      - name: Is anything waiting?
+        id: look
+        env:
+          SUPABASE_URL: https://oscpunukbyosckrmopeh.supabase.co
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          RECUT: ${{ github.event.inputs.recut }}
+        run: |
+          set +e
+          echo "Robot build 2026-09-18f (embedded; finds Cloudinary itself; arm rule hardened)" > look.txt
+          python vg_look.py >> look.txt 2>&1
+          code=$?
+          cat look.txt
+          { echo "### What the robot found"; echo '```'; cat look.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit $code
+
+      - name: Install the cutter
+        if: steps.look.outputs.waiting != '0'
+        run: pip install --extra-index-url https://download.pytorch.org/whl/cpu -r vg_requirements.txt
+
+      - name: Keep the model between runs
+        if: steps.look.outputs.waiting != '0'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: birefnet-cache-v1
+
+      - name: Cut whatever is waiting
+        if: steps.look.outputs.waiting != '0'
+        env:
+          SUPABASE_URL: https://oscpunukbyosckrmopeh.supabase.co
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          CLOUDINARY_NAME: ${{ secrets.CLOUDINARY_NAME }}
+          CLOUDINARY_PRESET: ${{ secrets.CLOUDINARY_PRESET }}
+          ALERT_NUMBERS: ${{ secrets.ALERT_NUMBERS }}
+          RECUT: ${{ github.event.inputs.recut }}
+        run: |
+          set +e
+          python vg_cut.py > cut.txt 2>&1
+          code=$?
+          cat cut.txt
+          { echo "### What the robot did"; echo '```'; sed -E "s/^::(warning|notice|error)::/  /" cut.txt | tail -n 80; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit $code
+
+      - name: Write the robot's report into the repo
+        if: always()
+        run: |
+          {
+            echo "Run $GITHUB_RUN_NUMBER  $(date -u)"
+            echo "Trigger: $GITHUB_EVENT_NAME"
+            echo
+            echo "--- what the robot found ---"
+            cat look.txt 2>/dev/null || echo "(the look did not run)"
+            echo
+            echo "--- what the robot did ---"
+            { sed -E 's/^::(warning|notice|error)::/  /' cut.txt 2>/dev/null | tail -n 80; } || echo "(the cutter did not run)"
+          } > robot-log.txt
+          if [ -s cut.txt ]; then
+            { echo "Run $GITHUB_RUN_NUMBER  $(date -u)"; echo; sed -E 's/^::(warning|notice|error)::/  /' cut.txt | tail -n 120; } > last-cut.txt
+          fi
+          rm -f vg_look.py vg_cut.py vg_requirements.txt look.txt cut.txt
+          git config user.name  "vg-cutter"
+          git config user.email "vg-cutter@users.noreply.github.com"
+          git add robot-log.txt
+          git add last-cut.txt 2>/dev/null || true
+          git commit -m "robot log, run $GITHUB_RUN_NUMBER" || exit 0
+          git pull --rebase --quiet || true
+          git push || true
