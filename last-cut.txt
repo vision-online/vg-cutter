@@ -1,16 +1,12 @@
-Run 17  Fri Sep 18 13:10:05 UTC 2026
+Run 18  Fri Sep 18 13:28:18 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 19 frames. Waiting for a cut-out: 17.
+Catalogue: 19 frames. Waiting for a cut-out: 13.
 Cloudinary: vg_upload / vg_uploads
---- p1788790420289shci : IMG-20260907-WA0013.jpg
+--- pmtyjmyfc78 : Visibilla
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet
---- p1789109493867aad7 : Sheet gray
---- p17892249696909pgu : Skechers
---- pmtyjadff35 : VG-1001 Frames
---- pmtyjmyfc78 : Visibilla
 --- pmtzl3ql140 : VG-1002 Frames
 --- pmtzl57qf92 : VG-1003 Frames
 --- pmtzn859c27 : New cat eye
