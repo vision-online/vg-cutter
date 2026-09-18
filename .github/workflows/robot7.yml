@@ -1014,7 +1014,10 @@ jobs:
               a = fill_lens_hulls(a, band_px)                       # step 5b: temple/hinge through the glass
               a = clear_inner_lens(a)                               # step 5c: tinted glass, leftovers
               if front:
-                  a, arms_above = remove_arms_above(a)              # step 6a: arms angled up over the front
+                  # step 6a (remove_arms_above) is SWITCHED OFF: on a photo with no arms
+                  # at all it cut the hinge blocks and the top of the bridge (8-42% of
+                  # the frame on 14 of 17 frames, 2026-09-18). The rim is never thinned.
+                  arms_above = 0.0
                   a = cut_end_to_end(a)                             # step 6b: arms beyond the ends
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
 
