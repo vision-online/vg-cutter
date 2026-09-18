@@ -1,7 +1,6 @@
-Run 1  Fri Sep 18 10:09:25 UTC 2026
+Run 3  Fri Sep 18 10:29:18 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Trial re-cut: no frame matched 'reset'.
 Catalogue: 19 frames. Waiting for a cut-out: 17.
 Cloudinary: vg_upload / vg_uploads
 --- p1788790420289shci : IMG-20260907-WA0013.jpg
