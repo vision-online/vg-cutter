@@ -1,9 +1,21 @@
-Run 4  Fri Sep 18 14:57:04 UTC 2026
-Trigger: schedule
+Run 5  Fri Sep 18 15:03:25 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-09-18g (padding, glass by colour, lens hulls, crystal guard)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::Frames: 19. Waiting: 0. Rejected: 0.
+::notice::Frames: 19. Waiting: 1. Rejected: 0.  Trial re-cut asked for: pmtzn859c27
 
 --- what the robot did ---
+Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
+Trial re-cut of pmtzn859c27 (New cat eye).
+Catalogue: 19 frames. Waiting for a cut-out: 1.
+Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
+--- pmtzn859c27 : New cat eye
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Model loaded: ZhengPeng7/BiRefNet
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:265: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789743802/dqa7yutq4o9khpi2vrgb.png
+  Finished. Cut 1, failed 0, rejected 0, still waiting 0.
