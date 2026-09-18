@@ -1,18 +1,57 @@
-Run 2  Fri Sep 18 21:14:36 UTC 2026
+Run 3  Fri Sep 18 21:56:43 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 19 frames. Waiting for a cut-out: 13.
+Catalogue: 19 frames. Waiting for a cut-out: 10.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
---- pmtyjmyfc78 : Visibilla
+--- pmtzn859c27 : New cat eye
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet
 /home/runner/work/vg-cutter/vg-cutter/vg_cut.py:265: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
-    CHECK PHOTO: arms were angled over the front (15% of the picture removed) -- fold them flat behind, or open them straight back, and re-shoot
+    CHECK PHOTO: arms were angled over the front (16% of the picture removed) -- fold them flat behind, or open them straight back, and re-shoot
     45 degree cut too
     90 degree side cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789765720/vwzzz3wydtcsgb5yourf.png
---- pmtzl3ql140 : VG-1002 Frames
-    CHECK PHOTO: arms were angled over the front (8% of the picture removed) -- fold them flat behind, or open them straight back, and re-shoot
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789766541/cek0l8c96u6qn4nnjvcj.png
+--- pmtzt59ej89 : VG-1004 Frames
+    CHECK PHOTO: arms were angled over the front (23% of the picture removed) -- fold them flat behind, or open them straight back, and re-shoot
     45 degree cut too
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789766804/djirafx2nwekbeolx44w.png
+--- pmtztljhi39 : VG-1005 Frames
+    45 degree cut too
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789767027/lmqjdwksd3flokgnmoil.png
+--- pmtzvby3x13 : VG-1006 Frames
+    45 degree cut too
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789767247/k0hcaxfuj5uygoce0xwr.png
+--- pmu1e5xfr15 : VG-1007 Frames
+    CHECK PHOTO: arms were angled over the front (12% of the picture removed) -- fold them flat behind, or open them straight back, and re-shoot
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789767445/xin3tntoiiwtpgcj1y8k.png
+--- pmu1eepls58 : VG-1008 Frames
+    CHECK PHOTO: arms were angled over the front (9% of the picture removed) -- fold them flat behind, or open them straight back, and re-shoot
+    45 degree cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789767512/vr9vdctqgmw3yukcmjo9.png
+--- pmu4g6b4x96 : Ocelot
+    CHECK PHOTO: arms were angled over the front (42% of the picture removed) -- fold them flat behind, or open them straight back, and re-shoot
+    45 degree cut too
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/PIL/Image.py:1056: UserWarning: Palette images with Transparency expressed in bytes should be converted to RGBA images
+  warnings.warn(
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789767653/fuftmpirqgwms1ois9i1.png
+--- pmu4gg5u210 : Eyeconic
+    45 degree cut too
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789767847/j0pzyvh63oc7grva4inh.png
+--- pmu4h3h9579 : Heart stone
+    CHECK PHOTO: arms were angled over the front (16% of the picture removed) -- fold them flat behind, or open them straight back, and re-shoot
+    45 degree cut too
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789768042/noxpb8sigbgsqpnlrxrc.png
+--- pmu4hbhsm89 : Sizzler
+    CHECK PHOTO: arms were angled over the front (22% of the picture removed) -- fold them flat behind, or open them straight back, and re-shoot
+    45 degree cut too
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789768280/byhergygxhyc3xbz0epg.png
+  Finished. Cut 10, failed 0, rejected 0, still waiting 0.
