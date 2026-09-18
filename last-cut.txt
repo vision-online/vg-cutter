@@ -1,15 +1,7 @@
-Run 4  Fri Sep 18 10:36:23 UTC 2026
+Run 1  Fri Sep 18 12:47:37 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 19 frames. Waiting for a cut-out: 7.
+Trial re-cut: no frame matched 'reset'.
+Catalogue: 19 frames. Waiting for a cut-out: 17.
 Cloudinary: vg_upload / vg_uploads
---- pmtzvby3x13 : VG-1006 Frames
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet
---- pmu1e5xfr15 : VG-1007 Frames
---- pmu1eepls58 : VG-1008 Frames
---- pmu4g6b4x96 : Ocelot
---- pmu4gg5u210 : Eyeconic
---- pmu4h3h9579 : Heart stone
---- pmu4hbhsm89 : Sizzler
+  STOP: Cloudinary refuses uploads, so nothing was cut. Cloudinary said: Cloudinary refused: 401 {"error":{"message":"Unknown API key "}}  -- check the CLOUDINARY_PRESET secret (must be the Unsigned preset name exactly, e.g. vg_uploads) and CLOUDINARY_NAME.
