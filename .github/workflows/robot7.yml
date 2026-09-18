@@ -525,7 +525,7 @@ jobs:
               return out
 
 
-          def remove_arms_above(alpha):
+          def remove_arms_above(alpha, img=None):
               """
               The shop shoots the front with the arms OPEN, so from a slightly
               raised camera the arms show as bands rising above the front's top
@@ -552,6 +552,7 @@ jobs:
               idx = [i + 1 for i in sorted(range(n), key=lambda i: -sizes[i])[:2]]
               solid = alpha > 0.5
               H, W = alpha.shape
+              lens_top = np.full(alpha.shape[1], -1, dtype=np.int64)
               spans = []
               for i in idx:
                   yy, xx = np.where(lab == i)
@@ -570,6 +571,8 @@ jobs:
                       continue
                   cols = np.array(cols, dtype=np.float64)
                   t_med = float(np.median(cols[:, 2]))
+                  for cx, ct, cth in cols:
+                      lens_top[int(cx)] = int(ct + cth)         # first glass pixel in this column
                   lo, hi = x0 + (x1 - x0) * 0.1, x1 - (x1 - x0) * 0.1
                   clean = cols[(cols[:, 2] <= t_med * 1.35) & (cols[:, 0] >= lo) & (cols[:, 0] <= hi)]
                   if len(clean) < 10:
@@ -641,8 +644,12 @@ jobs:
                   width = int(xs.max() - xs.min() + 1)
                   seated = sum(1 for x in range(int(xs.min()), int(xs.max()) + 1)
                                if lim[x] > 0 and comp[max(0, lim[x] - 3):lim[x], x].any())
-                  if rise[ys, xs].max() <= 2.0 * rim_t and seated >= 0.6 * width:
-                      keep |= comp                              # low piece sitting on the front: keep whole
+                  height = int(rise[ys, xs].max())
+                  fill = xs.size / float(max(1, width * height))
+                  # a hinge block is squarish and solid (fills most of its box); an
+                  # arm root or a tag remnant is a thin slanted band (fills little)
+                  if height <= 1.5 * rim_t and seated >= 0.6 * width and fill >= 0.45:
+                      keep |= comp                              # a block sitting on the front: keep whole
               tlab, tn = ndimage.label(thick & ~keep)
               for c in range(1, tn + 1):
                   comp = tlab == c
@@ -651,16 +658,44 @@ jobs:
                   width = int(xs.max() - xs.min() + 1)
                   seated = sum(1 for x in range(int(xs.min()), int(xs.max()) + 1)
                                if lim[x] > 0 and comp[max(0, lim[x] - r - 1):lim[x], x].any())
-                  if height <= 2.0 * rim_t and seated >= 0.8 * width:
+                  fill = xs.size / float(max(1, width * height))
+                  if height <= 2.0 * rim_t and seated >= 0.8 * width and fill >= 0.45:
                       grown = ndimage.binary_dilation(comp, structure=disk)
                       keep |= grown & above                     # a thick piece of the front
               # where an arm joins, keep a quarter rim above the edge, so the
               # corner itself is never nicked
-              band = np.zeros(W, dtype=np.int64)
-              band[lx0:lx1 + 1] = band[rx0:rx1 + 1] = max(3, int(round(rim_t * 0.25)))
-              band[band == 0] = 3
-              keep |= above & (rise <= band[None, :])
+              keep |= above & (rise <= 1)                     # the edge line itself, nothing more
               kill = above & ~keep
+              # THE CORNER: at a rounded corner the fitted line runs a little above
+              # the real rim, and the arm's root hides in that gap, looking like a
+              # thicker rim. There, and only there, colour decides: a pixel that is
+              # not the rim's colour goes -- scanning down from the line and
+              # stopping at the first rim-coloured pixel, and never below the
+              # rim's own normal thickness, so the rim is never thinned.
+              if img is not None:
+                  rgb = np.asarray(img).astype(np.float64)
+                  ref = []
+                  for x in range(W):
+                      if lens_top[x] > 0 and lim[x] > 0:
+                          y0 = lens_top[x] - int(round(rim_t * 0.8))
+                          y1 = lens_top[x] - int(round(rim_t * 0.2))
+                          if y0 > lim[x]:
+                              ref.append(rgb[y0:y1, x])
+                  if ref:
+                      rim_col = np.median(np.concatenate(ref), axis=0)
+                      for x in range(W):
+                          if lim[x] <= 0:
+                              continue
+                          if lens_top[x] > 0:
+                              floor_y = lens_top[x] - int(round(rim_t))   # normal thickness: never cut below
+                          else:
+                              floor_y = lim[x] + int(round(rim_t * 0.5))  # end piece: half a rim at most
+                          y = lim[x]
+                          while y < floor_y and solid[y, x]:
+                              if np.sqrt(((rgb[y, x] - rim_col) ** 2).sum()) < 60:
+                                  break
+                              kill[y, x] = True
+                              y += 1
               out = alpha.copy()
               if kill.any():
                   # take the arm's soft outline with it -- only above the edge line
@@ -668,14 +703,70 @@ jobs:
                   out[kill | soft] = 0.0
                   # bits of arm tip or price tag left floating above the front
                   from scipy import ndimage as _nd
-                  flab, fn = _nd.label(out > 0.02)
+                  flab, fn = _nd.label(out > 0.5)
                   if fn > 1:
-                      fs = _nd.sum(out > 0.02, flab, range(1, fn + 1))
+                      fs = _nd.sum(out > 0.5, flab, range(1, fn + 1))
                       main = int(np.argmax(fs)) + 1
                       stray = (flab != main) & (flab != 0) & (rise > 0)
+                      stray = _nd.binary_dilation(stray, iterations=3) & (rise > 0) & ~(flab == main)
                       out[stray] = 0.0
               removed = float((solid & ~(out > 0.5)).sum()) / max(1.0, float(solid.sum()))
               return out, removed
+
+
+          def clear_behind_glass(alpha):
+              """
+              A customer looks THROUGH the lenses at their own face, so the glass
+              must be completely clear: no arm, hinge or temple seen through it.
+              Each lens opening is a smooth convex shape; everything inside its
+              convex hull that is not the rim itself is cleared to fully
+              transparent, and the rim (outside the hull) is never touched.
+              """
+              import cv2
+              from scipy import ndimage
+              # a thin arm or hinge line across the glass would bend the opening's
+              # outline around itself; erode the frame a little so such lines
+              # vanish, find the openings, and shrink the hull back by the same
+              # amount so the rim is never touched
+              k = 4
+              solid = ndimage.binary_erosion(alpha > 0.5, iterations=k)
+              not_frame = ~solid
+              outside = ndimage.binary_propagation(_border(not_frame), mask=not_frame)
+              holes = not_frame & ~outside
+              lab, n = ndimage.label(holes)
+              if n == 0:
+                  return alpha
+              sizes = ndimage.sum(holes, lab, range(1, n + 1))
+              order = sorted(range(n), key=lambda i: -sizes[i])
+              out = alpha.copy()
+              for i in order[:2]:
+                  if sizes[i] < holes.size * 0.004:
+                      continue
+                  ys, xs = np.where(lab == i + 1)
+                  hull = cv2.convexHull(np.stack([xs, ys], axis=1).astype(np.int32))
+                  canvas = np.zeros(alpha.shape, np.uint8)
+                  cv2.fillConvexPoly(canvas, hull, 1)
+                  inner = ndimage.binary_erosion(canvas.astype(bool), iterations=k + 1)
+                  out[inner] = 0.0
+              return out
+
+
+          def trim_ends(alpha, frac=0.004):
+              """
+              The front is measured end to end and about half a millimetre is
+              trimmed off each end (0.4% of the width on a 140 mm front), so the
+              hinge root and any last speck of arm are gone and the ends are
+              clean. Whole columns only: nothing is thinned.
+              """
+              cols = np.where((alpha > 0.5).any(axis=0))[0]
+              if cols.size < 10:
+                  return alpha
+              x0, x1 = int(cols.min()), int(cols.max())
+              t = max(1, int(round((x1 - x0 + 1) * frac)))
+              out = alpha.copy()
+              out[:, :x0 + t] = 0.0
+              out[:, x1 - t + 1:] = 0.0
+              return out
 
 
           def cut_end_to_end(alpha):
@@ -1107,8 +1198,10 @@ jobs:
                   # front are removed here (v2, 2026-09-18: the first version also cut
                   # hinge blocks and the top of the bridge; this one never examines the
                   # bridge and keeps anything seated on the front's top edge).
-                  a, arms_above = remove_arms_above(a)
+                  a, arms_above = remove_arms_above(a, img)
                   a = cut_end_to_end(a)                             # step 6b: arms beyond the ends
+                  a = clear_behind_glass(a)                         # step 6c: nothing seen through the lenses
+                  a = trim_ends(a)                                  # step 6d: half a millimetre off each end
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
 
               # the margin comes off again
