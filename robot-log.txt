@@ -1,15 +1,14 @@
-Run 1  Fri Sep 18 12:47:37 UTC 2026
-Trigger: workflow_dispatch
+Run 2  Fri Sep 18 13:00:03 UTC 2026
+Trigger: schedule
 
 --- what the robot found ---
 Robot build 2026-09-18d (embedded, reads shape and colour, tests Cloudinary first)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-Reset: 17 frame(s) forgiven and back in the queue.
+  10 frame(s): the photo store refused the upload  [IMG-20260907-WA0013.jpg, VG-1001 Frames, VG-1002 Frames, VG-1004 Frames]
 ::notice::Frames: 19. Waiting: 17. Rejected: 0.
 
 --- what the robot did ---
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Trial re-cut: no frame matched 'reset'.
 Catalogue: 19 frames. Waiting for a cut-out: 17.
 Cloudinary: vg_upload / vg_uploads
   STOP: Cloudinary refuses uploads, so nothing was cut. Cloudinary said: Cloudinary refused: 401 {"error":{"message":"Unknown API key "}}  -- check the CLOUDINARY_PRESET secret (must be the Unsigned preset name exactly, e.g. vg_uploads) and CLOUDINARY_NAME.
