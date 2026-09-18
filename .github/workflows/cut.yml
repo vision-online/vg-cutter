@@ -87,9 +87,15 @@ jobs:
             echo "--- what the robot did ---"
             { grep -v '^::' cut.txt 2>/dev/null | tail -n 80; } || echo "(the cutter did not run)"
           } > robot-log.txt
+          # a run that actually cut something keeps its own report, so the
+          # ten-minute looks that follow do not overwrite it
+          if [ -s cut.txt ]; then
+            { echo "Run $GITHUB_RUN_NUMBER  $(date -u)"; echo; grep -v '^::' cut.txt | tail -n 120; } > last-cut.txt
+          fi
           git config user.name  "vg-cutter"
           git config user.email "vg-cutter@users.noreply.github.com"
           git add robot-log.txt
+          git add last-cut.txt 2>/dev/null || true
           git commit -m "robot log, run $GITHUB_RUN_NUMBER" || exit 0
           git pull --rebase --quiet || true
           git push || true
