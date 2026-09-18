@@ -533,14 +533,13 @@ jobs:
 
               1. The front's own top edge is found above each lens, from the
                  columns where the rim has its normal thickness (no arm on it),
-                 and a straight line is fitted through it. Beyond the outer end of
+                 and a smooth line is fitted along it. Beyond the outer end of
                  a lens the line is carried on flat, over the end piece.
               2. Only what rises above that line is examined. A piece that sits
-                 on the line along most of its width (a hinge block, a cat-eye
-                 wing) is part of the front and is kept whole. A piece that only
-                 touches the line at one end and leans away from it is an arm,
-                 and goes -- except a stub one rim-thickness high where it joins,
-                 so the hinge corner and a cat-eye wing are never nicked.
+                 on the line and is thick (a hinge block, a cat-eye wing, no more
+                 than two rims high) is part of the front and is kept whole.
+                 Thin bands, and anything rising higher, are arm and go -- with
+                 their soft outline, so no ghost is left.
               3. The bridge (between the lenses) is never examined at all.
               Nothing at or below the top edge is touched: the rim is never thinned.
               """
@@ -577,41 +576,104 @@ jobs:
                       clean = cols[cols[:, 2] <= t_med * 1.35]
                   if len(clean) < 5:
                       continue
-                  a, b = np.polyfit(clean[:, 0], clean[:, 1], 1)
-                  spans.append((x0, x1, a, b, t_med))
+                  deg = 2 if len(clean) >= 30 else 1
+                  coef = np.polyfit(clean[:, 0], clean[:, 1], deg)
+                  res = clean[:, 1] - np.polyval(coef, clean[:, 0])
+                  # sit the line ON the edge, not through it: shift it up to the
+                  # highest few percent of the edge points
+                  coef[-1] += min(0.0, float(np.percentile(res, 3)))
+                  spans.append((x0, x1, coef, t_med))
               if len(spans) < 2:
                   return alpha, 0.0
               spans.sort(key=lambda s: s[0])
-              (lx0, lx1, la, lb, lt), (rx0, rx1, ra, rb, rt) = spans
+              (lx0, lx1, lc, lt), (rx0, rx1, rc, rt) = spans
               rim_t = max(lt, rt)
-              margin = max(3, int(round(rim_t * 0.15)))
+              margin = 3
+              # the very ends of the front (beyond the lenses) often drop away
+              # from the line; read their height from the outermost columns,
+              # which lie beyond where an arm starts, and slope the line to it
+              cols_any = np.where(solid.any(axis=0))[0]
+              xe_l, xe_r = int(cols_any.min()), int(cols_any.max())
+              def top_at(x0, x1):
+                  t = [int(np.argmax(solid[:, x])) for x in range(max(0, x0), min(W, x1 + 1)) if solid[:, x].any()]
+                  return max(t) if t else None
+              te_l = top_at(xe_l, xe_l + 4)
+              te_r = top_at(xe_r - 4, xe_r)
+              yl, yr = float(np.polyval(lc, lx0)), float(np.polyval(rc, rx1))
               lim = np.full(W, -1, dtype=np.int64)            # rows above lim are examined
               for x in range(W):
-                  if x <= lx1:
-                      xs = max(x, lx0)
-                      lim[x] = int(np.floor(la * xs + lb)) - margin
+                  if x < lx0:
+                      y = yl
+                      if te_l is not None and te_l > yl and lx0 > xe_l:
+                          y = yl + (te_l - yl) * (lx0 - x) / float(lx0 - xe_l)
+                      lim[x] = int(np.floor(y)) - margin
+                  elif x <= lx1:
+                      lim[x] = int(np.floor(np.polyval(lc, x))) - margin
+                  elif x > rx1:
+                      y = yr
+                      if te_r is not None and te_r > yr and xe_r > rx1:
+                          y = yr + (te_r - yr) * (x - rx1) / float(xe_r - rx1)
+                      lim[x] = int(np.floor(y)) - margin
                   elif x >= rx0:
-                      xs = min(x, rx1)
-                      lim[x] = int(np.floor(ra * xs + rb)) - margin
+                      lim[x] = int(np.floor(np.polyval(rc, x))) - margin
                   # between the lenses (the bridge): never examined
               above = np.zeros_like(solid)
               for x in range(W):
                   if lim[x] > 0:
                       above[:lim[x], x] = solid[:lim[x], x]
-              clab, cn = ndimage.label(above)
-              out = alpha.copy()
-              stub = int(round(rim_t * 1.8))            # a cat-eye wing may rise ~1.8 rims
-              for c in range(1, cn + 1):
-                  ys, xs = np.where(clab == c)
+              if not above.any():
+                  return alpha, 0.0
+              # height of every pixel above the front's top edge
+              rows = np.arange(H)[:, None]
+              rise = np.where(lim[None, :] > 0, lim[None, :] - rows, 0)
+              # thick pieces (hinge blocks, cat-eye wings) survive an opening that
+              # wipes out the thin bands of an arm
+              r = max(3, int(round(rim_t * 0.5)))
+              disk = np.zeros((2 * r + 1, 2 * r + 1), bool)
+              yy, xx = np.ogrid[-r:r + 1, -r:r + 1]
+              disk[yy * yy + xx * xx <= r * r] = True
+              thick = ndimage.binary_opening(above, structure=disk)
+              keep = np.zeros_like(above)
+              alab, an = ndimage.label(above)
+              for c in range(1, an + 1):
+                  comp = alab == c
+                  ys, xs = np.where(comp)
                   width = int(xs.max() - xs.min() + 1)
-                  seated = [x for x in range(int(xs.min()), int(xs.max()) + 1)
-                            if lim[x] > 0 and clab[lim[x] - 1, x] == c]
-                  if len(seated) >= 0.6 * width:
-                      continue                                  # sits on the front: keep
-                  kill = clab == c
-                  for x in seated:                              # keep the joint, one rim high
-                      kill[max(0, lim[x] - stub):lim[x], x] = False
-                  out[kill] = 0.0
+                  seated = sum(1 for x in range(int(xs.min()), int(xs.max()) + 1)
+                               if lim[x] > 0 and comp[max(0, lim[x] - 3):lim[x], x].any())
+                  if rise[ys, xs].max() <= 2.0 * rim_t and seated >= 0.6 * width:
+                      keep |= comp                              # low piece sitting on the front: keep whole
+              tlab, tn = ndimage.label(thick & ~keep)
+              for c in range(1, tn + 1):
+                  comp = tlab == c
+                  ys, xs = np.where(comp)
+                  height = int(rise[ys, xs].max())
+                  width = int(xs.max() - xs.min() + 1)
+                  seated = sum(1 for x in range(int(xs.min()), int(xs.max()) + 1)
+                               if lim[x] > 0 and comp[max(0, lim[x] - r - 1):lim[x], x].any())
+                  if height <= 2.0 * rim_t and seated >= 0.8 * width:
+                      grown = ndimage.binary_dilation(comp, structure=disk)
+                      keep |= grown & above                     # a thick piece of the front
+              # where an arm joins, keep a quarter rim above the edge, so the
+              # corner itself is never nicked
+              band = np.zeros(W, dtype=np.int64)
+              band[lx0:lx1 + 1] = band[rx0:rx1 + 1] = max(3, int(round(rim_t * 0.25)))
+              band[band == 0] = 3
+              keep |= above & (rise <= band[None, :])
+              kill = above & ~keep
+              out = alpha.copy()
+              if kill.any():
+                  # take the arm's soft outline with it -- only above the edge line
+                  soft = ndimage.binary_dilation(kill, iterations=3) & (rise > 0) & ~keep
+                  out[kill | soft] = 0.0
+                  # bits of arm tip or price tag left floating above the front
+                  from scipy import ndimage as _nd
+                  flab, fn = _nd.label(out > 0.02)
+                  if fn > 1:
+                      fs = _nd.sum(out > 0.02, flab, range(1, fn + 1))
+                      main = int(np.argmax(fs)) + 1
+                      stray = (flab != main) & (flab != 0) & (rise > 0)
+                      out[stray] = 0.0
               removed = float((solid & ~(out > 0.5)).sum()) / max(1.0, float(solid.sum()))
               return out, removed
 
