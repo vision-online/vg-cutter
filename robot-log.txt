@@ -1,8 +1,8 @@
-Run 21  Fri Sep 18 13:53:18 UTC 2026
+Run 4  Fri Sep 18 13:59:54 UTC 2026
 Trigger: schedule
 
 --- what the robot found ---
-Robot build 2026-09-18 (embedded)
+Robot build 2026-09-18f (embedded; finds Cloudinary itself; arm rule hardened)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): the photo store refused the upload  [VG-1005 Frames]
 ::notice::Frames: 19. Waiting: 0. Rejected: 1.
