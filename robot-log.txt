@@ -1,23 +1,10 @@
-Run 4  Fri Sep 18 10:36:23 UTC 2026
+Run 5  Fri Sep 18 10:44:55 UTC 2026
 Trigger: schedule
 
 --- what the robot found ---
 Robot build 2026-09-18 (embedded)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-  17 frame(s): the photo store refused the upload  [IMG-20260907-WA0013.jpg, VG-1001 Frames, VG-1002 Frames, Sizzler]
-::notice::Frames: 19. Waiting: 7. Rejected: 10.
+  17 frame(s): the photo store refused the upload  [IMG-20260907-WA0013.jpg, VG-1001 Frames, VG-1007 Frames, VG-1002 Frames]
+::notice::Frames: 19. Waiting: 0. Rejected: 17.
 
 --- what the robot did ---
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 19 frames. Waiting for a cut-out: 7.
-Cloudinary: vg_upload / vg_uploads
---- pmtzvby3x13 : VG-1006 Frames
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet
---- pmu1e5xfr15 : VG-1007 Frames
---- pmu1eepls58 : VG-1008 Frames
---- pmu4g6b4x96 : Ocelot
---- pmu4gg5u210 : Eyeconic
---- pmu4h3h9579 : Heart stone
---- pmu4hbhsm89 : Sizzler
