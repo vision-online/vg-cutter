@@ -1,23 +1,20 @@
-Run 18  Fri Sep 18 13:28:18 UTC 2026
+Run 19  Fri Sep 18 13:36:52 UTC 2026
 Trigger: schedule
 
 --- what the robot found ---
 Robot build 2026-09-18 (embedded)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::Frames: 19. Waiting: 13. Rejected: 0.
+  9 frame(s): the photo store refused the upload  [VG-1007 Frames, Sizzler, Eyeconic, Heart stone]
+::notice::Frames: 19. Waiting: 9. Rejected: 0.
 
 --- what the robot did ---
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 19 frames. Waiting for a cut-out: 13.
+Catalogue: 19 frames. Waiting for a cut-out: 9.
 Cloudinary: vg_upload / vg_uploads
 --- pmtyjmyfc78 : Visibilla
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet
---- pmtzl3ql140 : VG-1002 Frames
---- pmtzl57qf92 : VG-1003 Frames
---- pmtzn859c27 : New cat eye
---- pmtzt59ej89 : VG-1004 Frames
 --- pmtztljhi39 : VG-1005 Frames
 --- pmtzvby3x13 : VG-1006 Frames
 --- pmu1e5xfr15 : VG-1007 Frames
