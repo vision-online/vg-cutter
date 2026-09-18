@@ -527,65 +527,92 @@ jobs:
 
           def remove_arms_above(alpha):
               """
-              An arm angled up towards the camera lies INSIDE the front's width,
-              above the lenses, so the end-to-end cut cannot reach it. Above each
-              lens opening the front is rim and nothing else, so anything sitting
-              higher than the rim's own thickness allows is arm and goes. Nothing
-              inside or below the rim line is touched, so the rim keeps its full
-              thickness and its corners.
+              The shop shoots the front with the arms OPEN, so from a slightly
+              raised camera the arms show as bands rising above the front's top
+              edge. Remove them -- and nothing else.
+
+              1. The front's own top edge is found above each lens, from the
+                 columns where the rim has its normal thickness (no arm on it),
+                 and a straight line is fitted through it. Beyond the outer end of
+                 a lens the line is carried on flat, over the end piece.
+              2. Only what rises above that line is examined. A piece that sits
+                 on the line along most of its width (a hinge block, a cat-eye
+                 wing) is part of the front and is kept whole. A piece that only
+                 touches the line at one end and leans away from it is an arm,
+                 and goes -- except a stub one rim-thickness high where it joins,
+                 so the hinge corner and a cat-eye wing are never nicked.
+              3. The bridge (between the lenses) is never examined at all.
+              Nothing at or below the top edge is touched: the rim is never thinned.
               """
               from scipy import ndimage
               lens, _ = lens_holes(alpha)
               lab, n = ndimage.label(lens)
-              if n < 1:
+              if n < 2:
                   return alpha, 0.0
               sizes = ndimage.sum(lens, lab, range(1, n + 1))
               idx = [i + 1 for i in sorted(range(n), key=lambda i: -sizes[i])[:2]]
               solid = alpha > 0.5
               H, W = alpha.shape
-              out = alpha.copy()
               spans = []
               for i in idx:
                   yy, xx = np.where(lab == i)
-                  x0, x1, y0 = int(xx.min()), int(xx.max()), int(yy.min())
-                  # rim thickness above this opening: median run of solid pixels
-                  # straight up from the opening's top edge, across its middle half
-                  runs = []
-                  for x in range(x0 + (x1 - x0) // 4, x1 - (x1 - x0) // 4 + 1, max(1, (x1 - x0) // 40)):
-                      col = np.where(lab[:, x] == i)[0]
-                      if not col.size: continue
-                      y = col.min() - 1; k = 0
-                      while y >= 0 and solid[y, x] and k < H:
-                          k += 1; y -= 1
-                      runs.append(k)
-                  if not runs: continue
-                  rim = float(np.median(runs))
-                  # the opening's top edge per column, then the allowed ceiling
-                  top = np.full(W, -1)
+                  x0, x1 = int(xx.min()), int(xx.max())
+                  cols = []
                   for x in range(x0, x1 + 1):
                       col = np.where(lab[:, x] == i)[0]
-                      if col.size: top[x] = col.min()
-                  spans.append((x0, x1, top, rim))
-              if not spans:
+                      if not col.size:
+                          continue
+                      y = int(col.min()) - 1
+                      top = y
+                      while top >= 0 and solid[top, x]:
+                          top -= 1
+                      cols.append((x, top + 1, y - top))       # column, rim top, rim thickness
+                  if len(cols) < 10:
+                      continue
+                  cols = np.array(cols, dtype=np.float64)
+                  t_med = float(np.median(cols[:, 2]))
+                  lo, hi = x0 + (x1 - x0) * 0.1, x1 - (x1 - x0) * 0.1
+                  clean = cols[(cols[:, 2] <= t_med * 1.35) & (cols[:, 0] >= lo) & (cols[:, 0] <= hi)]
+                  if len(clean) < 10:
+                      clean = cols[cols[:, 2] <= t_med * 1.35]
+                  if len(clean) < 5:
+                      continue
+                  a, b = np.polyfit(clean[:, 0], clean[:, 1], 1)
+                  spans.append((x0, x1, a, b, t_med))
+              if len(spans) < 2:
                   return alpha, 0.0
-              spans.sort(key=lambda t: t[0])
-              # extend each opening's ceiling sideways over the end piece / bridge,
-              # so an arm rising from the corner is caught from its root
-              reach = int(round(max(t[3] for t in spans) * 3))
-              for x0, x1, top, rim in spans:
-                  # the rim may be thicker at its corners (a cat eye lifts there), so
-                  # allow nearly twice the measured thickness before calling it arm
-                  ceiling_slack = max(rim + 6, rim * 1.8)
-                  for x in range(max(0, x0 - reach), min(W, x1 + reach + 1)):
-                      xs = min(max(x, x0), x1)
-                      t = top[xs]
-                      if t < 0: continue
-                      limit = int(t - ceiling_slack)
-                      if limit <= 0: continue
-                      # everything above the limit in this column is arm; the rim
-                      # (within slack of the opening) is untouched
-                      out[:limit, x] = np.where(solid[:limit, x], 0.0, out[:limit, x])
-              removed = float(((alpha > 0.5) & ~(out > 0.5)).sum()) / max(1.0, float((alpha > 0.5).sum()))
+              spans.sort(key=lambda s: s[0])
+              (lx0, lx1, la, lb, lt), (rx0, rx1, ra, rb, rt) = spans
+              rim_t = max(lt, rt)
+              margin = max(3, int(round(rim_t * 0.15)))
+              lim = np.full(W, -1, dtype=np.int64)            # rows above lim are examined
+              for x in range(W):
+                  if x <= lx1:
+                      xs = max(x, lx0)
+                      lim[x] = int(np.floor(la * xs + lb)) - margin
+                  elif x >= rx0:
+                      xs = min(x, rx1)
+                      lim[x] = int(np.floor(ra * xs + rb)) - margin
+                  # between the lenses (the bridge): never examined
+              above = np.zeros_like(solid)
+              for x in range(W):
+                  if lim[x] > 0:
+                      above[:lim[x], x] = solid[:lim[x], x]
+              clab, cn = ndimage.label(above)
+              out = alpha.copy()
+              stub = int(round(rim_t * 1.8))            # a cat-eye wing may rise ~1.8 rims
+              for c in range(1, cn + 1):
+                  ys, xs = np.where(clab == c)
+                  width = int(xs.max() - xs.min() + 1)
+                  seated = [x for x in range(int(xs.min()), int(xs.max()) + 1)
+                            if lim[x] > 0 and clab[lim[x] - 1, x] == c]
+                  if len(seated) >= 0.6 * width:
+                      continue                                  # sits on the front: keep
+                  kill = clab == c
+                  for x in seated:                              # keep the joint, one rim high
+                      kill[max(0, lim[x] - stub):lim[x], x] = False
+                  out[kill] = 0.0
+              removed = float((solid & ~(out > 0.5)).sum()) / max(1.0, float(solid.sum()))
               return out, removed
 
 
@@ -1014,10 +1041,11 @@ jobs:
               a = fill_lens_hulls(a, band_px)                       # step 5b: temple/hinge through the glass
               a = clear_inner_lens(a)                               # step 5c: tinted glass, leftovers
               if front:
-                  # step 6a (remove_arms_above) is SWITCHED OFF: on a photo with no arms
-                  # at all it cut the hinge blocks and the top of the bridge (8-42% of
-                  # the frame on 14 of 17 frames, 2026-09-18). The rim is never thinned.
-                  arms_above = 0.0
+                  # step 6a: the shop shoots with the arms OPEN, so arms rising above the
+                  # front are removed here (v2, 2026-09-18: the first version also cut
+                  # hinge blocks and the top of the bridge; this one never examines the
+                  # bridge and keeps anything seated on the front's top edge).
+                  a, arms_above = remove_arms_above(a)
                   a = cut_end_to_end(a)                             # step 6b: arms beyond the ends
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
 
@@ -1028,7 +1056,7 @@ jobs:
 
               nums = measurements(a)
               nums["reading"] = read_frame(img, a) if front else {}
-              if front and arms_above > 0.03:
+              if False:   # arms over the front are normal for this shop: no CHECK PHOTO tag
                   nums["warning"] = ("arms were angled over the front (%d%% of the picture removed) "
                                      "-- fold them flat behind, or open them straight back, and re-shoot"
                                      % round(arms_above * 100))
