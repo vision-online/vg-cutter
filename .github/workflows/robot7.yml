@@ -1742,7 +1742,14 @@ jobs:
                   before_ks = int((a > 0.5).sum())
                   a = keep_main_solid(a)
                   after_ks = int((a > 0.5).sum())
-                  if half_ring is not None:
+                  if half_ring is not None and half_rim_hint:
+                      # trim_whiskers erodes anything thinner than its disk -- right
+                      # for a genuine half-rim's demo-lens thread, too risky for a
+                      # full-rim frame that only fell into this path because its
+                      # first pass found fewer than 2 clean lens holes: on a thin
+                      # metal frame it can sever a real hinge tab from the front,
+                      # stranding it as a floating fleck. Only run it when the
+                      # product's own rim type says this frame really is half-rim.
                       a = trim_whiskers(a)                          # a thread or cord a few pixels wide
                       after_tw1 = int((a > 0.5).sum())
                       log("    half-rim cleanup: solid %d -> keep_main_solid %d -> trim %d"
