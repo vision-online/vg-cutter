@@ -1,4 +1,4 @@
-Run 141  Sat Sep 19 19:33:44 UTC 2026
+Run 143  Sat Sep 19 19:42:28 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Trial re-cut of pmu4gnug185 (Lot).
@@ -13,6 +13,6 @@ Model loaded: ZhengPeng7/BiRefNet
     rim type: full rim (0 clean lens holes)
 half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 'place': 0, 'solid': 0, 'touch': 0}
     full-rim cleanup: solid 77979 -> keep_main_solid 68668
-    full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 9669, 'glassEdge': (6881, 561), 'removed': 14236}
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789846420/azsj6fzwicvwykgczrxc.png
+    full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 6130, 'glassEdge': (824, 251), 'removed': 12033}
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789846945/vcxlmleznpn5sq5ik04e.png
   Finished. Cut 1, failed 0, rejected 0, still waiting 0.
