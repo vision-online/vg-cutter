@@ -525,6 +525,36 @@ jobs:
               return out
 
 
+          def heal_rim(alpha):
+              """
+              A bright highlight line along the top of a glossy rim looks like
+              the sheet to the matting, which leaves a hair-thin transparent
+              SLIT inside the rim, a few pixels below its edge. Every later rule
+              then sees the rim as two pieces and treats the upper one as loose.
+              Measured on the shop's Sizzler photo: the rim came out 14 px thinner
+              because of it. Here any slit or small enclosed hole inside the
+              frame is filled back to solid. Only material is ADDED, and only
+              inside the frame -- the lens openings and the outside are untouched.
+              """
+              from scipy import ndimage
+              solid = alpha > 0.5
+              # horizontal slits up to 4 px tall: close vertically
+              closed = ndimage.binary_closing(solid, structure=np.ones((7, 1), bool))
+              # small enclosed holes (a lens opening is far larger than 0.4% of the picture)
+              not_frame = ~closed
+              outside = ndimage.binary_propagation(_border(not_frame), mask=not_frame)
+              holes = not_frame & ~outside
+              lab, n = ndimage.label(holes)
+              if n:
+                  sizes = ndimage.sum(holes, lab, range(1, n + 1))
+                  small = np.isin(lab, [i + 1 for i, s in enumerate(sizes) if s < holes.size * 0.004])
+                  closed |= small
+              out = alpha.copy()
+              add = closed & ~solid
+              out[add] = 1.0
+              return out
+
+
           def remove_arms_above(alpha, img=None):
               """
               The shop shoots the front with the arms OPEN, so from a slightly
@@ -1459,6 +1489,7 @@ jobs:
               tri = make_trimap(m, band_px)                         # step 3
               a = matte(img, tri)                                   # step 4
               a = tighten_edge(a)                                   # step 4b: a 1-2 px edge, not a glow
+              a = heal_rim(a)                                       # step 4c: a highlight slit inside the rim is rim
               holes, _ = lens_holes(a)
               if not holes.any():
                   # the model kept the lenses solid (common for clear glass):
