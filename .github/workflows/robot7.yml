@@ -1340,6 +1340,152 @@ jobs:
               return out
 
 
+          def shape_full_rim_front(img, alpha, regions):
+              """
+              FULL RIM, last step. The front is known exactly once the two lens
+              openings are known: the rim is a band of the rim's own thickness
+              around each opening, the bridge sits between them, and each end
+              piece sits at the outer side of its rim, level with where the rim
+              is widest. Anything else in the picture is not the front.
+
+                - the rim band is KEPT, and wherever the photo shows dark rim
+                  metal that the model dropped (the bottom rim resting on the
+                  sheet's reflection), it is PUT BACK -- the rim is never thinner
+                  than photographed, only ever completed
+                - the lens openings and the bridge keep what they have (pads,
+                  screws, the bridge itself)
+                - at each end only the end piece (hinge block, screw) stays: a
+                  compact block level with the rim's widest point. The arm rising
+                  out of it is thin and goes; the sheet showing between arm and
+                  rim goes
+                - arm tips crossing above the rims, the stand holes below, shadows
+                  on the sheet: outside all of these zones, so they go
+              Returns (alpha, info) -- info None when it could not measure.
+              """
+              import cv2
+              from scipy import ndimage
+              if len(regions) < 2:
+                  return alpha, None
+              regs = sorted(regions, key=lambda r: float(np.where(r)[1].mean()))[:2]
+              L, R = regs[0], regs[1]
+              rgb = np.asarray(img).astype(np.float64)
+              lum = rgb[..., 0] * 0.299 + rgb[..., 1] * 0.587 + rgb[..., 2] * 0.114
+              H, W = lum.shape
+              lens = L | R
+              # what the glass shows (the sheet behind it) is the local background
+              cores = ndimage.binary_erosion(lens, iterations=12)
+              if cores.sum() < 100:
+                  cores = lens
+              bg_l = float(np.median(lum[cores]))
+              dark_t = 0.55 * bg_l
+              dark = lum < dark_t
+
+              # rim thickness: from each lens centre walk out along 180 rays; past
+              # the opening's edge count the dark pixels. The median over all rays
+              # ignores the few rays that run into an end piece or a stand hole.
+              runs = []
+              for r in (L, R):
+                  ys, xs = np.where(r)
+                  cy, cx = ys.mean(), xs.mean()
+                  for ang in np.linspace(0, 2 * np.pi, 180, endpoint=False):
+                      dy, dx = np.sin(ang), np.cos(ang)
+                      t = 0.0; inside = True; run = 0; gap = 0; started = False
+                      while True:
+                          y = int(round(cy + dy * t)); x = int(round(cx + dx * t))
+                          if y < 0 or y >= H or x < 0 or x >= W:
+                              break
+                          if inside:
+                              if not r[y, x]:
+                                  inside = False
+                              t += 1.0
+                              continue
+                          if dark[y, x]:
+                              run += 1 + gap; gap = 0; started = True
+                          elif not started and gap < 3:
+                              gap += 1
+                          elif started and gap < 1:
+                              gap += 1
+                          else:
+                              break
+                          if run > 80:
+                              break
+                          t += 1.0
+                      if run > 0:
+                          runs.append(run)
+              if len(runs) < 60:
+                  return alpha, None
+              rim_t = float(np.clip(np.median(runs), 3, 60))
+
+              dist_out = ndimage.distance_transform_edt(~lens)
+              rim_band = (dist_out > 0) & (dist_out <= rim_t + 2)
+              solid = alpha > 0.5
+              frame_l = float(np.median(lum[rim_band & solid])) if (rim_band & solid).any() else 255.0
+              dark_frame = frame_l < 0.5 * bg_l
+
+              # the boxes the zones are built from
+              def box(r):
+                  ys, xs = np.where(r)
+                  return xs.min(), xs.max(), ys.min(), ys.max()
+              lx0, lx1, ly0, ly1 = box(L)
+              rx0, rx1, ry0, ry1 = box(R)
+              lens_h = float(max(ly1 - ly0, ry1 - ry0))
+              top = min(ly0, ry0)
+              cL = np.where(L)[1].mean(); cR = np.where(R)[1].mean()
+              midy = (ly0 + ly1 + ry0 + ry1) / 4.0
+
+              bridge = np.zeros_like(solid)
+              by0 = int(max(0, top - 3 * rim_t))
+              by1 = int(min(H, midy + 0.10 * lens_h))
+              bx0 = int(max(0, lx1 - 2 * rim_t)); bx1 = int(min(W, rx0 + 2 * rim_t + 1))
+              bridge[by0:by1, bx0:bx1] = True
+
+              ends = np.zeros_like(solid)
+              def yc_at(r, xedge):
+                  ys, xs = np.where(r)
+                  sel = np.abs(xs - xedge) <= 3
+                  return float(ys[sel].mean()) if sel.any() else float(ys.mean())
+              band_h = 0.20 * lens_h
+              reach = int(0.40 * (lx1 - lx0))
+              yl = yc_at(L, lx0); yr = yc_at(R, rx1)
+              ends[int(max(0, yl - band_h)):int(min(H, yl + band_h)),
+                   int(max(0, lx0 - reach)):int(lx0 + 1)] = True
+              ends[int(max(0, yr - band_h)):int(min(H, yr + band_h)),
+                   int(rx1):int(min(W, rx1 + reach + 1))] = True
+              ends &= ~rim_band & ~lens
+              # the end piece is a compact block; the arm rising out of it is a
+              # line of about the rim's own width -- an opening a little wider
+              # than the rim keeps the block and drops the line
+              end_px = ends & solid
+              if dark_frame:
+                  end_px &= dark | (alpha < 0.99)          # the sheet between arm and rim is not frame
+              rad = int(max(3, round(rim_t * 0.9)))
+              k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * rad + 1, 2 * rad + 1))
+              end_px = cv2.morphologyEx(end_px.astype(np.uint8), cv2.MORPH_OPEN, k) > 0
+              # only a block that actually meets the rim is an end piece
+              lab, n = ndimage.label(end_px)
+              touch = ndimage.binary_dilation(rim_band & (solid | dark), iterations=2)
+              keep_end = np.zeros_like(end_px)
+              for i in range(1, n + 1):
+                  comp = lab == i
+                  if (comp & touch).any():
+                      keep_end |= comp
+              # soften the block's edge back in (the opening squares it off a little)
+              keep_end = ndimage.binary_dilation(keep_end, iterations=1) & (alpha > 0) & ends
+
+              front = lens | rim_band | bridge | keep_end
+              out = np.where(front, alpha, 0.0).astype(np.float32)
+              put_back = 0
+              if dark_frame:
+                  # the rim as photographed: every dark pixel in the rim band is rim
+                  rim_dark = rim_band & dark
+                  put_back = int((rim_dark & (out < 0.5)).sum())
+                  out = np.maximum(out, rim_dark.astype(np.float32))
+              info = {"rimT": round(rim_t, 1), "bgL": round(bg_l), "frameL": round(frame_l),
+                      "darkFrame": bool(dark_frame), "rimPutBack": put_back,
+                      "removed": int((solid & ~front).sum())}
+              return out, info
+
+
           def lens_measurements(alpha, regions, half_rim=True):
               """The numbers the try-on uses, from traced lens regions."""
               ys, xs = np.where(alpha > 0.2)
@@ -1857,6 +2003,19 @@ jobs:
                   else:
                       log("    full-rim cleanup: solid %d -> keep_main_solid %d"
                           % (before_ks, after_ks))
+              if front and rim_kind == "full":
+                  regs = half_regions
+                  if len(regs) < 2:
+                      from scipy import ndimage as _nd
+                      hh, _ = lens_holes(a)
+                      lab_h, n_h = _nd.label(hh)
+                      if n_h >= 2:
+                          sz = _nd.sum(hh, lab_h, range(1, n_h + 1))
+                          order = np.argsort(sz)[::-1][:2]
+                          regs = [lab_h == (i + 1) for i in order]
+                  if len(regs) >= 2:
+                      a, finfo = shape_full_rim_front(img, a, regs)
+                      log("    full-rim front: %s" % (finfo,))
               if half_ring is not None:
                   # the demo lens edge: a faint thin line, as a real one shows
                   a = np.where(half_ring & (a > 0.5), np.float32(0.45), a).astype(np.float32)
