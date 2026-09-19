@@ -1672,6 +1672,11 @@ jobs:
                                                _m(dbg_i0), _m(first), _m(prof), _m(dbg_near)))
                   rim_m = cv2.morphologyEx(rim_m.astype(np.uint8), cv2.MORPH_CLOSE,
                                            np.ones((3, 3), np.uint8)) > 0
+                  # a few neighbouring rays can still miss the rim (on Lot: where a
+                  # price tag hangs behind it), leaving a 1-3 px slit across the rim.
+                  # A wider closing bridges such slits -- dark metal pixels only.
+                  _k7 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+                  rim_m = rim_m | ((cv2.morphologyEx(rim_m.astype(np.uint8), cv2.MORPH_CLOSE, _k7) > 0) & D)
                   gov = cv2.morphologyEx(gov.astype(np.uint8), cv2.MORPH_CLOSE,
                                          np.ones((3, 3), np.uint8)) > 0
                   soft = np.clip((bg_l - lum) / max(1.0, bg_l - frame_l), 0.0, 1.0)
@@ -1720,8 +1725,26 @@ jobs:
                   info_glass = (info_glass, int(add.sum()))
               else:
                   info_glass = 0
+              # stray specks left inside the openings or under the rim (a tag's
+              # printed line, bits of the reflection): anything solid that is not
+              # joined to the frame and smaller than a rim-sized square goes.
+              n_lab, lab, st_cc, _ = cv2.connectedComponentsWithStats((out > 0.5).astype(np.uint8), 8)
+              specks = 0
+              if n_lab > 2:
+                  big = int(np.argmax(st_cc[1:, cv2.CC_STAT_AREA])) + 1
+                  lim = max(40.0, rim_t * rim_t)
+                  small = np.zeros_like(solid)
+                  for i in range(1, n_lab):
+                      if i != big and st_cc[i, cv2.CC_STAT_AREA] < lim:
+                          small |= lab == i
+                          specks += 1
+                  if specks:
+                      keep = (lab > 0) & ~small
+                      halo = ndimage.binary_dilation(small, iterations=2) & ~keep
+                      halo &= ~ndimage.binary_dilation(keep & (out > 0.5), iterations=1)
+                      out[small | halo] = 0.0
               info = {"rimT": round(rim_t, 1), "rimOff": round(rim_off, 1), "rimIn": round(r_in, 1), "rimOut": round(r_out, 1), "bgL": round(bg_l), "frameL": round(frame_l),
-                      "darkFrame": bool(dark_frame), "rimPutBack": put_back, "raysMoved": n_moved, "byOutline": n_outline, "noRim": gaps_dbg[:14], "glassEdge": info_glass,
+                      "darkFrame": bool(dark_frame), "rimPutBack": put_back, "raysMoved": n_moved, "byOutline": n_outline, "specks": specks, "noRim": gaps_dbg[:14], "glassEdge": info_glass,
                       "removed": int((solid & ~front).sum())}
               return out, info
 
