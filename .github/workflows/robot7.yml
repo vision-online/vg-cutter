@@ -1256,14 +1256,98 @@ jobs:
               return out, ring_all
 
 
-          def lens_measurements(alpha, regions):
+          def rim_kind_of(rim_txt):
+              """
+              The rim type the shop typed when the frame was saved decides the
+              robot's path -- it is never guessed from the photo when the shop
+              has already said it.
+                full    : "Full rim", "full metal", "full frame"
+                half    : "Half rim", "supra", "semi rimless"
+                rimless : "Rimless", "3 piece"
+                ""      : not set -- the robot decides from the photo
+              """
+              t = str(rim_txt or "").lower()
+              if "rimless" in t and "semi" not in t:
+                  return "rimless"
+              if any(k in t for k in ("half", "supra", "semi")):
+                  return "half"
+              if "full" in t:
+                  return "full"
+              if "3 piece" in t or "three piece" in t:
+                  return "rimless"
+              return ""
+
+
+          def open_full_rim_lenses(img, alpha, regions):
+              """
+              FULL RIM whose glass the model kept solid. The traced lens outline
+              says where each opening is; inside it, only what LOOKS LIKE GLASS
+              goes -- the sheet seen through the lens, or the lens's own colour.
+              The rim, the nose pads and the screws differ from that colour and
+              keep exactly the alpha the model gave them: nothing is redrawn,
+              nothing is thinned, there is no demo-lens line on a full rim.
+              """
+              from scipy import ndimage
+              rgb = np.asarray(img).astype(np.float64)
+              sheet = sheet_colour(np.asarray(img))
+              d_sheet = np.sqrt(((rgb - sheet) ** 2).sum(axis=2))
+              out = alpha.copy()
+              for r in regions:
+                  core = ndimage.binary_erosion(r, iterations=12)
+                  if core.sum() < 50:
+                      core = r
+                  glass = np.median(rgb[core], axis=0)
+                  d_glass = np.sqrt(((rgb - glass) ** 2).sum(axis=2))
+                  clear = r & ((d_glass < 40) | (d_sheet < 40))
+                  out[clear] = 0.0
+              return out
+
+
+          def clear_sheet_at_ends(img, alpha):
+              """
+              FULL RIM only. Between the end piece and the rim, where the arm
+              leaves the front, the sheet shows through a small gap and the model
+              keeps it as a pale wedge. From the transparent outside, sheet-
+              coloured pixels are flooded away -- only in the outer fifth of the
+              frame at each end, and only when the frame itself is far from the
+              sheet colour (a dark frame on a light sheet). The metal, the screw
+              and the hinge are not sheet-coloured and stay.
+              """
+              import cv2
+              from scipy import ndimage
+              rgb = np.asarray(img).astype(np.float64)
+              sheet = sheet_colour(np.asarray(img))
+              dist = np.sqrt(((rgb - sheet) ** 2).sum(axis=2))
+              dist = cv2.GaussianBlur(dist.astype(np.float32), (3, 3), 0)
+              solid = alpha > 0.5
+              if not solid.any():
+                  return alpha
+              rim_ref = np.percentile(dist[solid], 60)
+              if rim_ref < 70:
+                  return alpha                         # a light frame: colour cannot tell it from the sheet
+              ys, xs = np.where(solid)
+              x0, x1 = xs.min(), xs.max()
+              zone = np.zeros_like(solid)
+              w = int(0.20 * (x1 - x0 + 1))
+              zone[:, x0:x0 + w] = True
+              zone[:, x1 - w + 1:x1 + 1] = True
+              sheetlike = (alpha > 0) & (dist < 45) & zone
+              outside = alpha <= 0.02
+              seed = ndimage.binary_dilation(outside, iterations=1) & sheetlike
+              gone = ndimage.binary_propagation(seed, mask=sheetlike)
+              out = alpha.copy()
+              out[gone] = 0.0
+              return out
+
+
+          def lens_measurements(alpha, regions, half_rim=True):
               """The numbers the try-on uses, from traced lens regions."""
               ys, xs = np.where(alpha > 0.2)
               if not xs.size:
                   return {}
               front_w = int(xs.max() - xs.min() + 1)
               front_h = int(ys.max() - ys.min() + 1)
-              out = {"frontWidthPx": front_w, "frontHeightPx": front_h, "halfRim": True}
+              out = {"frontWidthPx": front_w, "frontHeightPx": front_h, "halfRim": bool(half_rim)}
               eyes = []
               boxes = []
               for r in regions:
@@ -1682,8 +1766,10 @@ jobs:
               return (out * 255).round().astype(np.uint8)
 
 
-          def cut(photo_bytes, front=True, half_rim_hint=False):
-              """One photo in, one transparent PNG (and its numbers) out."""
+          def cut(photo_bytes, front=True, rim_kind=""):
+              """One photo in, one transparent PNG (and its numbers) out.
+              rim_kind comes from the rim type typed in admin (see rim_kind_of)."""
+              half_rim_hint = rim_kind in ("half", "rimless")
               import cv2
               img = Image.open(io.BytesIO(photo_bytes)).convert("RGB")
               if max(img.size) > 1600:
@@ -1703,9 +1789,21 @@ jobs:
               # hole, so trace the lens edge from the photograph instead; its ring is
               # made solid for the moment so every rule below sees a proper opening.
               half_ring = None; half_regions = []
-              if front:
+              if front and rim_kind == "full":
+                  # FULL RIM (typed in admin): never the half-rim path. If the
+                  # model kept the glass solid, the traced outline is used only to
+                  # find the openings; the rim itself is left exactly as cut.
                   h0, _ = lens_holes(a)
                   h_lab, h_n = ndimage_label_count(h0)
+                  log("    rim type: full rim (%d clean lens holes)" % h_n)
+                  if h_n < 2:
+                      half_regions = half_rim_lenses(img, a)
+                      if half_regions:
+                          a = open_full_rim_lenses(img, a, half_regions)
+              elif front:
+                  h0, _ = lens_holes(a)
+                  h_lab, h_n = ndimage_label_count(h0)
+                  log("    rim type: %s" % (rim_kind or "not set"))
                   if half_rim_hint or h_n < 2:
                       half_regions = half_rim_lenses(img, a)
                       if half_regions:
@@ -1734,6 +1832,8 @@ jobs:
                   a = clear_behind_glass(a)                         # step 6c: nothing seen through the lenses
                   a = trim_ends(a)                                  # step 6d: half a millimetre off each end
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
+              if front and rim_kind == "full":
+                  a = clear_sheet_at_ends(img, a)                   # step 7b: sheet wedge between end piece and rim
               if front:
                   # any front frame: what is not joined to the main frame -- an arm
                   # tip below the glass, a fleck along the rim's edge -- goes. This
@@ -1768,7 +1868,7 @@ jobs:
 
               if half_regions:
                   half_regions = [rg[py:H - py, px:W - px] for rg in half_regions]
-                  nums = lens_measurements(a, half_regions)
+                  nums = lens_measurements(a, half_regions, half_rim=half_ring is not None)
               else:
                   nums = measurements(a)
               nums["reading"] = read_frame(img, a) if front else {}
@@ -1965,7 +2065,7 @@ jobs:
                       log("--- %s : %s" % (pid, (p.get("name") or "")[:50]))
                       rim_txt = str(p.get("rim") or p.get("rimType") or "").lower()
                       png, nums = cut(download(front_photo(p)), front=True,
-                                      half_rim_hint=any(k in rim_txt for k in ("half", "supra", "semi", "rimless")))
+                                      rim_kind=rim_kind_of(rim_txt))
                       url = cloudinary_upload(png, "tryon-" + str(pid), cname, cpreset)
                       p["tryOnUrl"] = url
                       p["tryOnReady"] = True
