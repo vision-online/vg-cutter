@@ -1002,6 +1002,7 @@ jobs:
               win = max(10, int(round(rim_t * 2)))
               reach = int(round(rim_t))
               for side, (x0, x1) in ((-1, (lx0, lx1)), (1, (rx0, rx1))):
+                for _round in range(4):                 # a cut can expose the next step further out
                   done = 0
                   xs = range(x0 + 3, x1 - 3) if side < 0 else range(x1 - 3, x0 + 3, -1)
                   for x in xs:
@@ -1035,8 +1036,9 @@ jobs:
                       if changed:
                           done += 1
                           T = profile(out)
-                      if done >= 4:
-                          break
+                          break                         # start this side again from the outside
+                  if done == 0:
+                      break
               return out
 
 
