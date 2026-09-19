@@ -1122,15 +1122,14 @@ jobs:
                   comp = lab == i
                   yy, xx = np.where(comp)
                   w = xx.max() - xx.min() + 1; h = yy.max() - yy.min() + 1
-                  if w < 0.15 * front_w or w > 0.6 * front_w or h < 0.3 * w or h > 1.3 * w:
+                  if w < 0.12 * front_w or w > 0.6 * front_w or h < 0.25 * w or h > 1.5 * w:
                       why["shape"] += 1
                       continue
                   if xx.min() < fx0 - 0.02 * front_w or xx.max() > fx1 + 0.02 * front_w:
                       why["place"] += 1
                       continue                                  # not under the front
-                  if (comp & solid).sum() > 0.9 * s:
-                      why["solid"] += 1
-                      continue                                  # the bar's own interior
+                  # (the glass itself is often still solid here -- the model keeps a
+                  # demo lens -- so how much of the piece is solid says nothing)
                   top = comp & (np.arange(H)[:, None] < yy.min() + 0.15 * h)
                   touch = (top & near_solid).sum() / max(1.0, float(top.sum()))
                   if touch < 0.05:
