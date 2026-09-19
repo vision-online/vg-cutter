@@ -591,6 +591,7 @@ jobs:
               spans.sort(key=lambda s: s[0])
               (lx0, lx1, lc, lt), (rx0, rx1, rc, rt) = spans
               rim_t = max(lt, rt)
+              globals()['LAST_RIM_T'] = rim_t
               margin = 3
               # the very ends of the front (beyond the lenses) often drop away
               # from the line; read their height from the outermost columns,
@@ -636,6 +637,38 @@ jobs:
               yy, xx = np.ogrid[-r:r + 1, -r:r + 1]
               disk[yy * yy + xx * xx <= r * r] = True
               thick = ndimage.binary_opening(above, structure=disk)
+              centre_x = (lx1 + rx0) / 2.0
+              rim_col = None
+              rgb = None
+              if img is not None:
+                  rgb = np.asarray(img).astype(np.float64)
+                  ref = []
+                  for x in range(W):
+                      if lens_top[x] > 0 and lim[x] > 0:
+                          y0 = lens_top[x] - int(round(rim_t * 0.8))
+                          y1 = lens_top[x] - int(round(rim_t * 0.2))
+                          if y0 > lim[x]:
+                              ref.append(rgb[y0:y1, x])
+                  if ref:
+                      rim_col = np.median(np.concatenate(ref), axis=0)
+              def rim_coloured(comp):
+                  if rim_col is None:
+                      return True
+                  ys, xs = np.where(comp)
+                  d = np.sqrt(((rgb[ys, xs] - rim_col) ** 2).sum(axis=1))
+                  return np.median(d) < 60
+              def leans_inward(comp):
+                  """An arm rises towards the middle of the frame: its highest point
+                  sits on the inner side of the piece. A cat-eye wing rises towards
+                  the outside, a hinge block is flat. True = arm."""
+                  ys, xs = np.where(comp)
+                  if xs.size < 20:
+                      return True
+                  top = ys.min()
+                  xt = xs[ys <= top + max(2, int(0.15 * (ys.max() - top + 1)))].mean()
+                  cx = xs.mean()
+                  outward = 1.0 if cx > centre_x else -1.0       # +1: outside lies to the right
+                  return (xt - cx) * outward < -0.15 * (xs.max() - xs.min() + 1)
               keep = np.zeros_like(above)
               alab, an = ndimage.label(above)
               for c in range(1, an + 1):
@@ -648,7 +681,7 @@ jobs:
                   fill = xs.size / float(max(1, width * height))
                   # a hinge block is squarish and solid (fills most of its box); an
                   # arm root or a tag remnant is a thin slanted band (fills little)
-                  if height <= 1.5 * rim_t and seated >= 0.6 * width and fill >= 0.45:
+                  if height <= 1.5 * rim_t and seated >= 0.6 * width and fill >= 0.45 and not leans_inward(comp) and rim_coloured(comp):
                       keep |= comp                              # a block sitting on the front: keep whole
               tlab, tn = ndimage.label(thick & ~keep)
               for c in range(1, tn + 1):
@@ -659,7 +692,7 @@ jobs:
                   seated = sum(1 for x in range(int(xs.min()), int(xs.max()) + 1)
                                if lim[x] > 0 and comp[max(0, lim[x] - r - 1):lim[x], x].any())
                   fill = xs.size / float(max(1, width * height))
-                  if height <= 2.0 * rim_t and seated >= 0.8 * width and fill >= 0.45:
+                  if height <= 2.0 * rim_t and seated >= 0.8 * width and fill >= 0.45 and not leans_inward(comp) and rim_coloured(comp):
                       grown = ndimage.binary_dilation(comp, structure=disk)
                       keep |= grown & above                     # a thick piece of the front
               # where an arm joins, keep a quarter rim above the edge, so the
@@ -672,17 +705,8 @@ jobs:
               # not the rim's colour goes -- scanning down from the line and
               # stopping at the first rim-coloured pixel, and never below the
               # rim's own normal thickness, so the rim is never thinned.
-              if img is not None:
-                  rgb = np.asarray(img).astype(np.float64)
-                  ref = []
-                  for x in range(W):
-                      if lens_top[x] > 0 and lim[x] > 0:
-                          y0 = lens_top[x] - int(round(rim_t * 0.8))
-                          y1 = lens_top[x] - int(round(rim_t * 0.2))
-                          if y0 > lim[x]:
-                              ref.append(rgb[y0:y1, x])
-                  if ref:
-                      rim_col = np.median(np.concatenate(ref), axis=0)
+              if rim_col is not None:
+                  if True:
                       for x in range(W):
                           if lim[x] <= 0:
                               continue
@@ -690,11 +714,63 @@ jobs:
                               floor_y = lens_top[x] - int(round(rim_t))   # normal thickness: never cut below
                           else:
                               floor_y = lim[x] + int(round(rim_t * 0.5))  # end piece: half a rim at most
-                          y = lim[x]
+                          y = lim[x]; run = 0
                           while y < floor_y and solid[y, x]:
                               if np.sqrt(((rgb[y, x] - rim_col) ** 2).sum()) < 60:
-                                  break
+                                  run += 1
+                                  if run >= 3:
+                                      kill[y - 2:y + 1, x] = False
+                                      break
+                              else:
+                                  run = 0
                               kill[y, x] = True
+                              y += 1
+                      # the rim itself is never cut: anything the line marked that
+                      # is rim-coloured and within the rim's possible thickness of
+                      # the glass is rim (a corner that rises, a thicker end) -- keep
+                      # it. A bright highlight right on the edge line is rim too.
+                      dist = np.sqrt(((rgb - rim_col) ** 2).sum(axis=2))
+                      bright = rgb.mean(axis=2) > 180
+                      rows = np.arange(H)[:, None]
+                      zone = np.zeros_like(kill)
+                      for x in range(W):
+                          if lens_top[x] > 0:
+                              zone[max(0, lens_top[x] - int(round(rim_t * 1.35))):lens_top[x], x] = True
+                          elif lim[x] > 0:
+                              zone[max(0, lim[x] - 2):lim[x] + int(round(rim_t * 0.5)), x] = True
+                      near_line = (rows >= (lim[None, :] - 8)) & (lim[None, :] > 0)
+                      rim_like = zone & ((dist < 60) | (bright & near_line)) & kill
+                      # a rising corner is a long low sliver along the line; an arm
+                      # root of the same colour is a compact piece leaning inward
+                      rlab, rn = ndimage.label(rim_like)
+                      for c in range(1, rn + 1):
+                          comp = rlab == c
+                          ys, xs = np.where(comp)
+                          h = ys.max() - ys.min() + 1; w = xs.max() - xs.min() + 1
+                          if h > 0.35 * rim_t and w < 3 * h and leans_inward(comp):
+                              rim_like &= ~comp
+                      kill &= ~rim_like
+                      # the end pieces: colour only, from the very top down, so a
+                      # grey arm root or hinge line above them goes whatever the
+                      # line said, and rim-coloured end piece is never touched
+                      for x in range(W):
+                          if lens_top[x] > 0 or lim[x] <= 0:
+                              continue
+                          col = np.where(solid[:, x])[0]
+                          if not col.size:
+                              continue
+                          y = int(col.min())
+                          stop = int(col.max()); run = 0
+                          while y <= stop:
+                              if solid[y, x]:
+                                  if dist[y, x] < 60:
+                                      run += 1
+                                      if run >= 3:
+                                          kill[y - 2:y + 1, x] = False
+                                          break
+                                  else:
+                                      run = 0
+                                  kill[y, x] = True
                               y += 1
               out = alpha.copy()
               if kill.any():
@@ -707,9 +783,16 @@ jobs:
                   if fn > 1:
                       fs = _nd.sum(out > 0.5, flab, range(1, fn + 1))
                       main = int(np.argmax(fs)) + 1
-                      stray = (flab != main) & (flab != 0) & (rise > 0)
-                      stray = _nd.binary_dilation(stray, iterations=3) & (rise > 0) & ~(flab == main)
+                      ys_main = np.where(flab == main)[0]
+                      mid = int((ys_main.min() + ys_main.max()) / 2)
+                      stray = (flab != main) & (flab != 0)
+                      stray[mid:, :] = False                        # only above the frame's middle
+                      stray = _nd.binary_dilation(stray, iterations=3) & ~(flab == main)
+                      stray[mid:, :] = False
                       out[stray] = 0.0
+                  # a one-pixel feather along the new edge, so it is not a staircase
+                  edge = _nd.binary_dilation(kill | soft, iterations=1) & (out > 0.5)
+                  out[edge] *= 0.5
               removed = float((solid & ~(out > 0.5)).sum()) / max(1.0, float(solid.sum()))
               return out, removed
 
@@ -766,6 +849,42 @@ jobs:
               out = alpha.copy()
               out[:, :x0 + t] = 0.0
               out[:, x1 - t + 1:] = 0.0
+              return out
+
+
+          def trim_narrow_above(alpha, rim_t):
+              """
+              Whatever is left above the lenses after the arm step, a piece that is
+              NARROW (less than one and a half rims wide) and sticks up from the
+              front is not front: an arm root, a hinge line, a tag corner. The
+              front's own top -- rim, bridge, end pieces, a wide cat-eye wing --
+              is wide in every row and is kept exactly. Nothing below the top of
+              the lens openings is examined, so nose pads and the rim are safe.
+              """
+              from scipy import ndimage
+              lens, _ = lens_holes(alpha)
+              if not lens.any():
+                  return alpha
+              ys = np.where(lens.any(axis=1))[0]
+              top_of_glass = int(ys.min())
+              solid = alpha > 0.5
+              L = max(9, int(round(rim_t * 1.5)) | 1)
+              opened = ndimage.binary_opening(solid, structure=np.ones((1, L), bool))
+              narrow = solid & ~opened
+              narrow[top_of_glass:, :] = False
+              if not narrow.any():
+                  return alpha
+              out = alpha.copy()
+              soft = ndimage.binary_dilation(narrow, iterations=2) & ~opened
+              soft[top_of_glass:, :] = False
+              out[narrow | soft] = 0.0
+              edge = ndimage.binary_dilation(narrow | soft, iterations=1) & (out > 0.5)
+              edge[top_of_glass:, :] = False
+              out[edge] *= 0.5
+              # hair-thin ghosts: faint pixels that touch nothing solid are gone
+              near_solid = ndimage.binary_dilation(out > 0.5, iterations=2)
+              ghost = (out > 0) & (out <= 0.5) & ~near_solid
+              out[ghost] = 0.0
               return out
 
 
@@ -1200,6 +1319,7 @@ jobs:
                   # bridge and keeps anything seated on the front's top edge).
                   a, arms_above = remove_arms_above(a, img)
                   a = cut_end_to_end(a)                             # step 6b: arms beyond the ends
+                  a = trim_narrow_above(a, globals().get("LAST_RIM_T", 24.0))   # step 6b2: narrow stubs above the front
                   a = clear_behind_glass(a)                         # step 6c: nothing seen through the lenses
                   a = trim_ends(a)                                  # step 6d: half a millimetre off each end
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
