@@ -1113,25 +1113,35 @@ jobs:
               front_w = fx1 - fx0 + 1
               near_solid = ndimage.binary_dilation(solid, iterations=3)
               picks = []
+              why = {"size": 0, "shape": 0, "place": 0, "solid": 0, "touch": 0}
               for i in range(1, n + 1):
                   s = float(sizes[i - 1])
                   if s < 0.004 * gray.size or s > 0.4 * gray.size:
+                      why["size"] += 1
                       continue
                   comp = lab == i
                   yy, xx = np.where(comp)
                   w = xx.max() - xx.min() + 1; h = yy.max() - yy.min() + 1
                   if w < 0.15 * front_w or w > 0.6 * front_w or h < 0.3 * w or h > 1.3 * w:
+                      why["shape"] += 1
                       continue
                   if xx.min() < fx0 - 0.02 * front_w or xx.max() > fx1 + 0.02 * front_w:
+                      why["place"] += 1
                       continue                                  # not under the front
                   if (comp & solid).sum() > 0.9 * s:
+                      why["solid"] += 1
                       continue                                  # the bar's own interior
                   top = comp & (np.arange(H)[:, None] < yy.min() + 0.15 * h)
                   touch = (top & near_solid).sum() / max(1.0, float(top.sum()))
                   if touch < 0.05:
+                      why["touch"] += 1
                       continue                                  # does not hang from the bar
                   picks.append((s, i))
               picks.sort(reverse=True)
+              try:
+                  log("half-rim: %d enclosed pieces, %d candidates, rejected %s" % (n, len(picks), why))
+              except Exception:
+                  pass
               out = []
               for s, i in picks[:2]:
                   comp = lab == i
@@ -1154,8 +1164,16 @@ jobs:
                   # two lenses side by side, alike in size, not overlapping
                   a, b = out
                   if (a & b).any() or abs(a.sum() - b.sum()) > 0.5 * max(a.sum(), b.sum()):
+                      try:
+                          log("half-rim: two pieces found but they overlap or differ too much (%d vs %d)" % (a.sum(), b.sum()))
+                      except Exception:
+                          pass
                       return []
                   return out
+              try:
+                  log("half-rim: %d lens piece(s) kept after the shadow trim -- need 2" % len(out))
+              except Exception:
+                  pass
               return []
 
 
@@ -1646,7 +1664,9 @@ jobs:
                   # hinge blocks and the top of the bridge; this one never examines the
                   # bridge and keeps anything seated on the front's top edge).
                   a, arms_above = remove_arms_above(a, img)
-                  a = cut_end_to_end(a)                             # step 6b: arms beyond the ends
+                  if half_ring is None:
+                      a = cut_end_to_end(a)                         # step 6b: arms beyond the ends
+                  # (a half-rim's end pieces are thin metal and would be mistaken for arm)
                   a = trim_narrow_above(a, globals().get("LAST_RIM_T", 24.0))   # step 6b2: narrow stubs above the front
                   a = mirror_top(a, globals().get("LAST_RIM_T", 24.0))          # step 6b3: a flat arm along one brow, by symmetry
                   a = smooth_top_steps(a, globals().get("LAST_RIM_T", 24.0))    # step 6b4: a symmetric arm sliver, by its step
