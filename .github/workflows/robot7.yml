@@ -389,6 +389,8 @@ jobs:
           # ---------------------------------------------------------------- the model
 
           _model = None
+          MODEL_NAME = [""]        # a test run can ask for another model (e.g. BiRefNet_HR)
+          MODEL_SIZE = [1024]      # and the size it looks at the photo
 
 
           def model():
@@ -396,11 +398,13 @@ jobs:
               if _model is None:
                   import torch
                   from transformers import AutoModelForImageSegmentation
-                  wanted = os.environ.get("BIREFNET_MODEL", "ZhengPeng7/BiRefNet")
+                  wanted = MODEL_NAME[0] or os.environ.get("BIREFNET_MODEL", "ZhengPeng7/BiRefNet")
                   try:
                       m = AutoModelForImageSegmentation.from_pretrained(wanted, trust_remote_code=True)
-                      log("Model loaded:", wanted)
+                      log("Model loaded:", wanted, "at", MODEL_SIZE[0], "px")
                   except Exception as e:
+                      if MODEL_NAME[0]:
+                          raise RuntimeError("test model %s would not load: %s" % (wanted, str(e)[:200]))
                       log("Full model would not load (%s). Using the lite model instead." % str(e)[:120])
                       m = AutoModelForImageSegmentation.from_pretrained(
                           "ZhengPeng7/BiRefNet_lite", trust_remote_code=True)
@@ -417,7 +421,7 @@ jobs:
               import torch
               from torchvision import transforms
               prep = transforms.Compose([
-                  transforms.Resize((1024, 1024)),
+                  transforms.Resize((MODEL_SIZE[0], MODEL_SIZE[0])),
                   transforms.ToTensor(),
                   transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
               ])
@@ -2567,6 +2571,17 @@ jobs:
                   return 1
               todo = [p for p in products if waiting(p)]
               recut = (os.environ.get("RECUT") or "").strip()
+              test_mode = ""
+              if recut.lower().startswith("test-hr:"):
+                  # A TEST: cut one frame with BiRefNet_HR (MIT licence, free) looking
+                  # at the photo at 2048 px. The result is uploaded and its link
+                  # printed, but NOTHING is saved to the frame -- the live cut-out
+                  # stays as it is. No other frame is touched in a test run.
+                  test_mode = "hr"
+                  MODEL_NAME[0] = "ZhengPeng7/BiRefNet_HR"
+                  MODEL_SIZE[0] = 2048
+                  recut = recut.split(":", 1)[1].strip()
+                  todo = []
               if recut:
                   # a trial: cut one frame again even though it already has a cut-out
                   if recut.lower() == "first":
@@ -2605,6 +2620,11 @@ jobs:
                       rim_txt = str(p.get("rim") or p.get("rimType") or "").lower()
                       png, nums = cut(download(front_photo(p)), front=True,
                                       rim_kind=rim_kind_of(rim_txt))
+                      if test_mode:
+                          url = cloudinary_upload(png, "test-%s-%s" % (test_mode, pid), cname, cpreset)
+                          log("    TEST RESULT (%s, not saved, live cut-out unchanged) -> %s" % (test_mode, url))
+                          done += 1
+                          continue
                       url = cloudinary_upload(png, "tryon-" + str(pid), cname, cpreset)
                       p["tryOnUrl"] = url
                       p["tryOnReady"] = True
