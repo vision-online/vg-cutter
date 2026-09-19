@@ -1,24 +1,9 @@
-Run 173  Sat Sep 19 22:12:39 UTC 2026
-Trigger: workflow_dispatch
+Run 174  Sat Sep 19 22:19:02 UTC 2026
+Trigger: schedule
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::Frames: 19. Waiting: 1. Rejected: 0.  Trial re-cut asked for: test-raw:pmu4gnug185
+::notice::Frames: 19. Waiting: 0. Rejected: 0.
 
 --- what the robot did ---
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    RAW MASK ZhengPeng7/BiRefNet at 1024 px: 30 s, frame pixels 381635, soft pixels 20868 -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789855851/jmhigfu0xz11xmievo6j.png
-A new version of the following files was downloaded from https://huggingface.co/ZhengPeng7/BiRefNet_HR:
-- BiRefNet_config.py
-. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
-A new version of the following files was downloaded from https://huggingface.co/ZhengPeng7/BiRefNet_HR:
-- birefnet.py
-. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
-Model loaded: ZhengPeng7/BiRefNet_HR at 2048 px
-    RAW MASK ZhengPeng7/BiRefNet_HR at 2048 px: 107 s, frame pixels 380572, soft pixels 16351 -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789855958/bqacpv9hgdskx7ueisgf.png
-    DIFFERENCE: pixels where the two models disagree (one says frame, other says not): 4645; average difference 0.0020
