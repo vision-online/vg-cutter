@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       recut:
-        description: 'first / a frame id / reset / all (re-cut every frame)'
+        description: 'first / a frame id / reset / all / fullrim (re-cut Full rim frames) / restore:all'
         required: false
         default: ''
 
@@ -134,6 +134,31 @@ jobs:
                           call("/rest/v1/products?on_conflict=id", "POST", redo,
                                "resolution=merge-duplicates,return=minimal")
                       print("Re-cut all: %d frame(s) queued for a fresh cut." % len(redo))
+                      recut = ""
+                      frames = [r.get("data") or {} for r in rows if not str(r.get("id") or "").startswith("__")]
+                  if recut.lower() == "fullrim":
+                      # re-cut only the frames saved as "Full rim" in admin (the method
+                      # changed for them). Half rim / supra / rimless, switched-off and
+                      # hand-supplied frames are left exactly as they are. Each frame's
+                      # current cut-out is kept in tryOnPrev so it can be put back.
+                      redo = []
+                      for r in rows:
+                          d = r.get("data") or {}
+                          rim = str(d.get("rim") or d.get("rimType") or "").lower()
+                          full = ("full" in rim) and not any(w in rim for w in ("half", "semi", "supra", "rimless"))
+                          if str(r.get("id") or "").startswith("__") or d.get("tryOnLocked") or d.get("tryOnOk") is False or not full:
+                              continue
+                          if d.get("tryOnUrl"):
+                              d["tryOnPrev"] = {"url": d.get("tryOnUrl"), "numbers": d.get("tryOnNumbers"),
+                                                "angle": d.get("tryOnAngleUrl"), "side": d.get("tryOnSideUrl")}
+                          d["tryOnReady"] = False; d["tryOnFails"] = 0; d.pop("tryOnFail", None)
+                          d.pop("tryOnAngleUrl", None); d.pop("tryOnSideUrl", None)
+                          redo.append({"id": str(r.get("id")), "data": d, "updated_at": now})
+                      if redo:
+                          call("/rest/v1/products?on_conflict=id", "POST", redo,
+                               "resolution=merge-duplicates,return=minimal")
+                      print("Re-cut full rim: %d frame(s) queued: %s" % (len(redo), ", ".join(
+                          str((x["data"].get("name") or x["id"]))[:20] for x in redo)))
                       recut = ""
                       frames = [r.get("data") or {} for r in rows if not str(r.get("id") or "").startswith("__")]
                   if recut.lower() == "reset":
@@ -1835,9 +1860,6 @@ jobs:
                           dbg_cols.append("x%d yb%d run%d: %s" % (xq, yb, run, " ".join(col)))
               except Exception as e:
                   dbg_cols.append("dbg err %s" % e)
-              log("    thick " + " ".join(thick_dbg))
-              for ln in dbg_cols:
-                  log("    col " + ln)
               info = {"rimT": round(rim_t, 1), "rimOff": round(rim_off, 1), "rimIn": round(r_in, 1), "rimOut": round(r_out, 1), "bgL": round(bg_l), "frameL": round(frame_l),
                       "darkFrame": bool(dark_frame), "rimPutBack": put_back, "raysMoved": n_moved, "byOutline": n_outline, "specks": specks, "noRim": gaps_dbg[:14], "glassEdge": info_glass,
                       "removed": int((solid & ~front).sum())}
@@ -2572,6 +2594,25 @@ jobs:
               todo = [p for p in products if waiting(p)]
               recut = (os.environ.get("RECUT") or "").strip()
               test_mode = ""
+              if recut.lower().startswith("restore:"):
+                  # UNDO: put back the cut-out a frame had before the last full-rim
+                  # re-cut (kept in tryOnPrev). "restore:id1,id2" or "restore:all".
+                  want = [x.strip() for x in recut.split(":", 1)[1].split(",") if x.strip()]
+                  for p in products:
+                      prev = p.get("tryOnPrev")
+                      if not prev or not prev.get("url"):
+                          continue
+                      if "all" not in want and str(p.get("id")) not in want:
+                          continue
+                      p["tryOnUrl"] = prev["url"]; p["tryOnReady"] = True
+                      if prev.get("numbers"):
+                          p["tryOnNumbers"] = prev["numbers"]
+                      for k2, f2 in (("angle", "tryOnAngleUrl"), ("side", "tryOnSideUrl")):
+                          if prev.get(k2):
+                              p[f2] = prev[k2]
+                      save_product(p)
+                      log("    restored %s (%s) -> %s" % (p.get("id"), (p.get("name") or "")[:30], prev["url"]))
+                  return 0
               if recut.lower().startswith("test-raw:"):
                   # PROOF TEST: what each AI model itself sees, before any of our own
                   # rim fixing. The same photo goes through the normal BiRefNet (1024 px)
