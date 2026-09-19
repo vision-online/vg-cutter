@@ -1733,9 +1733,15 @@ jobs:
                   a = trim_ends(a)                                  # step 6d: half a millimetre off each end
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
               if half_ring is not None:
+                  before_ks = int((a > 0.5).sum())
                   a = keep_main_solid(a)                            # an arm tip below the glass, flecks along its edge
+                  after_ks = int((a > 0.5).sum())
                   a = trim_whiskers(a)                              # a thread or hair a few pixels wide
+                  after_tw1 = int((a > 0.5).sum())
                   a = trim_whiskers(a)                              # a second pass: a thicker knot in the thread
+                  after_tw2 = int((a > 0.5).sum())
+                  log("    half-rim cleanup: solid %d -> keep_main_solid %d -> trim1 %d -> trim2 %d"
+                      % (before_ks, after_ks, after_tw1, after_tw2))
                   # the demo lens edge: a faint thin line, as a real one shows
                   a = np.where(half_ring & (a > 0.5), np.float32(0.45), a).astype(np.float32)
 
