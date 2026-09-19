@@ -1503,6 +1503,7 @@ jobs:
               front = lens | rim_band | bridge | keep_end
               put_back = 0
               n_moved = 0
+              n_outline = 0
               gaps_dbg = []
               if dark_frame:
                   dist_in = ndimage.distance_transform_edt(lens)
@@ -1641,7 +1642,19 @@ jobs:
                           else:
                               st, last = min(good, key=lambda rr: abs(rr[0] - pk))
                               if abs(st - pk) > tol:
-                                  continue            # nothing on the path here: leave it
+                                  # nothing on the path. Something dark just inside
+                                  # the glass (a price tag's printed line, seen on
+                                  # Lot) can pull the path in by a rim's width over a
+                                  # stretch; the rim is then the rim-thick dark run
+                                  # where the ray leaves the traced opening.
+                                  pi = i0 - a0
+                                  cand = [] if padray else \
+                                      [rr for rr in good if abs(rr[0] - pi) <= tol
+                                       and (rr[1] - rr[0] + 1) * step >= 0.6 * rim_t]
+                                  if not cand:
+                                      continue        # nothing on the path here: leave it
+                                  st, last = min(cand, key=lambda rr: abs(rr[0] - pi))
+                                  n_outline += 1
                           last = min(last, st + int(cap / step))
                           rim_m[wy[st:last + 1], wx[st:last + 1]] = True
                           miss[k] = False
@@ -1705,7 +1718,7 @@ jobs:
               else:
                   info_glass = 0
               info = {"rimT": round(rim_t, 1), "rimOff": round(rim_off, 1), "rimIn": round(r_in, 1), "rimOut": round(r_out, 1), "bgL": round(bg_l), "frameL": round(frame_l),
-                      "darkFrame": bool(dark_frame), "rimPutBack": put_back, "raysMoved": n_moved, "noRim": gaps_dbg[:14], "glassEdge": info_glass,
+                      "darkFrame": bool(dark_frame), "rimPutBack": put_back, "raysMoved": n_moved, "byOutline": n_outline, "noRim": gaps_dbg[:14], "glassEdge": info_glass,
                       "removed": int((solid & ~front).sum())}
               return out, info
 
