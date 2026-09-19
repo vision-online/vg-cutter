@@ -1,4 +1,4 @@
-Run 154  Sat Sep 19 20:39:08 UTC 2026
+Run 155  Sat Sep 19 20:45:05 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Trial re-cut of pmu4gnug185 (Lot).
@@ -14,6 +14,6 @@ Model loaded: ZhengPeng7/BiRefNet
     rim type: full rim (1 clean lens holes)
 half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 'place': 0, 'solid': 0, 'touch': 0}
     full-rim cleanup: solid 68875 -> keep_main_solid 58961
-    full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'rimIn': 0.0, 'rimOut': 11.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 10210, 'raysMoved': 254, 'byOutline': 181, 'noRim': [('L', 0, 0.82, 205.5, 205.0, 239.5, 205.0), ('L', 5, 0.97, 202.0, 202.0, 238.0, 206.0), ('R', 160, 0.71, 246.5, 243.5, 232.0, 243.5), ('R', 165, 0.61, 247.0, 244.5, 234.0, 244.5), ('R', 170, 1.0, 201.0, 200.0, 239.5, 201.0), ('R', 175, 0.71, 209.0, 208.0, 241.5, 209.0)], 'glassEdge': (933, 196), 'removed': 4669}
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789850345/qwaodgzs3rf0sbwxhfad.png
+    full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'rimIn': 0.0, 'rimOut': 11.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 10232, 'raysMoved': 254, 'byOutline': 183, 'noRim': [('L', 0, 0.82, 205.5, 205.0, 239.5, 205.0), ('L', 5, 0.97, 202.0, 202.0, 238.0, 206.0), ('R', 160, 0.71, 246.5, 243.5, 232.0, 243.5), ('R', 165, 0.61, 247.0, 244.5, 234.0, 244.5), ('R', 170, 1.0, 201.0, 200.0, 239.5, 201.0), ('R', 175, 0.71, 209.0, 208.0, 241.5, 209.0)], 'glassEdge': (934, 211), 'removed': 4669}
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789850701/jtgz366kenf0x2juatts.png
   Finished. Cut 1, failed 0, rejected 0, still waiting 0.
