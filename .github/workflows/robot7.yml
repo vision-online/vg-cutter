@@ -1698,6 +1698,7 @@ jobs:
               a = matte(img, tri)                                   # step 4
               a = tighten_edge(a)                                   # step 4b: a 1-2 px edge, not a glow
               a = heal_rim(a)                                       # step 4c: a highlight slit inside the rim is rim
+              a = firm_rim(a)                                       # a speckled metal bar/rim is made solid inside (any frame)
               # HALF-RIM: metal on top only, the demo lens on a thread below. No closed
               # hole, so trace the lens edge from the photograph instead; its ring is
               # made solid for the moment so every rule below sees a proper opening.
@@ -1733,14 +1734,23 @@ jobs:
                   a = clear_behind_glass(a)                         # step 6c: nothing seen through the lenses
                   a = trim_ends(a)                                  # step 6d: half a millimetre off each end
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
-              if half_ring is not None:
+              if front:
+                  # any front frame: what is not joined to the main frame -- an arm
+                  # tip below the glass, a fleck along the rim's edge -- goes. This
+                  # only drops pieces well apart from the frame; it never touches
+                  # the frame's own outline, so the rim is never thinned.
                   before_ks = int((a > 0.5).sum())
-                  a = keep_main_solid(a)                            # an arm tip below the glass, flecks along its edge
+                  a = keep_main_solid(a)
                   after_ks = int((a > 0.5).sum())
-                  a = trim_whiskers(a)                              # a thread or cord a few pixels wide
-                  after_tw1 = int((a > 0.5).sum())
-                  log("    half-rim cleanup: solid %d -> keep_main_solid %d -> trim %d"
-                      % (before_ks, after_ks, after_tw1))
+                  if half_ring is not None:
+                      a = trim_whiskers(a)                          # a thread or cord a few pixels wide
+                      after_tw1 = int((a > 0.5).sum())
+                      log("    half-rim cleanup: solid %d -> keep_main_solid %d -> trim %d"
+                          % (before_ks, after_ks, after_tw1))
+                  else:
+                      log("    full-rim cleanup: solid %d -> keep_main_solid %d"
+                          % (before_ks, after_ks))
+              if half_ring is not None:
                   # the demo lens edge: a faint thin line, as a real one shows
                   a = np.where(half_ring & (a > 0.5), np.float32(0.45), a).astype(np.float32)
 
