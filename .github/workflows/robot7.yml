@@ -737,7 +737,9 @@ jobs:
                           if lens_top[x] > 0:
                               zone[max(0, lens_top[x] - int(round(rim_t * 1.35))):lens_top[x], x] = True
                           elif lim[x] > 0:
-                              zone[max(0, lim[x] - 2):lim[x] + int(round(rim_t * 0.5)), x] = True
+                              # an end piece may rise above the line at the corner: rim-coloured
+                              # pixels up to half a rim above it are rim, not arm
+                              zone[max(0, lim[x] - int(round(rim_t * 0.5))):lim[x] + int(round(rim_t * 0.5)), x] = True
                       near_line = (rows >= (lim[None, :] - 8)) & (lim[None, :] > 0)
                       rim_like = zone & ((dist < 60) | (bright & near_line)) & kill
                       # a rising corner is a long low sliver along the line; an arm
