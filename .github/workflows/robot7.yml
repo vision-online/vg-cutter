@@ -478,6 +478,47 @@ jobs:
               return b & mask
 
 
+          def firm_rim(alpha):
+              """
+              A thin metal bar with a highlight along it comes out of the matting
+              speckled: opaque, then half-clear, then opaque again along the same
+              bar. Every pixel INSIDE the bar (not on its edge) is made fully
+              opaque. Only the interior changes, so the outline is exactly as it
+              was and nothing is thinned.
+              """
+              from scipy import ndimage
+              solid = alpha > 0.5
+              body = ndimage.binary_closing(solid, structure=np.ones((5, 5), bool))
+              interior = ndimage.binary_erosion(body, iterations=1) & (alpha > 0.02)
+              out = alpha.copy()
+              out[interior] = 1.0
+              return out
+
+
+          def keep_main_solid(alpha):
+              """
+              Half-rim only: what is not joined to the front -- the tip of an arm
+              showing below the glass, a fleck of the table along the lens edge --
+              goes. The front, its end pieces, the nose pads and the traced lens
+              rings are all one connected piece by this stage.
+              """
+              from scipy import ndimage
+              solid = alpha > 0.5
+              lab, n = ndimage.label(solid)
+              if n <= 1:
+                  return alpha
+              sizes = ndimage.sum(solid, lab, range(1, n + 1))
+              big = sizes.max()
+              keep = np.zeros_like(solid)
+              for i, sz in enumerate(sizes):
+                  if sz >= 0.3 * big:
+                      keep |= lab == (i + 1)
+              near = ndimage.binary_dilation(keep, iterations=3)
+              out = alpha.copy()
+              out[~near] = 0.0
+              return out
+
+
           def largest_component(alpha):
               """Keep the frame; drop stray specks the model may have kept."""
               from scipy import ndimage
@@ -1650,6 +1691,7 @@ jobs:
                       half_regions = half_rim_lenses(img, a)
                       if half_regions:
                           a, half_ring = apply_half_rim(img, a, half_regions)
+                          a = firm_rim(a)                          # a speckled metal bar is made solid inside
               holes, _ = lens_holes(a)
               if not holes.any():
                   # the model kept the lenses solid (common for clear glass):
@@ -1674,6 +1716,7 @@ jobs:
                   a = trim_ends(a)                                  # step 6d: half a millimetre off each end
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
               if half_ring is not None:
+                  a = keep_main_solid(a)                            # an arm tip below the glass, flecks along its edge
                   # the demo lens edge: a faint thin line, as a real one shows
                   a = np.where(half_ring & (a > 0.5), np.float32(0.45), a).astype(np.float32)
 
@@ -1699,6 +1742,10 @@ jobs:
                   y0, y1 = max(0, ys.min() - pad), min(a.shape[0], ys.max() + pad + 1)
                   x0, x1 = max(0, xs.min() - pad), min(a.shape[1], xs.max() + pad + 1)
                   rgba = rgba[y0:y1, x0:x1]
+                  if nums.get("lenses"):        # the lens numbers follow the final crop
+                      for e in nums["lenses"]:
+                          e["centreX"] = float(e["centreX"] - x0); e["centreY"] = float(e["centreY"] - y0)
+                      nums["frontWidthPx"] = int(x1 - x0); nums["frontHeightPx"] = int(y1 - y0)
               buf = io.BytesIO()
               Image.fromarray(rgba, "RGBA").save(buf, "PNG", optimize=True)
               return buf.getvalue(), nums
