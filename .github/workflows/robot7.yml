@@ -1502,6 +1502,8 @@ jobs:
 
               front = lens | rim_band | bridge | keep_end
               put_back = 0
+              n_moved = 0
+              gaps_dbg = []
               if dark_frame:
                   dist_in = ndimage.distance_transform_edt(lens)
                   # the nose-pad corner: the pads sit on the nasal side of each lens,
@@ -1531,6 +1533,23 @@ jobs:
                   gov = np.zeros_like(solid)
                   step = 0.5
                   minlen = max(2, int(0.3 * rim_t / step))
+                  def _dark_runs(dk):
+                      # dark runs along a ray, gaps of up to 2 samples bridged
+                      runs_r = []; j = 0; n = dk.size
+                      while j < n:
+                          if not dk[j]:
+                              j += 1; continue
+                          st = j; last = j; gap = 0; j += 1
+                          while j < n:
+                              if dk[j]:
+                                  last = j; gap = 0
+                              else:
+                                  gap += 1
+                                  if gap > 2:
+                                      break
+                              j += 1
+                          runs_r.append((st, last))
+                      return runs_r
                   for r in (L, R):
                       ys, xs = np.where(r)
                       cy, cx = ys.mean(), xs.mean()
@@ -1560,22 +1579,8 @@ jobs:
                           back = (max(0.0, -r_in) + 3.0) if padray else win
                           a0 = max(0, i0 - int(back / step)); a1 = min(yy.size, i0 + int(win / step))
                           wy = yy[a0:a1]; wx = xx[a0:a1]
-                          dk = D[wy, wx]
-                          runs_r = []; j = 0; n = dk.size
-                          while j < n:
-                              if not dk[j]:
-                                  j += 1; continue
-                              st = j; last = j; gap = 0; j += 1
-                              while j < n:
-                                  if dk[j]:
-                                      last = j; gap = 0
-                                  else:
-                                      gap += 1
-                                      if gap > 2:
-                                          break
-                                  j += 1
-                              runs_r.append((st, last))
-                          rays[k] = (a0, wy, wx, runs_r)
+                          runs_r = _dark_runs(D[wy, wx])
+                          rays[k] = (a0, wy, wx, runs_r, yy, xx, i0, padray)
                           longr = [rr for rr in runs_r if rr[1] - rr[0] + 1 >= minlen]
                           if longr:
                               first[k] = (a0 + longr[0][0]) * step
@@ -1593,15 +1598,34 @@ jobs:
                           if wv.size:
                               prof[k] = np.median(wv)
                       # pass 2: on each ray the rim is the dark run that lies on that path
+                      miss = np.zeros(NA, bool); dbg_i0 = np.full(NA, np.nan); dbg_near = np.full(NA, np.nan)
                       for k in range(NA):
                           if rays[k] is None:
+                              miss[k] = True
                               continue
-                          a0, wy, wx, runs_r = rays[k]
+                          a0, wy, wx, runs_r, yy, xx, i0, padray = rays[k]
+                          dbg_i0[k] = i0 * step
+                          miss[k] = True
+                          tol = max(6.0, 0.8 * rim_t) / step
+                          if not padray and not np.isnan(prof[k]):
+                              c = int(round(prof[k] / step))
+                              if abs(c - i0) > tol:
+                                  # the traced opening leaks out through a break in
+                                  # the rim here (or stops short of it), so the ray
+                                  # "leaves" the lens far from the rim. Look around
+                                  # the rim's path instead of around that point.
+                                  a0 = max(0, c - int(win / step))
+                                  a1 = min(yy.size, c + int(win / step))
+                                  if a1 - a0 < 4:
+                                      continue
+                                  wy = yy[a0:a1]; wx = xx[a0:a1]
+                                  runs_r = _dark_runs(D[wy, wx])
+                                  n_moved += 1
                           gov[wy, wx] = True
                           if not runs_r or np.isnan(prof[k]):
                               continue
                           pk = prof[k] / step - a0          # the path, in this window's samples
-                          tol = max(6.0, 0.8 * rim_t) / step
+                          dbg_near[k] = (a0 + min(runs_r, key=lambda rr: abs(rr[0] - pk))[0]) * step
                           def _dist(rr):
                               # 0 when the run covers the path point (an arm tip seen
                               # through the glass can join the rim from the inside:
@@ -1620,6 +1644,16 @@ jobs:
                                   continue            # nothing on the path here: leave it
                           last = min(last, st + int(cap / step))
                           rim_m[wy[st:last + 1], wx[st:last + 1]] = True
+                          miss[k] = False
+                      # which directions got no rim (5-degree bins, >30% of rays empty)
+                      for b in range(72):
+                          sl = slice(b * NA // 72, (b + 1) * NA // 72)
+                          if miss[sl].mean() > 0.3:
+                              def _m(v):
+                                  v = v[sl]; v = v[~np.isnan(v)]
+                                  return round(float(np.median(v)), 1) if v.size else None
+                              gaps_dbg.append(("R" if r is R else "L", b * 5, round(float(miss[sl].mean()), 2),
+                                               _m(dbg_i0), _m(first), _m(prof), _m(dbg_near)))
                   rim_m = cv2.morphologyEx(rim_m.astype(np.uint8), cv2.MORPH_CLOSE,
                                            np.ones((3, 3), np.uint8)) > 0
                   gov = cv2.morphologyEx(gov.astype(np.uint8), cv2.MORPH_CLOSE,
@@ -1671,7 +1705,7 @@ jobs:
               else:
                   info_glass = 0
               info = {"rimT": round(rim_t, 1), "rimOff": round(rim_off, 1), "rimIn": round(r_in, 1), "rimOut": round(r_out, 1), "bgL": round(bg_l), "frameL": round(frame_l),
-                      "darkFrame": bool(dark_frame), "rimPutBack": put_back, "glassEdge": info_glass,
+                      "darkFrame": bool(dark_frame), "rimPutBack": put_back, "raysMoved": n_moved, "noRim": gaps_dbg[:14], "glassEdge": info_glass,
                       "removed": int((solid & ~front).sum())}
               return out, info
 
