@@ -1,9 +1,90 @@
-Run 174  Sat Sep 19 22:19:02 UTC 2026
-Trigger: schedule
+Run 175  Sat Sep 19 23:15:44 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::Frames: 19. Waiting: 0. Rejected: 0.
+Re-cut full rim: 16 frame(s) queued: Lot, New cat eye, VG-1007 Frames, Ocelot, Sizzler, VG-1004 Frames, Sheet gray, VG-1001 Frames, Visibilla, VG-1008 Frames, VG-1002 Frames, Heart stone, VG-1003 Frames, Skechers, VG-1005 Frames, VG-1006 Frames
+::notice::Frames: 19. Waiting: 16. Rejected: 0.
 
 --- what the robot did ---
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789857815/uipbinfyecssjzpkhrpr.png
+--- pmtzt59ej89 : VG-1004 Frames
+    full rim: rim about 4 px thick, edge band 2 px (was 17)
+    rim type: full rim (0 clean lens holes)
+half-rim: 194 enclosed pieces, 3 candidates, rejected {'size': 190, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
+half-rim: two pieces found but they overlap or differ too much (70013 vs 30406)
+    full-rim cleanup: solid 120096 -> keep_main_solid 112776
+    45 degree cut too
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789858088/rb2xje5vq0udxntabips.png
+--- pmtztljhi39 : VG-1005 Frames
+    full rim: rim about 4 px thick, edge band 2 px (was 17)
+    rim type: full rim (0 clean lens holes)
+half-rim: 61 enclosed pieces, 2 candidates, rejected {'size': 55, 'shape': 3, 'place': 0, 'solid': 0, 'touch': 1}
+    full-rim cleanup: solid 58429 -> keep_main_solid 53872
+    full-rim front: {'rimT': 17.0, 'rimOff': 0.0, 'rimIn': -1.0, 'rimOut': 14.0, 'bgL': 217, 'frameL': 3, 'darkFrame': True, 'rimPutBack': 12063, 'raysMoved': 918, 'byOutline': 216, 'specks': 25, 'noRim': [('R', 0, 1.0, 131.5, None, 134.5, None), ('R', 5, 0.97, 127.5, None, 135.0, 158.0), ('R', 10, 0.44, 119.0, 144.0, 135.0, 138.0), ('R', 20, 1.0, 104.0, None, 134.5, 168.5), ('R', 25, 0.53, 132.0, 130.0, 134.4, 131.5), ('R', 30, 0.48, 140.0, 126.5, 130.5, 128.5), ('R', 35, 0.55, 142.0, 120.5, 125.5, 116.5), ('R', 70, 0.35, 107.0, 65.5, 77.0, 65.5), ('R', 280, 0.53, 102.5, 125.5, 110.0, 104.5), ('R', 285, 1.0, 103.0, 129.5, 109.0, 105.0), ('R', 295, 0.35, 102.5, 139.0, 128.5, 141.5), ('R', 300, 1.0, 102.0, None, 130.0, 148.5), ('R', 305, 1.0, 102.0, None, 133.0, 159.0), ('R', 310, 1.0, 103.0, None, 135.5, 169.5)], 'glassEdge': (759, 259), 'removed': 8226}
+    45 degree cut too
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789858315/cyeejfxiu0o1mladvwuq.png
+--- pmtzvby3x13 : VG-1006 Frames
+    full rim: rim about 8 px thick, edge band 2 px (was 17)
+    rim type: full rim (0 clean lens holes)
+half-rim: 45 enclosed pieces, 2 candidates, rejected {'size': 42, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
+    full-rim cleanup: solid 87073 -> keep_main_solid 86283
+    full-rim front: {'rimT': 37.0, 'rimOff': 0.0, 'rimIn': -1.0, 'rimOut': 34.0, 'bgL': 176, 'frameL': 12, 'darkFrame': True, 'rimPutBack': 46483, 'raysMoved': 0, 'byOutline': 0, 'specks': 3, 'noRim': [], 'glassEdge': (171, 25), 'removed': 0}
+    45 degree cut too
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789858532/ayvwircipymdcg8m0067.png
+--- pmu1e5xfr15 : VG-1007 Frames
+    full rim: rim about 7 px thick, edge band 2 px (was 17)
+    rim type: full rim (0 clean lens holes)
+half-rim: 56 enclosed pieces, 3 candidates, rejected {'size': 52, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
+    full-rim cleanup: solid 132445 -> keep_main_solid 131328
+    full-rim front: {'rimT': 27.0, 'rimOff': 0.0, 'rimIn': -1.0, 'rimOut': 24.0, 'bgL': 190, 'frameL': 15, 'darkFrame': True, 'rimPutBack': 15062, 'raysMoved': 267, 'byOutline': 68, 'specks': 14, 'noRim': [('L', 335, 0.33, 98.0, 96.5, 91.5, 97.2), ('L', 340, 1.0, 129.0, None, 184.0, None), ('L', 345, 0.36, 177.5, 203.5, 185.0, 204.8)], 'glassEdge': (1016, 61), 'removed': 26426}
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789858747/gobciedmxf12hpqwpsn0.png
+--- pmu1eepls58 : VG-1008 Frames
+    full rim: rim about 6 px thick, edge band 2 px (was 17)
+    rim type: full rim (0 clean lens holes)
+half-rim: 71 enclosed pieces, 2 candidates, rejected {'size': 68, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
+    full-rim cleanup: solid 133171 -> keep_main_solid 127441
+    full-rim front: {'rimT': 36.0, 'rimOff': 0.0, 'rimIn': -1.0, 'rimOut': 31.0, 'bgL': 207, 'frameL': 14, 'darkFrame': True, 'rimPutBack': 20143, 'raysMoved': 801, 'byOutline': 20, 'specks': 13, 'noRim': [('R', 85, 0.41, 91.5, 104.8, 95.5, 91.5)], 'glassEdge': (1228, 53), 'removed': 8077}
+    45 degree cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789858806/cs0d45psslrowpgsg4yx.png
+--- pmu4g6b4x96 : Ocelot
+    full rim: rim about 8 px thick, edge band 2 px (was 17)
+    rim type: full rim (0 clean lens holes)
+half-rim: 119 enclosed pieces, 4 candidates, rejected {'size': 113, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 1}
+    full-rim cleanup: solid 110011 -> keep_main_solid 105208
+    full-rim front: {'rimT': 15.0, 'rimOff': 0.0, 'rimIn': -1.0, 'rimOut': 14.0, 'bgL': 167, 'frameL': 25, 'darkFrame': True, 'rimPutBack': 13284, 'raysMoved': 786, 'byOutline': 159, 'specks': 11, 'noRim': [('L', 0, 1.0, 193.0, 195.0, 174.8, 194.0), ('L', 5, 1.0, 194.0, 190.0, 174.8, 190.0), ('L', 10, 0.41, 190.2, 186.2, 174.8, 186.2), ('L', 220, 0.85, 188.5, 198.2, 165.0, 198.2), ('L', 355, 0.35, 105.0, 98.0, 98.0, 98.0), ('R', 175, 0.47, 188.0, 193.0, 181.5, 193.0), ('R', 280, 0.44, 122.0, 84.0, 106.0, 115.2), ('R', 315, 0.39, 182.0, 192.0, 166.5, 179.0), ('R', 320, 0.55, 189.5, 195.5, 166.5, 195.5)], 'glassEdge': (169, 120), 'removed': 49381}
+    45 degree cut too
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/PIL/Image.py:1056: UserWarning: Palette images with Transparency expressed in bytes should be converted to RGBA images
+  warnings.warn(
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789858982/ozfdlnmlq4jjrtfdfhyj.png
+--- pmu4gnug185 : Lot
+    full rim: rim about 10 px thick, edge band 3 px (was 17)
+    rim type: full rim (1 clean lens holes)
+half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 'place': 0, 'solid': 0, 'touch': 0}
+    full-rim cleanup: solid 68875 -> keep_main_solid 58961
+    full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'rimIn': 0.0, 'rimOut': 11.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 9128, 'raysMoved': 254, 'byOutline': 183, 'specks': 11, 'noRim': [('L', 0, 0.82, 205.5, 205.0, 239.5, 205.0), ('L', 5, 0.97, 202.0, 202.0, 238.0, 206.0), ('R', 160, 0.71, 246.5, 243.5, 232.0, 243.5), ('R', 165, 0.61, 247.0, 244.5, 234.0, 244.5), ('R', 170, 1.0, 201.0, 200.0, 239.5, 201.0), ('R', 175, 0.71, 209.0, 208.0, 241.5, 209.0)], 'glassEdge': (932, 195), 'removed': 4669}
+    45 degree cut too
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789859161/serwsaik5ttrlu96wtrc.png
+--- pmu4h3h9579 : Heart stone
+    full rim: rim about 4 px thick, edge band 2 px (was 17)
+    rim type: full rim (0 clean lens holes)
+half-rim: 135 enclosed pieces, 2 candidates, rejected {'size': 131, 'shape': 2, 'place': 0, 'solid': 0, 'touch': 0}
+    full-rim cleanup: solid 194701 -> keep_main_solid 194701
+    full-rim front: {'rimT': 41.0, 'rimOff': 0.0, 'rimIn': -1.0, 'rimOut': 41.0, 'bgL': 255, 'frameL': 21, 'darkFrame': True, 'rimPutBack': 14697, 'raysMoved': 140, 'byOutline': 100, 'specks': 7, 'noRim': [], 'glassEdge': (1131, 263), 'removed': 7934}
+    45 degree cut too
+    90 degree side cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789859496/g8setyvyl702q5xkf3dz.png
+--- pmu4hbhsm89 : Sizzler
+    full rim: rim about 8 px thick, edge band 2 px (was 17)
+    rim type: full rim (0 clean lens holes)
+half-rim: 113 enclosed pieces, 2 candidates, rejected {'size': 110, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
+    full-rim cleanup: solid 148152 -> keep_main_solid 148152
+    full-rim front: {'rimT': 39.0, 'rimOff': 0.0, 'rimIn': -1.0, 'rimOut': 35.0, 'bgL': 205, 'frameL': 2, 'darkFrame': True, 'rimPutBack': 17969, 'raysMoved': 0, 'byOutline': 0, 'specks': 46, 'noRim': [], 'glassEdge': (1013, 21), 'removed': 2092}
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789859740/skucxnwm5qnpqi94v5on.png
+  Finished. Cut 16, failed 0, rejected 0, still waiting 0.
