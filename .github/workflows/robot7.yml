@@ -1781,9 +1781,26 @@ jobs:
               try:
                   for r in (L, R):
                       ys, xs = np.where(r)
-                      for fx in (0.5, 0.35):
-                          xq = int(xs.min() + fx * (xs.max() - xs.min()))
-                          yb = int(ys[xs == xq].max()) if (xs == xq).any() else int(ys.max())
+                      # the columns where the solid run just under the opening is longest
+                      cand = []
+                      _w = int(xs.max() - xs.min())
+                      for xq in range(int(xs.min() + 0.2 * _w), int(xs.max() - 0.2 * _w), 3):
+                          cy_ = ys[xs == xq]
+                          if cy_.size == 0 or cy_.max() < ys.mean():
+                              continue
+                          yb = int(cy_.max())
+                          colo = out[yb:min(H, yb + 60), xq] > 0.5
+                          nz = np.where(colo)[0]
+                          if nz.size == 0:
+                              continue
+                          run = 0
+                          for v in colo[nz[0]:]:
+                              if not v:
+                                  break
+                              run += 1
+                          cand.append((run, xq, yb))
+                      cand.sort(reverse=True)
+                      for run, xq, yb in cand[:2]:
                           col = []
                           for yq in range(max(0, yb - 22), min(H, yb + 30)):
                               lv = lum[yq, xq]
@@ -1794,7 +1811,7 @@ jobs:
                               c5 = "L" if r[yq, xq] else "."
                               c6 = "O" if out[yq, xq] > 0.5 else "."
                               col.append(c1 + c2 + c3 + c4 + c5 + c6)
-                          dbg_cols.append("x%d yb%d: %s" % (xq, yb, " ".join(col)))
+                          dbg_cols.append("x%d yb%d run%d: %s" % (xq, yb, run, " ".join(col)))
               except Exception as e:
                   dbg_cols.append("dbg err %s" % e)
               for ln in dbg_cols:
