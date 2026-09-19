@@ -866,12 +866,12 @@ jobs:
               return out
 
 
-          def trim_ends(alpha, frac=0.004):
+          def trim_ends(alpha, frac=0.0014):
               """
-              The front is measured end to end and about half a millimetre is
-              trimmed off each end (0.4% of the width on a 140 mm front), so the
-              hinge root and any last speck of arm are gone and the ends are
-              clean. Whole columns only: nothing is thinned.
+              The front is measured end to end and 0.2 mm is trimmed off each
+              end (0.14% of the width: 140 mm becomes 139.6 mm), as the shop
+              asked, so any last hair of hinge is gone while the frame's own
+              rounded corners stay. Whole columns only: nothing is thinned.
               """
               cols = np.where((alpha > 0.5).any(axis=0))[0]
               if cols.size < 10:
