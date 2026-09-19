@@ -574,9 +574,9 @@ jobs:
                   for cx, ct, cth in cols:
                       lens_top[int(cx)] = int(ct + cth)         # first glass pixel in this column
                   lo, hi = x0 + (x1 - x0) * 0.1, x1 - (x1 - x0) * 0.1
-                  clean = cols[(cols[:, 2] <= t_med * 1.35) & (cols[:, 0] >= lo) & (cols[:, 0] <= hi)]
+                  clean = cols[(cols[:, 2] <= t_med * 1.2) & (cols[:, 0] >= lo) & (cols[:, 0] <= hi)]
                   if len(clean) < 10:
-                      clean = cols[cols[:, 2] <= t_med * 1.35]
+                      clean = cols[cols[:, 2] <= t_med * 1.2]
                   if len(clean) < 5:
                       continue
                   deg = 2 if len(clean) >= 30 else 1
@@ -584,7 +584,7 @@ jobs:
                   res = clean[:, 1] - np.polyval(coef, clean[:, 0])
                   # sit the line ON the edge, not through it: shift it up to the
                   # highest few percent of the edge points
-                  coef[-1] += min(0.0, float(np.percentile(res, 3)))
+                  coef[-1] += min(0.0, float(np.percentile(res, 10)))
                   spans.append((x0, x1, coef, t_med))
               if len(spans) < 2:
                   return alpha, 0.0
@@ -735,7 +735,7 @@ jobs:
                       zone = np.zeros_like(kill)
                       for x in range(W):
                           if lens_top[x] > 0:
-                              zone[max(0, lens_top[x] - int(round(rim_t * 1.35))):lens_top[x], x] = True
+                              pass       # over the glass the fitted line rules: a dark arm lying flat on the brow is not rim
                           elif lim[x] > 0:
                               # an end piece may rise above the line at the corner: rim-coloured
                               # pixels up to half a rim above it are rim, not arm
