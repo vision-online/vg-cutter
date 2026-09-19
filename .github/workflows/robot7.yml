@@ -1776,6 +1776,29 @@ jobs:
                       halo = ndimage.binary_dilation(small, iterations=2) & ~keep
                       halo &= ~ndimage.binary_dilation(keep & (out > 0.5), iterations=1)
                       out[small | halo] = 0.0
+              # debug: a column through each lens's lowest point, bottom rim area
+              dbg_cols = []
+              try:
+                  for r in (L, R):
+                      ys, xs = np.where(r)
+                      for fx in (0.5, 0.35):
+                          xq = int(xs.min() + fx * (xs.max() - xs.min()))
+                          yb = int(ys[xs == xq].max()) if (xs == xq).any() else int(ys.max())
+                          col = []
+                          for yq in range(max(0, yb - 22), min(H, yb + 30)):
+                              lv = lum[yq, xq]
+                              c1 = "#" if lv < 90 else ("+" if lv < 150 else ("-" if lv < 200 else "W"))
+                              c2 = "A" if alpha[yq, xq] > 0.5 else "."
+                              c3 = "R" if (dark_frame and rim_m[yq, xq]) else "."
+                              c4 = "G" if (dark_frame and gov[yq, xq]) else "."
+                              c5 = "L" if r[yq, xq] else "."
+                              c6 = "O" if out[yq, xq] > 0.5 else "."
+                              col.append(c1 + c2 + c3 + c4 + c5 + c6)
+                          dbg_cols.append("x%d yb%d: %s" % (xq, yb, " ".join(col)))
+              except Exception as e:
+                  dbg_cols.append("dbg err %s" % e)
+              for ln in dbg_cols:
+                  log("    col " + ln)
               info = {"rimT": round(rim_t, 1), "rimOff": round(rim_off, 1), "rimIn": round(r_in, 1), "rimOut": round(r_out, 1), "bgL": round(bg_l), "frameL": round(frame_l),
                       "darkFrame": bool(dark_frame), "rimPutBack": put_back, "raysMoved": n_moved, "byOutline": n_outline, "specks": specks, "noRim": gaps_dbg[:14], "glassEdge": info_glass,
                       "removed": int((solid & ~front).sum())}
