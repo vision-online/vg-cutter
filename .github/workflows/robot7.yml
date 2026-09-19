@@ -1505,6 +1505,7 @@ jobs:
               n_moved = 0
               n_outline = 0
               gaps_dbg = []
+              thick_dbg = []
               if dark_frame:
                   dist_in = ndimage.distance_transform_edt(lens)
                   # the nose-pad corner: the pads sit on the nasal side of each lens,
@@ -1697,12 +1698,19 @@ jobs:
                               kp = sep_idx[j - 1] if j > 0 else sep_idx[-1] - NA
                               kn = sep_idx[j] if j < sep_idx.size else sep_idx[0] + NA
                               if kn - kp <= int(NA * 70 / 360):
-                                  lp = runlen[kp % NA]; ln_ = runlen[kn % NA]
+                                  # each side's thickness from the ten rays nearest it
+                                  # (the very last one before the joint is often thicker)
+                                  sp = sep_idx[max(0, j - 10):j] if j > 0 else sep_idx[-10:]
+                                  sn = sep_idx[j:j + 10] if j < sep_idx.size else sep_idx[:10]
+                                  lp = float(np.median(runlen[sp])); ln_ = float(np.median(runlen[sn]))
                                   li = lp + (ln_ - lp) * (k - kp) / float(max(1, kn - kp))
                                   if runlen[k] > li + 2.0 / step:
-                                      capk = min(capk, max(minlen, int(li + 2.0 / step)))
+                                      capk = min(capk, max(minlen, int(round(li + 1.0 / step))))
                           last = min(last, st + capk)
                           rim_m[wy[st:last + 1], wx[st:last + 1]] = True
+                          if k % 20 == 0 and 40 <= k * 360.0 / NA <= 140:
+                              thick_dbg.append("%s%d:%s%d>%d" % ("L" if r is L else "R", int(k * 360.0 / NA),
+                                                                 "s" if sep[k] else "-", int(runlen[k]), last - st + 1))
                       # which directions got no rim (5-degree bins, >30% of rays empty)
                       for b in range(72):
                           sl = slice(b * NA // 72, (b + 1) * NA // 72)
@@ -1823,6 +1831,7 @@ jobs:
                           dbg_cols.append("x%d yb%d run%d: %s" % (xq, yb, run, " ".join(col)))
               except Exception as e:
                   dbg_cols.append("dbg err %s" % e)
+              log("    thick " + " ".join(thick_dbg))
               for ln in dbg_cols:
                   log("    col " + ln)
               info = {"rimT": round(rim_t, 1), "rimOff": round(rim_off, 1), "rimIn": round(r_in, 1), "rimOut": round(r_out, 1), "bgL": round(bg_l), "frameL": round(frame_l),
