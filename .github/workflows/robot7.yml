@@ -1072,6 +1072,138 @@ jobs:
               return out
 
 
+          def ndimage_label_count(mask):
+              from scipy import ndimage
+              lab, n = ndimage.label(mask)
+              if n:
+                  sizes = ndimage.sum(mask, lab, range(1, n + 1))
+                  n = int((sizes > mask.size * 0.004).sum())
+              return lab, n
+
+
+          def half_rim_lenses(img, alpha):
+              """
+              A HALF-RIM frame has metal along the top only; the demo lens hangs
+              below it on a nylon thread. There is no closed rim, so the usual
+              hole-finding never sees the glass -- and the glass then keeps
+              whatever was behind it. The demo lens still has an EDGE, though,
+              and the edge shows in the photograph as a thin line all the way
+              round: bar underside, both sides, and the thread along the bottom.
+              Trace that loop and everything inside it is glass.
+              Returns the two lens regions (left, right) as masks, or [].
+              """
+              import cv2
+              from scipy import ndimage
+              gray = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2GRAY)
+              H, W = gray.shape
+              solid = alpha > 0.5
+              if not solid.any():
+                  return []
+              ed = cv2.Canny(cv2.GaussianBlur(gray, (3, 3), 0), 40, 110) > 0
+              ed = ndimage.binary_closing(ed, structure=np.ones((5, 5), bool))
+              free = ~ed
+              outside = ndimage.binary_propagation(_border(free), mask=free)
+              enclosed = ~outside & ~ed
+              lab, n = ndimage.label(enclosed)
+              if n == 0:
+                  return []
+              sizes = ndimage.sum(enclosed, lab, range(1, n + 1))
+              ys_s, xs_s = np.where(solid)
+              fx0, fx1 = int(xs_s.min()), int(xs_s.max())
+              front_w = fx1 - fx0 + 1
+              near_solid = ndimage.binary_dilation(solid, iterations=3)
+              picks = []
+              for i in range(1, n + 1):
+                  s = float(sizes[i - 1])
+                  if s < 0.004 * gray.size or s > 0.4 * gray.size:
+                      continue
+                  comp = lab == i
+                  yy, xx = np.where(comp)
+                  w = xx.max() - xx.min() + 1; h = yy.max() - yy.min() + 1
+                  if w < 0.15 * front_w or w > 0.6 * front_w or h < 0.3 * w or h > 1.3 * w:
+                      continue
+                  if xx.min() < fx0 - 0.02 * front_w or xx.max() > fx1 + 0.02 * front_w:
+                      continue                                  # not under the front
+                  if (comp & solid).sum() > 0.9 * s:
+                      continue                                  # the bar's own interior
+                  top = comp & (np.arange(H)[:, None] < yy.min() + 0.15 * h)
+                  touch = (top & near_solid).sum() / max(1.0, float(top.sum()))
+                  if touch < 0.05:
+                      continue                                  # does not hang from the bar
+                  picks.append((s, i))
+              picks.sort(reverse=True)
+              out = []
+              for s, i in picks[:2]:
+                  comp = lab == i
+                  yy, xx = np.where(comp)
+                  box = np.zeros_like(comp)
+                  box[yy.min():yy.max() + 2, xx.min():xx.max() + 2] = True
+                  region = ndimage.binary_fill_holes(comp | (ed & box & ~outside))
+                  region[:, :fx0] = False; region[:, fx1 + 1:] = False   # never past the front's ends
+                  # a thin band of table shadow hanging under the lens edge is not lens
+                  r = max(3, int(round(0.03 * w)))
+                  disk = np.zeros((2 * r + 1, 2 * r + 1), bool)
+                  gy, gx = np.ogrid[-r:r + 1, -r:r + 1]
+                  disk[gy * gy + gx * gx <= r * r] = True
+                  region = ndimage.binary_fill_holes(ndimage.binary_opening(region, structure=disk))
+                  if region.sum() < 0.5 * s:
+                      continue
+                  out.append(region)
+              if len(out) == 2:
+                  out.sort(key=lambda r: float(np.where(r)[1].mean()))
+                  # two lenses side by side, alike in size, not overlapping
+                  a, b = out
+                  if (a & b).any() or abs(a.sum() - b.sum()) > 0.5 * max(a.sum(), b.sum()):
+                      return []
+                  return out
+              return []
+
+
+          def apply_half_rim(img, alpha, regions):
+              """
+              Inside each traced demo lens: everything goes -- the wall or sheet
+              seen through it, an arm behind it, the supplier's printing -- so
+              the customer's own face shows through. The lens EDGE is kept as a
+              faint thin line, as a real demo lens shows one, and so the try-on
+              can find the opening. The metal bar and the nose pads lie outside
+              the traced glass and are not touched.
+              """
+              from scipy import ndimage
+              out = alpha.copy()
+              ring_all = np.zeros_like(alpha, dtype=bool)
+              for r in regions:
+                  inner = ndimage.binary_erosion(r, iterations=2)
+                  ring = r & ~inner
+                  out[inner] = 0.0
+                  out[ring] = 1.0                 # solid for now, so the arm rules can see the opening
+                  ring_all |= ring
+              return out, ring_all
+
+
+          def lens_measurements(alpha, regions):
+              """The numbers the try-on uses, from traced lens regions."""
+              ys, xs = np.where(alpha > 0.2)
+              if not xs.size:
+                  return {}
+              front_w = int(xs.max() - xs.min() + 1)
+              front_h = int(ys.max() - ys.min() + 1)
+              out = {"frontWidthPx": front_w, "frontHeightPx": front_h, "halfRim": True}
+              eyes = []
+              boxes = []
+              for r in regions:
+                  yy, xx = np.where(r)
+                  boxes.append((int(xx.min()), int(xx.max()), int(yy.min()), int(yy.max())))
+              for (x0, x1, y0, y1) in boxes:
+                  eyes.append({"centreX": float((x0 + x1) / 2.0), "centreY": float((y0 + y1) / 2.0),
+                               "widthPx": int(x1 - x0 + 1), "heightPx": int(y1 - y0 + 1),
+                               "centreXFrac": float(((x0 + x1) / 2.0 - xs.min()) / front_w)})
+              out["lenses"] = eyes
+              if len(boxes) == 2:
+                  out["bridgePx"] = int(boxes[1][0] - boxes[0][1])
+                  out["pupilGapPx"] = float(eyes[1]["centreX"] - eyes[0]["centreX"])
+              return out
+
+
           def cut_end_to_end(alpha):
               """
               The front try-on picture: arms removed, end pieces kept.
@@ -1474,7 +1606,7 @@ jobs:
               return (out * 255).round().astype(np.uint8)
 
 
-          def cut(photo_bytes, front=True):
+          def cut(photo_bytes, front=True, half_rim_hint=False):
               """One photo in, one transparent PNG (and its numbers) out."""
               import cv2
               img = Image.open(io.BytesIO(photo_bytes)).convert("RGB")
@@ -1490,6 +1622,17 @@ jobs:
               a = matte(img, tri)                                   # step 4
               a = tighten_edge(a)                                   # step 4b: a 1-2 px edge, not a glow
               a = heal_rim(a)                                       # step 4c: a highlight slit inside the rim is rim
+              # HALF-RIM: metal on top only, the demo lens on a thread below. No closed
+              # hole, so trace the lens edge from the photograph instead; its ring is
+              # made solid for the moment so every rule below sees a proper opening.
+              half_ring = None; half_regions = []
+              if front:
+                  h0, _ = lens_holes(a)
+                  h_lab, h_n = ndimage_label_count(h0)
+                  if half_rim_hint or h_n < 2:
+                      half_regions = half_rim_lenses(img, a)
+                      if half_regions:
+                          a, half_ring = apply_half_rim(img, a, half_regions)
               holes, _ = lens_holes(a)
               if not holes.any():
                   # the model kept the lenses solid (common for clear glass):
@@ -1511,13 +1654,20 @@ jobs:
                   a = clear_behind_glass(a)                         # step 6c: nothing seen through the lenses
                   a = trim_ends(a)                                  # step 6d: half a millimetre off each end
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
+              if half_ring is not None:
+                  # the demo lens edge: a faint thin line, as a real one shows
+                  a = np.where(half_ring & (a > 0.5), np.float32(0.45), a).astype(np.float32)
 
               # the margin comes off again
               H, W = a.shape
               a = a[py:H - py, px:W - px]
               img = img.crop((px, py, W - px, H - py))
 
-              nums = measurements(a)
+              if half_regions:
+                  half_regions = [rg[py:H - py, px:W - px] for rg in half_regions]
+                  nums = lens_measurements(a, half_regions)
+              else:
+                  nums = measurements(a)
               nums["reading"] = read_frame(img, a) if front else {}
               if False:   # arms over the front are normal for this shop: no CHECK PHOTO tag
                   nums["warning"] = ("arms were angled over the front (%d%% of the picture removed) "
@@ -1706,7 +1856,9 @@ jobs:
                   pid = p.get("id")
                   try:
                       log("--- %s : %s" % (pid, (p.get("name") or "")[:50]))
-                      png, nums = cut(download(front_photo(p)), front=True)
+                      rim_txt = str(p.get("rim") or p.get("rimType") or "").lower()
+                      png, nums = cut(download(front_photo(p)), front=True,
+                                      half_rim_hint=any(k in rim_txt for k in ("half", "supra", "semi", "rimless")))
                       url = cloudinary_upload(png, "tryon-" + str(pid), cname, cpreset)
                       p["tryOnUrl"] = url
                       p["tryOnReady"] = True
