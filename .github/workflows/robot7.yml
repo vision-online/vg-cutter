@@ -1436,8 +1436,12 @@ jobs:
               dist_out = ndimage.distance_transform_edt(~lens)
               rim_band = (dist_out > 0) & (dist_out <= rim_off + rim_t + 2)
               solid = alpha > 0.5
-              frame_l = float(np.median(lum[rim_band & solid])) if (rim_band & solid).any() else 255.0
-              dark_frame = frame_l < 0.5 * bg_l
+              # a dark frame: most rays found dark metal right at the opening's edge
+              # (a light or crystal frame gives few such runs and is left to the
+              # model's own cut -- the colour rules below only suit dark metal)
+              dark_frame = len(runs) >= 180
+              ring = dark & ((rim_band) | (lens & (ndimage.distance_transform_edt(lens) <= rim_t + 4)))
+              frame_l = float(np.median(lum[ring])) if ring.any() else 255.0
 
               # the boxes the zones are built from
               def box(r):
@@ -1491,19 +1495,45 @@ jobs:
 
               front = lens | rim_band | bridge | keep_end
               put_back = 0
-              out = np.where(front, alpha, 0.0).astype(np.float32)
+              ext = None
               if dark_frame:
-                  # the rim as photographed: every dark pixel in the rim band is rim
-                  # the traced opening can sit on the rim's inner edge or partly over
-                  # the rim itself, so the rim is looked for on BOTH sides of the
-                  # outline: outward by its thickness, inward by its thickness too
                   dist_in = ndimage.distance_transform_edt(lens)
                   pads = np.zeros_like(solid)
                   px0 = int(lx1 - 0.30 * (lx1 - lx0)); px1 = int(rx0 + 0.30 * (rx1 - rx0))
                   pads[int(max(0, midy - 0.05 * lens_h)):, max(0, px0):min(W, px1 + 1)] = True
-                  rim_dark = dark & (rim_band | (lens & (dist_in <= rim_t + 4) & ~pads))
-                  put_back = int((rim_dark & (out < 0.5)).sum())
-                  out = np.maximum(out, rim_dark.astype(np.float32))
+                  # the zone the rim can be in: a little inside the traced opening
+                  # (it may have been traced over the rim) and outward past the rim
+                  ext = ((dist_out > 0) & (dist_out <= rim_off + 1.4 * rim_t + 2)) | \
+                        (lens & (dist_in <= rim_t + 4) & ~pads)
+                  front = front | ext
+              out = np.where(front, alpha, 0.0).astype(np.float32)
+              if dark_frame:
+                  # THE RIM, REBUILT FROM THE PHOTO. Starting from the rim's inner
+                  # edge, the dark metal is followed outward for the rim's own
+                  # measured thickness (x1.3) and no further. That gives a rim exactly
+                  # as thick as photographed, all the way round, and stops at the
+                  # first pale pixel -- so the pale streak and the rim's REFLECTION on
+                  # the sheet below the bottom rim (a second dark line, measured on
+                  # Lot 3-35 px under the rim) are not taken as rim. The rim's soft
+                  # outline takes its alpha from how dark the photo is there.
+                  D = lum < 0.65 * bg_l
+                  # a thin highlight line ON the metal (the wire catching light, a
+                  # few px, mid-grey) must not split the rim: close gaps up to 4 px,
+                  # but never across anything as bright as the sheet (the white band
+                  # between the rim and its reflection is 250+ and stays a gap)
+                  _k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+                  D = D | ((cv2.morphologyEx(D.astype(np.uint8), cv2.MORPH_CLOSE, _k) > 0) &
+                           (lum < max(0.90 * bg_l, 190.0)))
+                  seed = D & ext & (((lens & (dist_in <= rim_t + 4)) & ~pads) |
+                                    ((dist_out > 0) & (dist_out <= rim_off + 3)))
+                  k = int(max(2, round(1.3 * rim_t)))
+                  reach = ndimage.binary_dilation(seed, iterations=k, mask=D & ext) | seed
+                  edge = ndimage.binary_dilation(reach, iterations=1) & ext & ~reach
+                  soft = np.clip((bg_l - lum) / max(1.0, bg_l - frame_l), 0.0, 1.0)
+                  rimA = np.where(reach, 1.0, np.where(edge, soft, 0.0)).astype(np.float32)
+                  sel = ext & ~bridge & ~keep_end & ~pads
+                  put_back = int((reach & sel & (out < 0.5)).sum())
+                  out = np.where(sel, rimA, out).astype(np.float32)
                   # the glass edge: where the lens meets the rim the glass catches
                   # the light and the photo shows a white line hugging the rim's
                   # inside (measured on Lot: 3-5 px at lum 250-255, fully opaque).
