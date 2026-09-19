@@ -1636,25 +1636,28 @@ jobs:
                               return abs(rr[0] - pk)
                           good = [rr for rr in runs_r if rr[1] - rr[0] + 1 >= minlen] or runs_r
                           cover = [rr for rr in good if rr[0] <= pk + tol and rr[1] >= pk]
-                          if cover:
-                              st, last = min(cover, key=_dist)
+                          thick = lambda rr: (rr[1] - rr[0] + 1) * step >= 0.6 * rim_t
+                          pi = i0 - a0
+                          # a rim-thick run where the ray leaves the traced opening
+                          at_out = [] if padray else \
+                              [rr for rr in good if abs(rr[0] - pi) <= tol and thick(rr)]
+                          cover_t = [rr for rr in cover if thick(rr)]
+                          if cover_t:
+                              st, last = min(cover_t, key=_dist)
                               st = max(st, int(pk - 2.0 / step))    # the rim starts at the path, not earlier
+                          elif at_out:
+                              # the path was pulled off the rim by something thin and
+                              # dark inside the glass (a price tag's printed line, seen
+                              # on Lot): the rim is the rim-thick run at the outline
+                              st, last = min(at_out, key=lambda rr: abs(rr[0] - pi))
+                              n_outline += 1
+                          elif cover:
+                              st, last = min(cover, key=_dist)
+                              st = max(st, int(pk - 2.0 / step))
                           else:
                               st, last = min(good, key=lambda rr: abs(rr[0] - pk))
                               if abs(st - pk) > tol:
-                                  # nothing on the path. Something dark just inside
-                                  # the glass (a price tag's printed line, seen on
-                                  # Lot) can pull the path in by a rim's width over a
-                                  # stretch; the rim is then the rim-thick dark run
-                                  # where the ray leaves the traced opening.
-                                  pi = i0 - a0
-                                  cand = [] if padray else \
-                                      [rr for rr in good if abs(rr[0] - pi) <= tol
-                                       and (rr[1] - rr[0] + 1) * step >= 0.6 * rim_t]
-                                  if not cand:
-                                      continue        # nothing on the path here: leave it
-                                  st, last = min(cand, key=lambda rr: abs(rr[0] - pi))
-                                  n_outline += 1
+                                  continue            # nothing on the path here: leave it
                           last = min(last, st + int(cap / step))
                           rim_m[wy[st:last + 1], wx[st:last + 1]] = True
                           miss[k] = False
