@@ -519,6 +519,23 @@ jobs:
               return out
 
 
+          def trim_whiskers(alpha):
+              """
+              Half-rim only: a stray thread or hair the camera also caught --
+              a filament a few pixels wide, dangling off a nose pad or the rim
+              -- goes. A round structuring element wide enough to pass any real
+              part (the thinnest genuine piece here, a nose pad, is well over
+              10 px across) but not a 1-4 px filament.
+              """
+              from scipy import ndimage
+              yy, xx = np.ogrid[-2:3, -2:3]
+              disk = (xx * xx + yy * yy) <= 4
+              opened = ndimage.binary_opening(alpha > 0.5, structure=disk)
+              out = alpha.copy()
+              out[(alpha > 0.02) & ~opened] = 0.0
+              return out
+
+
           def largest_component(alpha):
               """Keep the frame; drop stray specks the model may have kept."""
               from scipy import ndimage
@@ -1717,6 +1734,7 @@ jobs:
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
               if half_ring is not None:
                   a = keep_main_solid(a)                            # an arm tip below the glass, flecks along its edge
+                  a = trim_whiskers(a)                              # a thread or hair a few pixels wide
                   # the demo lens edge: a faint thin line, as a real one shows
                   a = np.where(half_ring & (a > 0.5), np.float32(0.45), a).astype(np.float32)
 
