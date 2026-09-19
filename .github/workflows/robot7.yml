@@ -1675,8 +1675,7 @@ jobs:
                       runlen = np.array([np.nan if q is None else float(q[3] - q[2] + 1) for q in picked])
                       hw = int(NA * 40 / 360)
                       ext_l = np.concatenate([runlen[-hw:], runlen, runlen[:hw]])
-                      runsep = np.where(sep, runlen, np.nan)
-                      ext_s = np.concatenate([runsep[-hw:], runsep, runsep[:hw]])
+                      sep_idx = np.where(sep & ~np.isnan(runlen))[0]
                       for k in range(NA):
                           q = picked[k]
                           if q is None:
@@ -1689,9 +1688,19 @@ jobs:
                           # where the reflection is seen apart from the rim nearby, the
                           # rim's true thickness there is known: the joined rays take
                           # that (+20%), not rim plus reflection
-                          ws = ext_s[k:k + 2 * hw + 1]; ws = ws[~np.isnan(ws)]
-                          if ws.size >= 8:
-                              capk = min(capk, max(minlen, int(1.2 * np.median(ws) + 2.0 / step)))
+                          if not sep[k] and sep_idx.size >= 2:
+                              # between two stretches where the rim is seen apart from
+                              # its reflection (at most 70 degrees apart), the rim's
+                              # thickness runs smoothly from one to the other; a ray there
+                              # that is thicker than that has the reflection joined on
+                              j = np.searchsorted(sep_idx, k)
+                              kp = sep_idx[j - 1] if j > 0 else sep_idx[-1] - NA
+                              kn = sep_idx[j] if j < sep_idx.size else sep_idx[0] + NA
+                              if kn - kp <= int(NA * 70 / 360):
+                                  lp = runlen[kp % NA]; ln_ = runlen[kn % NA]
+                                  li = lp + (ln_ - lp) * (k - kp) / float(max(1, kn - kp))
+                                  if runlen[k] > li + 2.0 / step:
+                                      capk = min(capk, max(minlen, int(li + 2.0 / step)))
                           last = min(last, st + capk)
                           rim_m[wy[st:last + 1], wx[st:last + 1]] = True
                       # which directions got no rim (5-degree bins, >30% of rays empty)
