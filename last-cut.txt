@@ -1,4 +1,4 @@
-Run 147  Sat Sep 19 19:58:02 UTC 2026
+Run 149  Sat Sep 19 20:18:20 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Trial re-cut of pmu4gnug185 (Lot).
@@ -8,11 +8,12 @@ Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploa
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet
+    full rim: rim about 10 px thick, edge band 3 px (was 17)
 /home/runner/work/vg-cutter/vg-cutter/vg_cut.py:265: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
-    rim type: full rim (0 clean lens holes)
+    rim type: full rim (1 clean lens holes)
 half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 'place': 0, 'solid': 0, 'touch': 0}
-    full-rim cleanup: solid 77979 -> keep_main_solid 68668
-    full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'rimIn': 0.0, 'rimOut': 11.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 10951, 'glassEdge': (1198, 131), 'removed': 8889}
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789847879/uu8axyjcitjygbr6dx0r.png
+    full-rim cleanup: solid 68875 -> keep_main_solid 58961
+    full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'rimIn': 0.0, 'rimOut': 11.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 9861, 'glassEdge': (934, 202), 'removed': 4802}
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789849098/tgmswd7ffe1yx6fylxwd.png
   Finished. Cut 1, failed 0, rejected 0, still waiting 0.
