@@ -1600,10 +1600,24 @@ jobs:
                           gov[wy, wx] = True
                           if not runs_r or np.isnan(prof[k]):
                               continue
+                          pk = prof[k] / step - a0          # the path, in this window's samples
+                          tol = max(6.0, 0.8 * rim_t) / step
+                          def _dist(rr):
+                              # 0 when the run covers the path point (an arm tip seen
+                              # through the glass can join the rim from the inside:
+                              # the run then starts early but still covers the rim)
+                              if rr[0] - tol <= pk <= rr[1]:
+                                  return 0.0 if rr[0] <= pk else pk - rr[0] if False else abs(rr[0] - pk)
+                              return abs(rr[0] - pk)
                           good = [rr for rr in runs_r if rr[1] - rr[0] + 1 >= minlen] or runs_r
-                          st, last = min(good, key=lambda rr: abs((a0 + rr[0]) * step - prof[k]))
-                          if abs((a0 + st) * step - prof[k]) > max(6.0, 0.8 * rim_t):
-                              continue            # nothing on the path here: leave it
+                          cover = [rr for rr in good if rr[0] <= pk + tol and rr[1] >= pk]
+                          if cover:
+                              st, last = min(cover, key=_dist)
+                              st = max(st, int(pk - 2.0 / step))    # the rim starts at the path, not earlier
+                          else:
+                              st, last = min(good, key=lambda rr: abs(rr[0] - pk))
+                              if abs(st - pk) > tol:
+                                  continue            # nothing on the path here: leave it
                           last = min(last, st + int(cap / step))
                           rim_m[wy[st:last + 1], wx[st:last + 1]] = True
                   rim_m = cv2.morphologyEx(rim_m.astype(np.uint8), cv2.MORPH_CLOSE,
