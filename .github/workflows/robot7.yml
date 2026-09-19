@@ -1735,6 +1735,7 @@ jobs:
               if half_ring is not None:
                   a = keep_main_solid(a)                            # an arm tip below the glass, flecks along its edge
                   a = trim_whiskers(a)                              # a thread or hair a few pixels wide
+                  a = trim_whiskers(a)                              # a second pass: a thicker knot in the thread
                   # the demo lens edge: a faint thin line, as a real one shows
                   a = np.where(half_ring & (a > 0.5), np.float32(0.45), a).astype(np.float32)
 
