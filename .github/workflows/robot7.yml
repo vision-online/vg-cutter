@@ -1480,8 +1480,28 @@ jobs:
                   rim_dark = rim_band & dark
                   put_back = int((rim_dark & (out < 0.5)).sum())
                   out = np.maximum(out, rim_dark.astype(np.float32))
+                  # the glass edge: where the lens meets the rim the glass catches
+                  # the light and the photo shows a white line hugging the rim's
+                  # inside (measured on Lot: 3-5 px at lum 250-255, fully opaque).
+                  # On a face it reads as a broken, patchy rim. It is glass, not
+                  # metal: flooded away from the clear opening through pale pixels
+                  # only, so it stops at the dark metal -- a highlight lying ON the
+                  # metal, with dark on both sides, is never reached. The nose-pad
+                  # corner is left alone (clear silicone pads are pale too).
+                  dist_in = ndimage.distance_transform_edt(lens)
+                  near_edge = (lens & (dist_in <= 8)) | rim_band
+                  pads = np.zeros_like(solid)
+                  px0 = int(lx1 - 0.30 * (lx1 - lx0)); px1 = int(rx0 + 0.30 * (rx1 - rx0))
+                  pads[int(max(0, midy - 0.05 * lens_h)):, max(0, px0):min(W, px1 + 1)] = True
+                  pale = (lum >= dark_t) & near_edge & ~pads & (out > 0.02)
+                  seed = ndimage.binary_dilation(out <= 0.02, iterations=1) & pale
+                  glass_edge = ndimage.binary_propagation(seed, mask=pale)
+                  out[glass_edge] = 0.0
+                  info_glass = int(glass_edge.sum())
+              else:
+                  info_glass = 0
               info = {"rimT": round(rim_t, 1), "bgL": round(bg_l), "frameL": round(frame_l),
-                      "darkFrame": bool(dark_frame), "rimPutBack": put_back,
+                      "darkFrame": bool(dark_frame), "rimPutBack": put_back, "glassEdge": info_glass,
                       "removed": int((solid & ~front).sum())}
               return out, info
 
