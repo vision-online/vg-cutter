@@ -890,6 +890,85 @@ jobs:
               return out
 
 
+          def clean_ghosts(alpha):
+              """Faint half-transparent pixels that touch nothing solid -- the soft
+              outline an arm left behind -- are removed; the frame's own soft edge,
+              which hugs the solid rim, is kept."""
+              from scipy import ndimage
+              out = alpha.copy()
+              near_solid = ndimage.binary_dilation(out > 0.5, iterations=2)
+              ghost = (out > 0) & (out <= 0.5) & ~near_solid
+              out[ghost] = 0.0
+              return out
+
+
+          def mirror_top(alpha, rim_t):
+              """
+              A frame front is left-right symmetric. An arm lying flat along one
+              brow leaves that side's top edge higher than the other side's, and
+              the same colour as the rim -- nothing else can tell it apart. So the
+              two sides are compared column by column, mirrored about the frame's
+              centre (after allowing for the photo's tilt): where one side stands
+              higher than its twin by more than a whisker, and by less than one
+              rim, the excess is removed. A genuinely asymmetric design piece
+              taller than a rim is left alone; where both sides rise together
+              (a cat-eye wing, a hinge block) nothing changes.
+              """
+              from scipy import ndimage
+              solid = alpha > 0.5
+              H, W = alpha.shape
+              cols = np.where(solid.any(axis=0))[0]
+              if cols.size < 100:
+                  return alpha
+              T = np.full(W, -1, dtype=np.int64)
+              for x in cols:
+                  T[x] = int(np.argmax(solid[:, x]))
+              lens, _ = lens_holes(alpha)
+              lab, n = ndimage.label(lens)
+              if n < 2:
+                  return alpha
+              sizes = ndimage.sum(lens, lab, range(1, n + 1))
+              big = [i + 1 for i in sorted(range(n), key=lambda i: -sizes[i])[:2]]
+              xs_l = np.where(lab == big[0])[1]; xs_r = np.where(lab == big[1])[1]
+              if xs_l.mean() > xs_r.mean():
+                  xs_l, xs_r = xs_r, xs_l
+              # the centre line: midway between the two lenses' outer edges
+              cx = (float(xs_l.min()) + float(xs_r.max())) / 2.0
+              def mirror(x):
+                  return int(round(2 * cx - x))
+              # tilt: the median height difference between twins over the glass,
+              # measured on the inner third of the lens, next to the bridge, which
+              # an arm lying along the brow does not reach
+              diffs = []
+              span = int(xs_l.max()) - int(xs_l.min())
+              for x in range(int(xs_l.max()) - span // 3, int(xs_l.max()) + 1):
+                  m = mirror(x)
+                  if 0 <= m < W and T[x] >= 0 and T[m] >= 0:
+                      diffs.append(T[x] - T[m])
+              if len(diffs) < 30:
+                  return alpha
+              offset = float(np.median(diffs))          # left = right + offset
+              out = alpha.copy()
+              lo, hi = int(cols.min()), int(cols.max())
+              for x in range(lo, hi + 1):
+                  m = mirror(x)
+                  if not (0 <= m < W) or T[x] < 0 or T[m] < 0:
+                      continue
+                  if int(xs_l.max()) < x < int(xs_r.min()):
+                      continue                          # the bridge is its own mirror
+                  twin = T[m] + (offset if x < cx else -offset)
+                  excess = twin - T[x]                  # >0: this column stands higher than its twin
+                  if excess < 3 or excess > 1.0 * rim_t:
+                      continue
+                  cut_to = int(np.floor(twin)) - 2
+                  if cut_to <= T[x]:
+                      continue
+                  out[:cut_to, x] = 0.0                 # everything above, soft edge included
+                  if cut_to < H and out[cut_to, x] > 0.5:
+                      out[cut_to, x] *= 0.5
+              return out
+
+
           def cut_end_to_end(alpha):
               """
               The front try-on picture: arms removed, end pieces kept.
@@ -1322,6 +1401,8 @@ jobs:
                   a, arms_above = remove_arms_above(a, img)
                   a = cut_end_to_end(a)                             # step 6b: arms beyond the ends
                   a = trim_narrow_above(a, globals().get("LAST_RIM_T", 24.0))   # step 6b2: narrow stubs above the front
+                  a = mirror_top(a, globals().get("LAST_RIM_T", 24.0))          # step 6b3: a flat arm along one brow, by symmetry
+                  a = clean_ghosts(a)                                            # step 6b4: no floating soft outlines
                   a = clear_behind_glass(a)                         # step 6c: nothing seen through the lenses
                   a = trim_ends(a)                                  # step 6d: half a millimetre off each end
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
