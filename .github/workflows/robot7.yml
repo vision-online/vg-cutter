@@ -2572,6 +2572,36 @@ jobs:
               todo = [p for p in products if waiting(p)]
               recut = (os.environ.get("RECUT") or "").strip()
               test_mode = ""
+              if recut.lower().startswith("test-raw:"):
+                  # PROOF TEST: what each AI model itself sees, before any of our own
+                  # rim fixing. The same photo goes through the normal BiRefNet (1024 px)
+                  # and BiRefNet_HR (2048 px); both raw masks are uploaded as black and
+                  # white pictures and compared number by number. Nothing is saved.
+                  global _model
+                  import cv2
+                  pid_ = recut.split(":", 1)[1].strip()
+                  pick = next((p for p in products if str(p.get("id")) == pid_), None)
+                  cname, cpreset = cloudinary_probe(products)
+                  img = Image.open(io.BytesIO(download(front_photo(pick)))).convert("RGB")
+                  if max(img.size) > 1600:
+                      sc = 1600.0 / max(img.size)
+                      img = img.resize((int(img.width * sc), int(img.height * sc)), Image.LANCZOS)
+                  masks = {}
+                  for name, size in (("ZhengPeng7/BiRefNet", 1024), ("ZhengPeng7/BiRefNet_HR", 2048)):
+                      MODEL_NAME[0] = name; MODEL_SIZE[0] = size; _model = None
+                      t0 = time.time()
+                      mk = coarse_mask(img)
+                      masks[name] = mk
+                      buf = io.BytesIO()
+                      Image.fromarray((mk * 255).round().astype(np.uint8), "L").save(buf, "PNG")
+                      u = cloudinary_upload(buf.getvalue(), "test-rawmask-" + name.split("/")[1], cname, cpreset)
+                      log("    RAW MASK %s at %d px: %.0f s, frame pixels %d, soft pixels %d -> %s" % (
+                          name, size, time.time() - t0, int((mk > 0.5).sum()),
+                          int(((mk > 0.05) & (mk < 0.95)).sum()), u))
+                  a = masks["ZhengPeng7/BiRefNet"]; b = masks["ZhengPeng7/BiRefNet_HR"]
+                  log("    DIFFERENCE: pixels where the two models disagree (one says frame, other says not): %d; "
+                      "average difference %.4f" % (int(((a > 0.5) != (b > 0.5)).sum()), float(np.abs(a - b).mean())))
+                  return 0
               if recut.lower().startswith("test-hr:"):
                   # A TEST: cut one frame with BiRefNet_HR (MIT licence, free) looking
                   # at the photo at 2048 px. The result is uploaded and its link
