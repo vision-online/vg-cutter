@@ -1530,54 +1530,86 @@ jobs:
                   rim_m = np.zeros_like(solid)
                   gov = np.zeros_like(solid)
                   step = 0.5
+                  minlen = max(2, int(0.3 * rim_t / step))
                   for r in (L, R):
                       ys, xs = np.where(r)
                       cy, cx = ys.mean(), xs.mean()
                       tmax = float(np.hypot(H, W))
                       ts = np.arange(0.0, tmax, step)
-                      angs = np.linspace(0, 2 * np.pi, 2400, endpoint=False)
-                      for ang in angs:
+                      NA = 2400
+                      angs = np.linspace(0, 2 * np.pi, NA, endpoint=False)
+                      rays = [None] * NA
+                      first = np.full(NA, np.nan)
+                      # pass 1: every ray, every dark run in its window
+                      for k, ang in enumerate(angs):
                           yy = np.rint(cy + np.sin(ang) * ts).astype(int)
                           xx = np.rint(cx + np.cos(ang) * ts).astype(int)
                           ok = (yy >= 0) & (yy < H) & (xx >= 0) & (xx < W)
                           if not ok.all():
-                              n_ok = int(np.argmin(ok)) if not ok.all() else len(ok)
+                              n_ok = int(np.argmin(ok))
                               yy = yy[:n_ok]; xx = xx[:n_ok]
                           if yy.size < 4:
                               continue
-                          ins = r[yy, xx]
-                          leave = np.where(~ins)[0]
+                          leave = np.where(~r[yy, xx])[0]
                           if leave.size == 0:
                               continue
                           i0 = int(leave[0])
-                          # this direction is the nose-pad corner: leave it alone
-                          if pads[yy[i0], xx[i0]]:
-                              continue
-                          a0 = max(0, i0 - int(win / step)); a1 = min(yy.size, i0 + int(win / step))
+                          padray = bool(pads[yy[i0], xx[i0]])
+                          # in the nose-pad corner only look from near the outline
+                          # outward, so the pads (further in) are never touched
+                          back = (max(0.0, -r_in) + 3.0) if padray else win
+                          a0 = max(0, i0 - int(back / step)); a1 = min(yy.size, i0 + int(win / step))
                           wy = yy[a0:a1]; wx = xx[a0:a1]
-                          gov[wy, wx] = True
                           dk = D[wy, wx]
-                          # first dark run, allowing 1 px (2 samples) gaps
-                          j = 0; n = dk.size
-                          while j < n and not dk[j]:
-                              j += 1
-                          if j >= n:
+                          runs_r = []; j = 0; n = dk.size
+                          while j < n:
+                              if not dk[j]:
+                                  j += 1; continue
+                              st = j; last = j; gap = 0; j += 1
+                              while j < n:
+                                  if dk[j]:
+                                      last = j; gap = 0
+                                  else:
+                                      gap += 1
+                                      if gap > 2:
+                                          break
+                                  j += 1
+                              runs_r.append((st, last))
+                          rays[k] = (a0, wy, wx, runs_r)
+                          longr = [rr for rr in runs_r if rr[1] - rr[0] + 1 >= minlen]
+                          if longr:
+                              first[k] = (a0 + longr[0][0]) * step
+                      # the rim's path round the lens: for each ray, the median of the
+                      # first proper dark run over the rays within 22 degrees either
+                      # side. An arm tip seen through the glass, or the reflection
+                      # under the bottom rim, covers only a few of those rays and
+                      # cannot pull the path off the rim.
+                      half = int(NA * 22 / 360)
+                      ext_f = np.concatenate([first[-half:], first, first[:half]])
+                      prof = np.full(NA, np.nan)
+                      for k in range(NA):
+                          wv = ext_f[k:k + 2 * half + 1]
+                          wv = wv[~np.isnan(wv)]
+                          if wv.size:
+                              prof[k] = np.median(wv)
+                      # pass 2: on each ray the rim is the dark run that lies on that path
+                      for k in range(NA):
+                          if rays[k] is None:
                               continue
-                          st = j; last = j; gap = 0
-                          while j < n and (j - st) * step <= cap:
-                              if dk[j]:
-                                  last = j; gap = 0
-                              else:
-                                  gap += 1
-                                  if gap > 2:
-                                      break
-                              j += 1
+                          a0, wy, wx, runs_r = rays[k]
+                          gov[wy, wx] = True
+                          if not runs_r or np.isnan(prof[k]):
+                              continue
+                          good = [rr for rr in runs_r if rr[1] - rr[0] + 1 >= minlen] or runs_r
+                          st, last = min(good, key=lambda rr: abs((a0 + rr[0]) * step - prof[k]))
+                          if abs((a0 + st) * step - prof[k]) > max(6.0, 0.8 * rim_t):
+                              continue            # nothing on the path here: leave it
+                          last = min(last, st + int(cap / step))
                           rim_m[wy[st:last + 1], wx[st:last + 1]] = True
                   rim_m = cv2.morphologyEx(rim_m.astype(np.uint8), cv2.MORPH_CLOSE,
                                            np.ones((3, 3), np.uint8)) > 0
                   gov = cv2.morphologyEx(gov.astype(np.uint8), cv2.MORPH_CLOSE,
                                          np.ones((3, 3), np.uint8)) > 0
-                  gov &= ~pads | ~lens
                   soft = np.clip((bg_l - lum) / max(1.0, bg_l - frame_l), 0.0, 1.0)
                   edge = ndimage.binary_dilation(rim_m, iterations=1) & ~rim_m & gov
                   rimA = np.where(rim_m, 1.0, np.where(edge, soft, 0.0)).astype(np.float32)
@@ -2070,7 +2102,33 @@ jobs:
               m = coarse_mask(img)                                  # step 2
               m = largest_component(m)
               band_px = max(6, min(24, int(round(12 * max(img.size) / 1440.0))))
-              tri = make_trimap(m, band_px)                         # step 3
+              band_tri = band_px
+              if rim_kind == "full":
+                  # A thin metal rim is only ~12 px wide here. With the usual band
+                  # (13 px eaten from each side to find "surely frame") no part of
+                  # the rim is sure, the whole rim is left to the matting to guess,
+                  # and next to the shiny sheet it guesses wrong. For a full rim the
+                  # band follows the rim's own thickness, read from the model's
+                  # first mask: about a third of it, so the rim keeps a solid core.
+                  import cv2 as _cv2
+                  # measured on the DARK metal inside the model's mask (the model
+                  # often keeps the glass solid, so its mask alone would read the
+                  # whole lens as "thick"); a light or crystal frame gives too few
+                  # dark pixels and keeps the usual band
+                  _rgb = np.asarray(img).astype(np.float32)
+                  _lum = _rgb[..., 0] * 0.299 + _rgb[..., 1] * 0.587 + _rgb[..., 2] * 0.114
+                  _sheet_l = float(np.dot(sheet_colour(np.asarray(img)), [0.299, 0.587, 0.114]))
+                  _metal = (m > 0.5) & (_lum < 0.5 * _sheet_l)
+                  if _metal.sum() < 0.15 * max(1, int((m > 0.5).sum())):
+                      _metal = np.zeros_like(_metal)
+                  _dt = _cv2.distanceTransform(_metal.astype(np.uint8), _cv2.DIST_L2, 5)
+                  _ridge = (_dt > 0) & (_dt >= _cv2.dilate(_dt, np.ones((3, 3), np.uint8)))
+                  if _ridge.any():
+                      _thick = 2.0 * float(np.median(_dt[_ridge]))
+                      _b = int(max(2, min(band_px, round(0.3 * _thick))))
+                      log("    full rim: rim about %.0f px thick, edge band %d px (was %d)" % (_thick, _b, band_px))
+                      band_tri = _b
+              tri = make_trimap(m, band_tri)                        # step 3 (only the trimap uses the rim-sized band)
               a = matte(img, tri)                                   # step 4
               a = tighten_edge(a)                                   # step 4b: a 1-2 px edge, not a glow
               a = heal_rim(a)                                       # step 4c: a highlight slit inside the rim is rim
