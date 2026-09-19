@@ -1,4 +1,4 @@
-Run 77  Sat Sep 19 09:36:36 UTC 2026
+Run 113  Sat Sep 19 16:44:50 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Trial re-cut of pmu4gg5u210 (Eyeconic).
@@ -11,5 +11,5 @@ Model loaded: ZhengPeng7/BiRefNet
 /home/runner/work/vg-cutter/vg-cutter/vg_cut.py:265: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
 half-rim: 179 enclosed pieces, 3 candidates, rejected {'size': 175, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789810592/lgvg6lyrjktoeznb9mhk.png
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789836286/uknphnhqqz0zjrrmsjsi.png
   Finished. Cut 1, failed 0, rejected 0, still waiting 0.
