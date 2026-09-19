@@ -1599,6 +1599,7 @@ jobs:
                           if wv.size:
                               prof[k] = np.median(wv)
                       # pass 2: on each ray the rim is the dark run that lies on that path
+                      picked = [None] * NA
                       miss = np.zeros(NA, bool); dbg_i0 = np.full(NA, np.nan); dbg_near = np.full(NA, np.nan)
                       for k in range(NA):
                           if rays[k] is None:
@@ -1658,9 +1659,28 @@ jobs:
                               st, last = min(good, key=lambda rr: abs(rr[0] - pk))
                               if abs(st - pk) > tol:
                                   continue            # nothing on the path here: leave it
-                          last = min(last, st + int(cap / step))
-                          rim_m[wy[st:last + 1], wx[st:last + 1]] = True
+                          picked[k] = (wy, wx, st, last)
                           miss[k] = False
+                      # how thick the rim is along each ray: the run is cut to what the
+                      # rim measures around it (30th percentile of the runs within 40
+                      # degrees, +20%), so where the rim's reflection on the sheet joins
+                      # it under the bottom rim (on Lot over some 40 degrees) the
+                      # reflection is not taken. Never below the rim's own thickness
+                      # there; never above the old 1.4x cap.
+                      runlen = np.array([np.nan if q is None else float(q[3] - q[2] + 1) for q in picked])
+                      hw = int(NA * 40 / 360)
+                      ext_l = np.concatenate([runlen[-hw:], runlen, runlen[:hw]])
+                      for k in range(NA):
+                          q = picked[k]
+                          if q is None:
+                              continue
+                          wy, wx, st, last = q
+                          wv = ext_l[k:k + 2 * hw + 1]; wv = wv[~np.isnan(wv)]
+                          capk = int(cap / step)
+                          if wv.size >= 8:
+                              capk = min(capk, max(minlen, int(1.2 * np.percentile(wv, 30) + 2.0 / step)))
+                          last = min(last, st + capk)
+                          rim_m[wy[st:last + 1], wx[st:last + 1]] = True
                       # which directions got no rim (5-degree bins, >30% of rays empty)
                       for b in range(72):
                           sl = slice(b * NA // 72, (b + 1) * NA // 72)
