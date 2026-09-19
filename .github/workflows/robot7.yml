@@ -1383,41 +1383,58 @@ jobs:
               # rim thickness: from each lens centre walk out along 180 rays; past
               # the opening's edge count the dark pixels. The median over all rays
               # ignores the few rays that run into an end piece or a stand hole.
-              runs = []
+              runs = []; offs = []
               for r in (L, R):
                   ys, xs = np.where(r)
                   cy, cx = ys.mean(), xs.mean()
                   for ang in np.linspace(0, 2 * np.pi, 180, endpoint=False):
                       dy, dx = np.sin(ang), np.cos(ang)
-                      t = 0.0; inside = True; run = 0; gap = 0; started = False
-                      while True:
+                      # where the ray leaves the traced opening
+                      t0 = None
+                      for t in range(0, 2000):
                           y = int(round(cy + dy * t)); x = int(round(cx + dx * t))
                           if y < 0 or y >= H or x < 0 or x >= W:
                               break
-                          if inside:
-                              if not r[y, x]:
-                                  inside = False
-                              t += 1.0
-                              continue
+                          if not r[y, x]:
+                              t0 = t; break
+                      if t0 is None:
+                          continue
+                      # the dark run nearest that crossing, looked for on both sides
+                      # (the opening may sit on the rim's inner edge or over the rim)
+                      seg = []; cur = None; gap = 0
+                      for t in range(max(0, t0 - 30), t0 + 80):
+                          y = int(round(cy + dy * t)); x = int(round(cx + dx * t))
+                          if y < 0 or y >= H or x < 0 or x >= W:
+                              break
                           if dark[y, x]:
-                              run += 1 + gap; gap = 0; started = True
-                          elif not started and gap < 3:
+                              if cur is None:
+                                  cur = [t, t]
+                              else:
+                                  cur[1] = t
+                              gap = 0
+                          elif cur is not None:
                               gap += 1
-                          elif started and gap < 1:
-                              gap += 1
-                          else:
-                              break
-                          if run > 80:
-                              break
-                          t += 1.0
-                      if run > 0:
-                          runs.append(run)
+                              if gap > 1:
+                                  seg.append(cur); cur = None; gap = 0
+                      if cur is not None:
+                          seg.append(cur)
+                      if not seg:
+                          continue
+                      best = min(seg, key=lambda sg: 0 if sg[0] <= t0 <= sg[1] else min(abs(sg[0] - t0), abs(sg[1] - t0)))
+                      if min(abs(best[0] - t0), abs(best[1] - t0)) > 12 and not (best[0] <= t0 <= best[1]):
+                          continue
+                      runs.append(best[1] - best[0] + 1)
+                      offs.append(max(0, best[0] - t0))
               if len(runs) < 60:
                   return alpha, None
               rim_t = float(np.clip(np.median(runs), 3, 60))
 
+              # how far outside the traced opening the rim's inner edge sits (0 when
+              # the opening was traced right on the rim; a few px when it was
+              # traced on the glass edge) -- the rim band starts there
+              rim_off = float(np.clip(np.median(offs), 0, 20)) if offs else 0.0
               dist_out = ndimage.distance_transform_edt(~lens)
-              rim_band = (dist_out > 0) & (dist_out <= rim_t + 2)
+              rim_band = (dist_out > 0) & (dist_out <= rim_off + rim_t + 2)
               solid = alpha > 0.5
               frame_l = float(np.median(lum[rim_band & solid])) if (rim_band & solid).any() else 255.0
               dark_frame = frame_l < 0.5 * bg_l
@@ -1473,11 +1490,18 @@ jobs:
               keep_end = ndimage.binary_dilation(keep_end, iterations=1) & (alpha > 0) & ends
 
               front = lens | rim_band | bridge | keep_end
-              out = np.where(front, alpha, 0.0).astype(np.float32)
               put_back = 0
+              out = np.where(front, alpha, 0.0).astype(np.float32)
               if dark_frame:
                   # the rim as photographed: every dark pixel in the rim band is rim
-                  rim_dark = rim_band & dark
+                  # the traced opening can sit on the rim's inner edge or partly over
+                  # the rim itself, so the rim is looked for on BOTH sides of the
+                  # outline: outward by its thickness, inward by its thickness too
+                  dist_in = ndimage.distance_transform_edt(lens)
+                  pads = np.zeros_like(solid)
+                  px0 = int(lx1 - 0.30 * (lx1 - lx0)); px1 = int(rx0 + 0.30 * (rx1 - rx0))
+                  pads[int(max(0, midy - 0.05 * lens_h)):, max(0, px0):min(W, px1 + 1)] = True
+                  rim_dark = dark & (rim_band | (lens & (dist_in <= rim_t + 4) & ~pads))
                   put_back = int((rim_dark & (out < 0.5)).sum())
                   out = np.maximum(out, rim_dark.astype(np.float32))
                   # the glass edge: where the lens meets the rim the glass catches
@@ -1488,11 +1512,7 @@ jobs:
                   # only, so it stops at the dark metal -- a highlight lying ON the
                   # metal, with dark on both sides, is never reached. The nose-pad
                   # corner is left alone (clear silicone pads are pale too).
-                  dist_in = ndimage.distance_transform_edt(lens)
-                  near_edge = (lens & (dist_in <= 8)) | rim_band
-                  pads = np.zeros_like(solid)
-                  px0 = int(lx1 - 0.30 * (lx1 - lx0)); px1 = int(rx0 + 0.30 * (rx1 - rx0))
-                  pads[int(max(0, midy - 0.05 * lens_h)):, max(0, px0):min(W, px1 + 1)] = True
+                  near_edge = (lens & (dist_in <= rim_t + 8)) | rim_band
                   # "pale" here means as bright as the sheet or brighter: the glass
                   # edge measured 250-255 on Lot. The metal's own highlight (the top
                   # of the wire catching light, 100-180) is NOT pale by this test --
@@ -1515,7 +1535,7 @@ jobs:
                   info_glass = (info_glass, int(add.sum()))
               else:
                   info_glass = 0
-              info = {"rimT": round(rim_t, 1), "bgL": round(bg_l), "frameL": round(frame_l),
+              info = {"rimT": round(rim_t, 1), "rimOff": round(rim_off, 1), "bgL": round(bg_l), "frameL": round(frame_l),
                       "darkFrame": bool(dark_frame), "rimPutBack": put_back, "glassEdge": info_glass,
                       "removed": int((solid & ~front).sum())}
               return out, info
