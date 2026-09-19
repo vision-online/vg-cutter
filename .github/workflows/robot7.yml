@@ -1493,11 +1493,26 @@ jobs:
                   pads = np.zeros_like(solid)
                   px0 = int(lx1 - 0.30 * (lx1 - lx0)); px1 = int(rx0 + 0.30 * (rx1 - rx0))
                   pads[int(max(0, midy - 0.05 * lens_h)):, max(0, px0):min(W, px1 + 1)] = True
-                  pale = (lum >= dark_t) & near_edge & ~pads & (out > 0.02)
+                  # "pale" here means as bright as the sheet or brighter: the glass
+                  # edge measured 250-255 on Lot. The metal's own highlight (the top
+                  # of the wire catching light, 100-180) is NOT pale by this test --
+                  # an earlier, looser test flooded it and cut slits into the rim.
+                  pale_t = max(0.90 * bg_l, 190.0)
+                  pale = (lum >= pale_t) & near_edge & ~pads & (out > 0.02)
                   seed = ndimage.binary_dilation(out <= 0.02, iterations=1) & pale
                   glass_edge = ndimage.binary_propagation(seed, mask=pale)
                   out[glass_edge] = 0.0
                   info_glass = int(glass_edge.sum())
+                  # a rim is solid across its width: any slit or pinhole inside the
+                  # rim zone narrower than 5 px, between rim on both sides and not
+                  # as bright as the sheet, is filled. Closing only ADDS pixels.
+                  zone = (lens & (dist_in <= rim_t + 6)) | ((dist_out > 0) & (dist_out <= rim_t + 4))
+                  s_now = (out > 0.5).astype(np.uint8)
+                  k5 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+                  closed = cv2.morphologyEx(s_now, cv2.MORPH_CLOSE, k5) > 0
+                  add = closed & (s_now == 0) & zone & (lum < pale_t) & ~glass_edge
+                  out[add] = 1.0
+                  info_glass = (info_glass, int(add.sum()))
               else:
                   info_glass = 0
               info = {"rimT": round(rim_t, 1), "bgL": round(bg_l), "frameL": round(frame_l),
