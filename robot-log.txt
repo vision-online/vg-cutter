@@ -1,4 +1,4 @@
-Run 151  Sat Sep 19 20:25:46 UTC 2026
+Run 152  Sat Sep 19 20:33:56 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -21,6 +21,6 @@ Model loaded: ZhengPeng7/BiRefNet
     rim type: full rim (1 clean lens holes)
 half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 'place': 0, 'solid': 0, 'touch': 0}
     full-rim cleanup: solid 68875 -> keep_main_solid 58961
-    full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'rimIn': 0.0, 'rimOut': 11.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 10104, 'glassEdge': (935, 196), 'removed': 4802}
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789849543/xaod51zxfaszkzysy5c0.png
+    full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'rimIn': 0.0, 'rimOut': 11.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 10106, 'raysMoved': 254, 'noRim': [('L', 0, 0.82, 205.5, 205.0, 239.5, 205.0), ('L', 5, 0.97, 202.0, 202.0, 238.0, 206.0), ('L', 340, 0.41, 245.5, 244.5, 234.5, 244.5), ('L', 345, 1.0, 247.5, 247.5, 234.5, 247.5), ('L', 350, 0.85, 245.0, 249.5, 238.5, 249.5), ('R', 160, 0.71, 246.5, 243.5, 232.0, 243.5), ('R', 165, 0.61, 247.0, 244.5, 234.0, 244.5), ('R', 170, 1.0, 201.0, 200.0, 239.5, 201.0), ('R', 175, 0.71, 209.0, 208.0, 241.5, 209.0), ('R', 185, 0.82, 246.0, 251.0, 239.5, 251.5), ('R', 190, 1.0, 249.5, 249.5, 236.0, 249.5), ('R', 195, 0.45, 247.0, 246.0, 236.0, 246.0), ('R', 315, 0.64, 243.0, 217.5, 231.5, 242.5), ('R', 320, 0.36, 250.5, 246.5, 246.5, 249.5)], 'glassEdge': (933, 196), 'removed': 4669}
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789850033/aw1c5oxhghhxgqynpuej.png
   Finished. Cut 1, failed 0, rejected 0, still waiting 0.
