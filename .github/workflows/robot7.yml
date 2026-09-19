@@ -969,6 +969,77 @@ jobs:
               return out
 
 
+          def smooth_top_steps(alpha, rim_t):
+              """
+              Both arms lie along the brow in the same way, so a thin sliver of
+              arm can survive the symmetry check on both sides at once. It shows
+              as a STEP in the top edge over the glass, outer side higher, where
+              the arm tip ends. The brow's own edge never steps there. At such a
+              step the inner side's edge is carried outwards as a straight line
+              and only what stands above it is removed -- no more than an arm's
+              thickness, only over the glass and one rim beyond it, never below
+              the line.
+              """
+              from scipy import ndimage
+              solid = alpha > 0.5
+              H, W = alpha.shape
+              lens, _ = lens_holes(alpha)
+              lab, n = ndimage.label(lens)
+              if n < 2:
+                  return alpha
+              sizes = ndimage.sum(lens, lab, range(1, n + 1))
+              big = [i + 1 for i in sorted(range(n), key=lambda i: -sizes[i])[:2]]
+              boxes = sorted([(int(np.where(lab == i)[1].min()), int(np.where(lab == i)[1].max())) for i in big])
+              (lx0, lx1), (rx0, rx1) = boxes
+              def profile(al):
+                  s = al > 0.5
+                  T = np.full(W, -1, dtype=np.int64)
+                  for x in np.where(s.any(axis=0))[0]:
+                      T[x] = int(np.argmax(s[:, x]))
+                  return T
+              out = alpha.copy()
+              T = profile(out)
+              win = max(10, int(round(rim_t * 2)))
+              reach = int(round(rim_t))
+              for side, (x0, x1) in ((-1, (lx0, lx1)), (1, (rx0, rx1))):
+                  done = 0
+                  xs = range(x0 + 3, x1 - 3) if side < 0 else range(x1 - 3, x0 + 3, -1)
+                  for x in xs:
+                      xin, xout = (x + 3, x) if side < 0 else (x - 3, x)
+                      if T[xin] < 0 or T[xout] < 0 or T[xin] - T[xout] < 4:
+                          continue                          # inner side must be lower (larger y)
+                      rng = range(xin, min(W, xin + win)) if side < 0 else range(xin, max(0, xin - win), -1)
+                      pts = [(xx, T[xx]) for xx in rng if T[xx] >= 0]
+                      if len(pts) < 8:
+                          continue
+                      px, py = np.array(pts, dtype=np.float64).T
+                      a, b = np.polyfit(px, py, 1)
+                      stop = max(0, x0 - reach) if side < 0 else min(W - 1, x1 + reach)
+                      span = range(xout, stop - 1, -1) if side < 0 else range(xout, stop + 1)
+                      changed = False
+                      for xx in span:
+                          if T[xx] < 0:
+                              break
+                          line = a * xx + b
+                          gap = line - T[xx]
+                          if gap < 2:
+                              break                         # rejoined the true edge
+                          if gap > 1.3 * rim_t:
+                              break                         # thicker than an arm: leave it
+                          cut_to = int(np.floor(line)) - 2
+                          if cut_to > T[xx]:
+                              out[:cut_to, xx] = 0.0
+                              if cut_to < H and out[cut_to, xx] > 0.5:
+                                  out[cut_to, xx] *= 0.5
+                              changed = True
+                      if changed:
+                          done += 1
+                          T = profile(out)
+                      if done >= 4:
+                          break
+              return out
+
+
           def cut_end_to_end(alpha):
               """
               The front try-on picture: arms removed, end pieces kept.
@@ -1402,7 +1473,8 @@ jobs:
                   a = cut_end_to_end(a)                             # step 6b: arms beyond the ends
                   a = trim_narrow_above(a, globals().get("LAST_RIM_T", 24.0))   # step 6b2: narrow stubs above the front
                   a = mirror_top(a, globals().get("LAST_RIM_T", 24.0))          # step 6b3: a flat arm along one brow, by symmetry
-                  a = clean_ghosts(a)                                            # step 6b4: no floating soft outlines
+                  a = smooth_top_steps(a, globals().get("LAST_RIM_T", 24.0))    # step 6b4: a symmetric arm sliver, by its step
+                  a = clean_ghosts(a)                                            # step 6b5: no floating soft outlines
                   a = clear_behind_glass(a)                         # step 6c: nothing seen through the lenses
                   a = trim_ends(a)                                  # step 6d: half a millimetre off each end
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
