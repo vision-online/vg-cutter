@@ -414,6 +414,7 @@ jobs:
           # ---------------------------------------------------------------- the model
 
           _model = None
+          NEW_METHOD_IDS = {"pmu4gnug185"}   # Lot only
           MODEL_NAME = [""]        # a test run can ask for another model (e.g. BiRefNet_HR)
           MODEL_SIZE = [1024]      # and the size it looks at the photo
 
@@ -2689,8 +2690,11 @@ jobs:
                   try:
                       log("--- %s : %s" % (pid, (p.get("name") or "")[:50]))
                       rim_txt = str(p.get("rim") or p.get("rimType") or "").lower()
-                      png, nums = cut(download(front_photo(p)), front=True,
-                                      rim_kind=rim_kind_of(rim_txt))
+                      # The new rim method (made for the thin metal frame Lot) is used
+                      # ONLY for the frames listed in NEW_METHOD_IDS. Every other frame is
+                      # cut with the old method, as Rauf asked (it spoiled Sizzler).
+                      rk = rim_kind_of(rim_txt) if str(pid) in NEW_METHOD_IDS else ""
+                      png, nums = cut(download(front_photo(p)), front=True, rim_kind=rk)
                       if test_mode:
                           url = cloudinary_upload(png, "test-%s-%s" % (test_mode, pid), cname, cpreset)
                           log("    TEST RESULT (%s, not saved, live cut-out unchanged) -> %s" % (test_mode, url))
