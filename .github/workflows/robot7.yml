@@ -2363,8 +2363,13 @@ jobs:
               elif front:
                   h0, _ = lens_holes(a)
                   h_lab, h_n = ndimage_label_count(h0)
-                  log("    rim type: %s" % (rim_kind or "not set"))
-                  if half_rim_hint or h_n < 2:
+                  log("    rim type: %s (%d clean lens holes)" % (rim_kind or "not set", h_n))
+                  # OLD METHOD (rim_kind == ""): the half-rim tracing runs ONLY when the
+                  # rim text says half rim. Sizzler's good cut (run 68, commit 7aafc1f)
+                  # had no half-rim step at all; a later robot also ran it whenever the
+                  # model kept the glass solid (h_n < 2), and on a full-rim frame that
+                  # traced the wrong outline and spoiled the corners and hinges.
+                  if half_rim_hint or (rim_kind and h_n < 2):
                       half_regions = half_rim_lenses(img, a)
                       if half_regions:
                           a, half_ring = apply_half_rim(img, a, half_regions)
