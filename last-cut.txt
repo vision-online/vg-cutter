@@ -1,4 +1,4 @@
-Run 221  Sun Sep 20 07:09:51 UTC 2026
+Run 223  Sun Sep 20 07:24:47 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Test cut of 1 frame(s): Sizzler
@@ -12,6 +12,5 @@ Model loaded: ZhengPeng7/BiRefNet at 1024 px
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
     rim type: not set
 half-rim: 113 enclosed pieces, 2 candidates, rejected {'size': 110, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
-    full-rim cleanup: solid 171623 -> keep_main_solid 171261
-    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789888188/thrklrzdnrwp9c6mej1r.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789889084/rusevl08cgcgfqe9yhnl.png
   Finished. Cut 1, failed 0, rejected 0, still waiting 0.
