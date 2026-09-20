@@ -1,18 +1,17 @@
-Run 218  Sun Sep 20 06:43:38 UTC 2026
+Run 221  Sun Sep 20 07:09:51 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-    restored p1789109493867aad7 (Sheet gray) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789765193/yi08k3vtakwcu5bbm9yk.png
-    restored p17892249696909pgu (Skechers) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789765249/om8thc9nlazuyi3bdmi9.png
-    restored pmtyjadff35 (VG-1001 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789765309/gu5zahwgfwrnmywdxsnu.png
-    restored pmtyjmyfc78 (Visibilla) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789765720/vwzzz3wydtcsgb5yourf.png
-    restored pmtzl3ql140 (VG-1002 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789765740/tbsrdajts1pd8drcoslj.png
-    restored pmtzl57qf92 (VG-1003 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789766022/hrqh9q2ojnpvsieezr2y.png
-    restored pmtzn859c27 (New cat eye) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789766541/cek0l8c96u6qn4nnjvcj.png
-    restored pmtzt59ej89 (VG-1004 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789766804/djirafx2nwekbeolx44w.png
-    restored pmtztljhi39 (VG-1005 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789767027/lmqjdwksd3flokgnmoil.png
-    restored pmtzvby3x13 (VG-1006 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789767247/k0hcaxfuj5uygoce0xwr.png
-    restored pmu1e5xfr15 (VG-1007 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789767445/xin3tntoiiwtpgcj1y8k.png
-    restored pmu1eepls58 (VG-1008 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789767512/vr9vdctqgmw3yukcmjo9.png
-    restored pmu4g6b4x96 (Ocelot) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789767653/fuftmpirqgwms1ois9i1.png
-    restored pmu4h3h9579 (Heart stone) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789768042/noxpb8sigbgsqpnlrxrc.png
-    restored pmu4hbhsm89 (Sizzler) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789806951/bya4b2umhytezdw9jjcd.png
+Test cut of 1 frame(s): Sizzler
+Catalogue: 19 frames. Waiting for a cut-out: 1.
+Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
+--- pmu4hbhsm89 : Sizzler
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Model loaded: ZhengPeng7/BiRefNet at 1024 px
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:271: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    rim type: not set
+half-rim: 113 enclosed pieces, 2 candidates, rejected {'size': 110, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
+    full-rim cleanup: solid 171623 -> keep_main_solid 171261
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789888188/thrklrzdnrwp9c6mej1r.png
+  Finished. Cut 1, failed 0, rejected 0, still waiting 0.
