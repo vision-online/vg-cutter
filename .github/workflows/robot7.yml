@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       recut:
-        description: 'first / a frame id / reset / all / test:<id or fullrim> / adopt:<ids or all> / restore:<ids or all>'
+        description: 'first / a frame id / reset / all / test:<id or fullrim> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
         required: false
         default: ''
 
@@ -2629,6 +2629,27 @@ jobs:
                       p["tryOnCutBy"] = "robot"
                       save_product(p)
                       log("    adopted %s (%s) -> %s" % (p.get("id"), (p.get("name") or "")[:30], t["url"]))
+                  return 0
+              if recut.lower().startswith("clear:"):
+                  # Take a try-on DOWN because the photo is not fit for it (arms or
+                  # stickers across the glass): "clear:id1,id2". The frame stays in
+                  # the shop; it shows no try-on and the robot leaves it alone until a
+                  # new front photo is uploaded in admin (that upload resets
+                  # tryOnFails to 0 and the robot cuts it fresh).
+                  want = [x.strip() for x in recut.split(":", 1)[1].split(",") if x.strip()]
+                  for p in products:
+                      if str(p.get("id")) not in want:
+                          continue
+                      for k in ("tryOnUrl", "tryOnAngleUrl", "tryOnSideUrl", "tryOnNumbers",
+                                "tryOnTest", "tryOnPrev", "tryOnWarning"):
+                          p.pop(k, None)
+                      p["tryOnUrl"] = ""
+                      p["tryOnReady"] = False
+                      p["tryOnFails"] = MAX_TRIES
+                      p["tryOnFail"] = ("photo not fit for try-on (arms or stickers across the glass) "
+                                        "-- re-shoot: arms straight back, stickers off, nothing behind the lenses")
+                      save_product(p)
+                      log("    cleared %s (%s): try-on taken down, waiting for a new photo" % (p.get("id"), (p.get("name") or "")[:30]))
                   return 0
               if recut.lower().startswith("test:"):
                   # A CHECKED test: cut with the normal method, upload, and keep the
