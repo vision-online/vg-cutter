@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       recut:
-        description: 'first / a frame id / reset / all / fullrim (re-cut Full rim frames) / restore:all'
+        description: 'first / a frame id / reset / all / test:<id or fullrim> / adopt:<ids or all> / restore:<ids or all>'
         required: false
         default: ''
 
@@ -2294,10 +2294,15 @@ jobs:
               return (out * 255).round().astype(np.uint8)
 
 
-          def cut(photo_bytes, front=True, rim_kind=""):
+          def cut(photo_bytes, front=True, rim_kind="", half_rim_hint=None):
               """One photo in, one transparent PNG (and its numbers) out.
-              rim_kind comes from the rim type typed in admin (see rim_kind_of)."""
-              half_rim_hint = rim_kind in ("half", "rimless")
+              rim_kind comes from the rim type typed in admin (see rim_kind_of).
+              rim_kind == "" is the OLD method (the one that cut Sizzler well on
+              2026-09-19): every step added since then is skipped, so the result
+              is the same as that robot's. Only frames in NEW_METHOD_IDS get a
+              rim_kind (the thin-metal method made for Lot)."""
+              if half_rim_hint is None:
+                  half_rim_hint = rim_kind in ("half", "rimless")
               import cv2
               img = Image.open(io.BytesIO(photo_bytes)).convert("RGB")
               if max(img.size) > 1600:
@@ -2338,7 +2343,8 @@ jobs:
               a = matte(img, tri)                                   # step 4
               a = tighten_edge(a)                                   # step 4b: a 1-2 px edge, not a glow
               a = heal_rim(a)                                       # step 4c: a highlight slit inside the rim is rim
-              a = firm_rim(a)                                       # a speckled metal bar/rim is made solid inside (any frame)
+              if rim_kind:
+                  a = firm_rim(a)                                   # new method only: a speckled metal bar/rim is made solid inside
               # HALF-RIM: metal on top only, the demo lens on a thread below. No closed
               # hole, so trace the lens edge from the photograph instead; its ring is
               # made solid for the moment so every rule below sees a proper opening.
@@ -2362,7 +2368,8 @@ jobs:
                       half_regions = half_rim_lenses(img, a)
                       if half_regions:
                           a, half_ring = apply_half_rim(img, a, half_regions)
-                          a = firm_rim(a)                          # a speckled metal bar is made solid inside
+                          if rim_kind:
+                              a = firm_rim(a)                      # new method only
               holes, _ = lens_holes(a)
               if not holes.any():
                   # the model kept the lenses solid (common for clear glass):
@@ -2388,7 +2395,8 @@ jobs:
               a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
               if front and rim_kind == "full":
                   a = clear_sheet_at_ends(img, a)                   # step 7b: sheet wedge between end piece and rim
-              if front:
+              if front and rim_kind:
+                  # NEW METHOD ONLY (the old method never dropped loose pieces).
                   # any front frame: what is not joined to the main frame -- an arm
                   # tip below the glass, a fleck along the rim's edge -- goes. This
                   # only drops pieces well apart from the frame; it never touches
@@ -2450,7 +2458,7 @@ jobs:
                   y0, y1 = max(0, ys.min() - pad), min(a.shape[0], ys.max() + pad + 1)
                   x0, x1 = max(0, xs.min() - pad), min(a.shape[1], xs.max() + pad + 1)
                   rgba = rgba[y0:y1, x0:x1]
-                  if nums.get("lenses"):        # the lens numbers follow the final crop
+                  if rim_kind and nums.get("lenses"):        # new method: the lens numbers follow the final crop
                       for e in nums["lenses"]:
                           e["centreX"] = float(e["centreX"] - x0); e["centreY"] = float(e["centreY"] - y0)
                       nums["frontWidthPx"] = int(x1 - x0); nums["frontHeightPx"] = int(y1 - y0)
@@ -2735,7 +2743,9 @@ jobs:
                       # ONLY for the frames listed in NEW_METHOD_IDS. Every other frame is
                       # cut with the old method, as Rauf asked (it spoiled Sizzler).
                       rk = rim_kind_of(rim_txt) if str(pid) in NEW_METHOD_IDS else ""
-                      png, nums = cut(download(front_photo(p)), front=True, rim_kind=rk)
+                      # old method: the half-rim hint is read from the rim text, as before
+                      old_hint = None if rk else any(k in rim_txt for k in ("half", "supra", "semi", "rimless"))
+                      png, nums = cut(download(front_photo(p)), front=True, rim_kind=rk, half_rim_hint=old_hint)
                       if test_mode:
                           url = cloudinary_upload(png, "test-%s-%s" % (test_mode, pid), cname, cpreset)
                           if test_mode == "plain":
