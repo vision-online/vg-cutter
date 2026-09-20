@@ -1,16 +1,9 @@
-Run 229  Sun Sep 20 08:02:47 UTC 2026
-Trigger: workflow_dispatch
+Run 230  Sun Sep 20 08:05:53 UTC 2026
+Trigger: schedule
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::Frames: 19. Waiting: 1. Rejected: 0.  Trial re-cut asked for: adopt:pmtzn859c27,pmu1e5xfr15,pmtyjadff35,pmu1eepls58,pmtzl57qf92,pmu4h3h9579
+::notice::Frames: 19. Waiting: 0. Rejected: 0.
 
 --- what the robot did ---
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-    adopted pmtyjadff35 (VG-1001 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789890079/pi5jyj6z0bp7sw1s0ifc.png
-    adopted pmtzl57qf92 (VG-1003 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789890296/tl0ulsspycww7b7dcbc6.png
-    adopted pmtzn859c27 (New cat eye) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789890359/mmxi0dk4svzjmft4fmdn.png
-    adopted pmu1e5xfr15 (VG-1007 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789890718/ofodlnycl0pm7yov0y1t.png
-    adopted pmu1eepls58 (VG-1008 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789890791/rgrn25j0wfchzo6qd9qt.png
-    adopted pmu4h3h9579 (Heart stone) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789891025/xibfflfjx4abkkcdlk3d.png
