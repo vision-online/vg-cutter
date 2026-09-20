@@ -250,6 +250,7 @@ jobs:
           """
 
           import io
+          import datetime
           import json
           import os
           import sys
@@ -2595,6 +2596,46 @@ jobs:
               todo = [p for p in products if waiting(p)]
               recut = (os.environ.get("RECUT") or "").strip()
               test_mode = ""
+              if recut.lower().startswith("adopt:"):
+                  # Make a checked test cut live: "adopt:id1,id2" or "adopt:all". The
+                  # cut-out it replaces is kept in tryOnPrev (restore: puts it back).
+                  want = [x.strip() for x in recut.split(":", 1)[1].split(",") if x.strip()]
+                  for p in products:
+                      t = p.get("tryOnTest")
+                      if not t or not t.get("url"):
+                          continue
+                      if "all" not in want and str(p.get("id")) not in want:
+                          continue
+                      if p.get("tryOnUrl"):
+                          p["tryOnPrev"] = {"url": p.get("tryOnUrl"), "numbers": p.get("tryOnNumbers"),
+                                            "angle": p.get("tryOnAngleUrl"), "side": p.get("tryOnSideUrl")}
+                      p["tryOnUrl"] = t["url"]; p["tryOnReady"] = True
+                      if t.get("numbers"):
+                          p["tryOnNumbers"] = t["numbers"]
+                      p.pop("tryOnWarning", None); p.pop("tryOnTest", None)
+                      p["tryOnCutBy"] = "robot"
+                      save_product(p)
+                      log("    adopted %s (%s) -> %s" % (p.get("id"), (p.get("name") or "")[:30], t["url"]))
+                  return 0
+              if recut.lower().startswith("test:"):
+                  # A CHECKED test: cut with the normal method, upload, and keep the
+                  # result in tryOnTest for review. The live cut-out is NOT changed.
+                  # "test:<id>", "test:fullrim" (Full rim frames other than Lot).
+                  test_mode = "plain"
+                  what = recut.split(":", 1)[1].strip()
+                  if what.lower() == "fullrim":
+                      todo = []
+                      for p in products:
+                          rim = str(p.get("rim") or p.get("rimType") or "").lower()
+                          full = ("full" in rim) and not any(w in rim for w in ("half", "semi", "supra", "rimless"))
+                          if full and front_photo(p) and str(p.get("id")) not in NEW_METHOD_IDS \
+                                  and p.get("tryOnOk") is not False and not p.get("tryOnLocked") \
+                                  and not (p.get("tryOnTest") or {}).get("url"):
+                              todo.append(p)
+                  else:
+                      todo = [p for p in products if str(p.get("id")) == what]
+                  recut = ""
+                  log("Test cut of %d frame(s): %s" % (len(todo), ", ".join((p.get("name") or "")[:16] for p in todo)))
               if recut.lower().startswith("restore:"):
                   # UNDO: put back the cut-out a frame had before the last full-rim
                   # re-cut (kept in tryOnPrev). "restore:id1,id2" or "restore:all".
@@ -2697,7 +2738,12 @@ jobs:
                       png, nums = cut(download(front_photo(p)), front=True, rim_kind=rk)
                       if test_mode:
                           url = cloudinary_upload(png, "test-%s-%s" % (test_mode, pid), cname, cpreset)
-                          log("    TEST RESULT (%s, not saved, live cut-out unchanged) -> %s" % (test_mode, url))
+                          if test_mode == "plain":
+                              nums.pop("reading", None); warn_ = nums.pop("warning", None)
+                              p["tryOnTest"] = {"url": url, "numbers": nums, "warning": warn_,
+                                                "at": datetime.datetime.utcnow().isoformat() + "Z"}
+                              save_product(p)
+                          log("    TEST RESULT (%s, live cut-out unchanged) -> %s" % (test_mode, url))
                           done += 1
                           continue
                       url = cloudinary_upload(png, "tryon-" + str(pid), cname, cpreset)
