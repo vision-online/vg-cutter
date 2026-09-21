@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       recut:
-        description: 'first / a frame id / reset / all / test:<id or fullrim> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
+        description: 'first / a frame id / reset / all / test:<id or fullrim> / test-lens:<ids or names> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
         required: false
         default: ''
 
@@ -416,6 +416,10 @@ jobs:
 
           _model = None
           NEW_METHOD_IDS = {"pmu4gnug185"}   # Lot only
+          # LENS STEP (2026-09-21): frames listed here get photo_lens_openings in
+          # their LIVE cut. Empty until Rauf approves the test-lens: results.
+          LENS_FIX_IDS = set()
+          LENS_TEST = [False]   # True only in a 'test-lens:' run
           MODEL_NAME = [""]        # a test run can ask for another model (e.g. BiRefNet_HR)
           MODEL_SIZE = [1024]      # and the size it looks at the photo
 
@@ -2360,8 +2364,88 @@ jobs:
                   return None
 
 
+          def photo_lens_openings(img, alpha, band_px):
+              """
+              LENS STEP (2026-09-21). The AI often keeps part of the glass as frame:
+              the wall or table seen through demo glass, an arm behind the lens, a
+              printed logo. The steps after it only ever ENLARGE a clear patch the
+              AI already made, so glass it kept stays. This step finds each lens
+              opening from the PHOTO itself: the rim's inner edge is a clean closed
+              line, so the areas inside it (split up by the arm and the wall line)
+              are joined into one smooth lens shape per side and cleared.
+              Safety: only transparency is ever added; nothing within band_px of the
+              AI's outer outline is touched; tiny slivers (which sit INSIDE a clear
+              rim) never count as lens; if the two lenses do not look like a pair,
+              nothing at all is changed. Returns (lens_mask or None, note).
+              """
+              import cv2
+              from scipy import ndimage
+              rgb = np.asarray(img)
+              H0, W0 = alpha.shape
+              solid = alpha > 0.5
+              ys, xs = np.where(solid)
+              if xs.size == 0:
+                  return None, "no frame in the mask"
+              x0, x1 = max(0, xs.min() - 10), min(W0, xs.max() + 11)
+              y0, y1 = max(0, ys.min() - 10), min(H0, ys.max() + 11)
+              crop = rgb[y0:y1, x0:x1]
+              H, W = crop.shape[:2]
+              s = W / 1350.0                                   # sizes below were measured at 1350 px wide
+              g = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY)
+              e = cv2.Canny(cv2.GaussianBlur(g, (5, 5), 0), 30, 80)
+              free = (cv2.dilate(e, np.ones((3, 3), np.uint8)) == 0).astype(np.uint8)
+              n, lab, st, _ = cv2.connectedComponentsWithStats(free, 4)
+              dist = cv2.distanceTransform(free, cv2.DIST_L2, 5)
+              def border(i):
+                  return st[i][0] == 0 or st[i][1] == 0 or st[i][0] + st[i][2] == W or st[i][1] + st[i][3] == H
+              rims = [i for i in range(1, n) if st[i][2] > 0.6 * W and not border(i)]
+              if not rims:
+                  return None, "no rim line found in the photo"
+              rim = max(rims, key=lambda i: st[i][4])
+              mid = st[rim][0] + st[rim][2] / 2.0
+              def ok(i):
+                  return i != rim and not border(i) and not (st[i][0] < mid < st[i][0] + st[i][2])
+              big_a, thin_a, deep = 3000 * s * s, 2000 * s * s, 30 * s
+              sides = {"L": [], "R": []}
+              for i in range(1, n):
+                  if st[i][4] >= big_a and ok(i) and dist[lab == i].max() >= deep:
+                      sides["L" if st[i][0] + st[i][2] < mid else "R"].append(i)
+              if not sides["L"] or not sides["R"]:
+                  return None, "could not find both lenses"
+              lens = np.zeros((H, W), np.uint8)
+              areas = []
+              for key in ("L", "R"):
+                  ids = sides[key]
+                  bx = (min(st[i][0] for i in ids) - 3, min(st[i][1] for i in ids) - 3,
+                        max(st[i][0] + st[i][2] for i in ids) + 3, max(st[i][1] + st[i][3] for i in ids) + 3)
+                  for i in range(1, n):
+                      x, y, w, h, a_ = st[i]
+                      if i not in ids and a_ >= thin_a and ok(i) and x >= bx[0] and y >= bx[1] \
+                              and x + w <= bx[2] and y + h <= bx[3]:
+                          ids.append(i)                        # e.g. the lens corner cut off by an arm
+                  one = np.zeros((H, W), np.uint8)
+                  hull = cv2.convexHull(cv2.findNonZero(np.isin(lab, ids).astype(np.uint8)))
+                  cv2.fillPoly(one, [hull], 1)
+                  areas.append(int(one.sum()))
+                  lens |= one
+              box_area = float(H * W)
+              if min(areas) < 0.67 * max(areas):
+                  return None, "the two lenses are not a pair (%d vs %d px)" % tuple(areas)
+              if min(areas) < 0.06 * box_area or max(areas) > 0.45 * box_area:
+                  return None, "lens size out of range (%.0f%%, %.0f%% of the frame box)" % (
+                      100.0 * areas[0] / box_area, 100.0 * areas[1] / box_area)
+              lens = cv2.erode(lens, np.ones((5, 5), np.uint8)).astype(bool)   # 2 px off the rim's inner edge
+              full = np.zeros((H0, W0), bool)
+              full[y0:y1, x0:x1] = lens
+              not_frame = ~solid
+              outside = ndimage.binary_propagation(_border(not_frame), mask=not_frame)
+              guard = ndimage.binary_dilation(outside, iterations=int(band_px))
+              full &= ~guard                                   # never near the frame's outer outline
+              return full, "lenses %d + %d px" % tuple(areas)
+
+
           def cut(photo_bytes, front=True, rim_kind="", half_rim_hint=None, colour_bytes=None,
-                  front_crop=False):
+                  front_crop=False, lens_fix=False):
               """One photo in, one transparent PNG (and its numbers) out.
               rim_kind comes from the rim type typed in admin (see rim_kind_of).
               rim_kind == "" is the OLD method (the one that cut Sizzler well on
@@ -2465,6 +2549,19 @@ jobs:
                           a, half_ring = apply_half_rim(img, a, half_regions)
                           if rim_kind:
                               a = firm_rim(a)                      # new method only
+              if front and lens_fix:
+                  # step 5z (LENS STEP): lens openings found from the photo's own
+                  # edges and cleared. Only frames in LENS_FIX_IDS, or a test-lens run.
+                  try:
+                      lz, lnote = photo_lens_openings(img, a, band_px)
+                  except Exception as ex:
+                      lz, lnote = None, "error: %s" % str(ex)[:120]
+                  if lz is not None:
+                      was = int(((a > 0.5) & lz).sum())
+                      a = np.where(lz, np.float32(0.0), a).astype(np.float32)
+                      log("    lens step: %s; %d pixels of glass cleared" % (lnote, was))
+                  else:
+                      log("    lens step skipped, nothing changed: %s" % lnote)
               holes, _ = lens_holes(a)
               if not holes.any():
                   # the model kept the lenses solid (common for clear glass):
@@ -2570,6 +2667,44 @@ jobs:
           # ---------------------------------------------------------------- the round
 
           PLAIN_PHOTO = [False]   # True only in a 'test-plain:' run
+
+
+          def lens_compare(png_old, png_new, pid, name, cname, cpreset):
+              """test-lens: only. Compares today's cut with the lens-step cut, pixel by
+              pixel, logs the counts and uploads one picture: today | with lens step |
+              changes in red. For Sizzler every count must be 0 (nothing may change)."""
+              try:
+                  a0 = np.asarray(Image.open(io.BytesIO(png_old)).convert("RGBA"))
+                  a1 = np.asarray(Image.open(io.BytesIO(png_new)).convert("RGBA"))
+                  if a0.shape != a1.shape:
+                      log("    LENS CHECK: the outline size changed %s -> %s (should never happen)"
+                          % (a0.shape[:2], a1.shape[:2]))
+                      return
+                  o, nn = a0[..., 3].astype(int), a1[..., 3].astype(int)
+                  cleared = int(((o > 127) & (nn <= 127)).sum())
+                  added = int(((o <= 127) & (nn > 127)).sum())
+                  changed = int((np.abs(o - nn) > 25).sum())
+                  log("    LENS CHECK %s (%s): %d pixels cleared, %d added, %d changed in all%s"
+                      % (pid, (name or "")[:24], cleared, added, changed,
+                         "  -> IDENTICAL" if changed == 0 else ""))
+                  H, W = o.shape
+                  yy, xx = np.mgrid[0:H, 0:W]
+                  chk = np.where(((yy // 16 + xx // 16) % 2) == 0, 235, 200).astype(np.float32)[..., None]
+                  def flat(rgba):
+                      al = rgba[..., 3:4].astype(np.float32) / 255.0
+                      return (rgba[..., :3] * al + chk * (1 - al)).astype(np.uint8)
+                  p0, p1 = flat(a0), flat(a1)
+                  red = p0.copy()
+                  red[(o > 127) & (nn <= 127)] = (230, 0, 0)
+                  red[(o <= 127) & (nn > 127)] = (0, 0, 230)
+                  gap = np.full((H, 12, 3), 255, np.uint8)
+                  pic = np.hstack([p0, gap, p1, gap, red])
+                  buf = io.BytesIO()
+                  Image.fromarray(pic).save(buf, "PNG", optimize=True)
+                  url = cloudinary_upload(buf.getvalue(), "lenscheck-%s" % pid, cname, cpreset)
+                  log("    LENS CHECK picture (today | with lens step | red = cleared): " + url)
+              except Exception as ex:
+                  log("    LENS CHECK could not be made: %s" % str(ex)[:150])
 
 
           def is_metal(p):
@@ -2834,6 +2969,13 @@ jobs:
                   # method); only the COLOURS come from the plain photo.
                   PLAIN_PHOTO[0] = "colour"
                   recut = "test:" + recut.split(":", 1)[1]
+              if recut.lower().startswith("test-lens:"):
+                  # TEST ONLY (lens step): each frame is cut twice -- exactly as live
+                  # today, and with the lens step -- and the two are compared pixel by
+                  # pixel. A comparison picture (changes in red) is uploaded and the
+                  # result with the lens step goes to tryOnTest. Live is unchanged.
+                  LENS_TEST[0] = True
+                  recut = "test:" + recut.split(":", 1)[1]
               if recut.lower().startswith("test:"):
                   # A CHECKED test: cut with the normal method, upload, and keep the
                   # result in tryOnTest for review. The live cut-out is NOT changed.
@@ -2851,7 +2993,11 @@ jobs:
                               todo.append(p)
                   else:
                       ids_ = [x.strip() for x in what.split(",") if x.strip()]
-                      todo = [p for p in products if str(p.get("id")) in ids_]
+                      low_ = [x.lower() for x in ids_]
+                      def _nm(p):
+                          n_ = str(p.get("name") or "").strip().lower()
+                          return n_ in low_ or (n_.split() or [""])[0] in low_
+                      todo = [p for p in products if str(p.get("id")) in ids_ or _nm(p)]
                   recut = ""
                   log("Test cut of %d frame(s): %s" % (len(todo), ", ".join((p.get("name") or "")[:16] for p in todo)))
               if recut.lower().startswith("restore:"):
@@ -2970,10 +3116,16 @@ jobs:
                           src = no_enhancement(src)
                           log("    plain photo (no enhancement): " + src)
                       # front box first: TEST runs only until Rauf approves it
-                      fc = bool(test_mode) and not is_metal(p)
-                      png, nums = cut(download(src), front=True, rim_kind=rk, half_rim_hint=old_hint,
-                                      colour_bytes=download(colour_src) if colour_src else None,
-                                      front_crop=fc)
+                      fc = bool(test_mode) and not is_metal(p) and not LENS_TEST[0]
+                      lf = LENS_TEST[0] or str(pid) in LENS_FIX_IDS
+                      photo_b = download(src)
+                      colour_b = download(colour_src) if colour_src else None
+                      png, nums = cut(photo_b, front=True, rim_kind=rk, half_rim_hint=old_hint,
+                                      colour_bytes=colour_b, front_crop=fc, lens_fix=lf)
+                      if LENS_TEST[0]:
+                          png0, _ = cut(photo_b, front=True, rim_kind=rk, half_rim_hint=old_hint,
+                                        colour_bytes=colour_b, front_crop=fc, lens_fix=False)
+                          lens_compare(png0, png, pid, p.get("name"), cname, cpreset)
                       if test_mode:
                           url = cloudinary_upload(png, "test-%s-%s" % (test_mode, pid), cname, cpreset)
                           if test_mode == "plain":
