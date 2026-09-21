@@ -1,4 +1,4 @@
-Run 355  Mon Sep 21 09:32:03 UTC 2026
+Run 356  Mon Sep 21 09:44:55 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Catalogue: 14 frames. Waiting for a cut-out: 1.
@@ -8,5 +8,5 @@ Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploa
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
     rim type: not set (0 clean lens holes)
-  pmub0kvfj72 FAILED (2 of 3): the photo could not be cut (index 1926 is out of bounds for axis 0 with size 1364)
-  Finished. Cut 0, failed 1, rejected 0, still waiting 1.
+  pmub0kvfj72 FAILED (3 of 3): the photo could not be cut (index 1926 is out of bounds for axis 0 with size 1364)
+  Finished. Cut 0, failed 1, rejected 1, still waiting 1.  Rejected: Ocelot Half trp: the photo could not be cut (index 1926 is out of bounds for axis 0 with size 1364)
