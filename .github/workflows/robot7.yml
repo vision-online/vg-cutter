@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       recut:
-        description: 'first / a frame id / reset / all / test:<id or fullrim> / test-plain:<id> / test-colour:<id> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
+        description: 'first / a frame id / reset / all / test:<id or fullrim> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
         required: false
         default: ''
 
@@ -2526,6 +2526,14 @@ jobs:
           PLAIN_PHOTO = [False]   # True only in a 'test-plain:' run
 
 
+          def is_metal(p):
+              """Metal frames keep their own method and are never re-coloured."""
+              if str(p.get("id")) in NEW_METHOD_IDS:
+                  return True
+              mat = str(p.get("material") or p.get("frameMaterial") or "").lower()
+              return "metal" in mat
+
+
           def no_enhancement(url):
               """Same Cloudinary photo WITHOUT the e_ effects (improve, colour,
               contrast, vibrance, unsharp mask). Crop/pad and format stay. The sharpening
@@ -2719,6 +2727,57 @@ jobs:
                       save_product(p)
                       log("    cleared %s (%s): try-on taken down, waiting for a new photo" % (p.get("id"), (p.get("name") or "")[:30]))
                   return 0
+              if recut.lower().startswith("recolour:"):
+                  # RE-COLOUR (2026-09-21, Rauf's go): every plastic / sheet / TR frame
+                  # is cut again with the SAME shape method, colours taken from the
+                  # plain photo (no white sharpening lines). SAFETY: the new cut goes
+                  # live ONLY if its shape is identical, pixel for pixel, to the live
+                  # cut-out; otherwise the frame is skipped and left as it is. The old
+                  # cut-out is kept in tryOnPrev, so "restore:<id>" puts it back.
+                  want = [x.strip() for x in recut.split(":", 1)[1].split(",") if x.strip()]
+                  cname, cpreset = cloudinary_probe(products)
+                  n_ok = n_skip = 0
+                  for p in products:
+                      pid = str(p.get("id"))
+                      if "all" not in want and pid not in want:
+                          continue
+                      if is_metal(p) or not p.get("tryOnUrl") or not front_photo(p) or p.get("tryOnLocked"):
+                          continue
+                      if p.get("tryOnColour") == "plain-v1" and "all" in want:
+                          continue                                   # done in an earlier run
+                      if out_of_time():
+                          log("Time is up; run recolour:all again to finish the rest.")
+                          break
+                      name = (p.get("name") or "")[:30]
+                      try:
+                          src = front_photo(p)
+                          rim_txt = str(p.get("rim") or p.get("rimType") or "").lower()
+                          hint = any(k in rim_txt for k in ("half", "supra", "semi", "rimless"))
+                          png, nums = cut(download(src), front=True, rim_kind="", half_rim_hint=hint,
+                                          colour_bytes=download(no_enhancement(src)))
+                          new_a = np.asarray(Image.open(io.BytesIO(png)).convert("RGBA"))[..., 3]
+                          old_a = np.asarray(Image.open(io.BytesIO(download(p["tryOnUrl"]))).convert("RGBA"))[..., 3]
+                          if new_a.shape != old_a.shape:
+                              log("    SKIPPED %s (%s): shape size differs %s vs %s -- left as it is"
+                                  % (pid, name, new_a.shape, old_a.shape)); n_skip += 1; continue
+                          diff = int((new_a != old_a).sum())
+                          if diff:
+                              log("    SKIPPED %s (%s): shape differs in %d pixels -- left as it is"
+                                  % (pid, name, diff)); n_skip += 1; continue
+                          url = cloudinary_upload(png, "tryon-" + pid, cname, cpreset)
+                          p["tryOnPrev"] = {"url": p.get("tryOnUrl"), "numbers": p.get("tryOnNumbers"),
+                                            "angle": p.get("tryOnAngleUrl"), "side": p.get("tryOnSideUrl")}
+                          p["tryOnUrl"] = url
+                          p["tryOnColour"] = "plain-v1"
+                          save_product(p)
+                          n_ok += 1
+                          log("    RECOLOURED %s (%s): shape identical, colours from plain photo -> %s"
+                              % (pid, name, url))
+                      except Exception as e:
+                          n_skip += 1
+                          log("    SKIPPED %s (%s): error %s -- left as it is" % (pid, name, str(e)[:200]))
+                  log("Re-colour finished: %d re-coloured, %d skipped (left as they were)." % (n_ok, n_skip))
+                  return 0
               if recut.lower().startswith("test-plain:"):
                   # TEST ONLY: same cutting (Sizzler method), but from the plain photo
                   # instead of the enhanced one. Result goes to tryOnTest; live unchanged.
@@ -2851,6 +2910,12 @@ jobs:
                       old_hint = None if rk else any(k in rim_txt for k in ("half", "supra", "semi", "rimless"))
                       src = front_photo(p)
                       colour_src = None
+                      if not PLAIN_PHOTO[0] and not is_metal(p):
+                          # normal setting from 2026-09-21: shape from this photo,
+                          # colours from the same photo without enhancement
+                          colour_src = no_enhancement(src)
+                          if colour_src == src:
+                              colour_src = None
                       if PLAIN_PHOTO[0] == "colour":
                           colour_src = no_enhancement(src)
                           log("    colour photo (no enhancement): " + colour_src)
