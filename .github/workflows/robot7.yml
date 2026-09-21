@@ -835,7 +835,10 @@ jobs:
                           else:
                               floor_y = lim[x] + int(round(rim_t * 0.5))  # end piece: half a rim at most
                           y = lim[x]; run = 0
-                          while y < floor_y and solid[y, x]:
+                          # never read past the bottom of the picture (Ocelot, 2026-09-21:
+                          # the line ran off the photo and crashed the cut). For every
+                          # frame that cut before, this changes nothing.
+                          while y < min(floor_y, H) and solid[y, x]:
                               if np.sqrt(((rgb[y, x] - rim_col) ** 2).sum()) < 60:
                                   run += 1
                                   if run >= 3:
