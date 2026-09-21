@@ -1,17 +1,55 @@
-Run 344  Mon Sep 21 07:19:09 UTC 2026
+Run 347  Mon Sep 21 08:07:11 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Test cut of 1 frame(s): VG-1001 Frames
-Catalogue: 19 frames. Waiting for a cut-out: 1.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
---- pmtyjadff35 : VG-1001 Frames
-    colour photo (no enhancement): https://res.cloudinary.com/jpf6kf5g/image/upload/c_pad,g_center,w_1600,h_1600,b_auto/f_auto,q_auto:best/ptdty91k2wiqv23xff3d
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
 /home/runner/work/vg-cutter/vg-cutter/vg_cut.py:271: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
     rim type: not set (0 clean lens holes)
+half-rim: 11 enclosed pieces, 2 candidates, rejected {'size': 8, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
     colours taken from the plain photo (shape unchanged)
-    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789975146/x3fr6gj9pn7xiu6hwqpl.png
-  Finished. Cut 1, failed 0, rejected 0, still waiting 0.
+    SKIPPED p1788790420289shci (IMG-20260907-WA0013.jpg): shape size differs (211, 573) vs (214, 575) -- left as it is
+    rim type: not set (0 clean lens holes)
+half-rim: 138 enclosed pieces, 2 candidates, rejected {'size': 136, 'shape': 0, 'place': 0, 'solid': 0, 'touch': 0}
+    colours taken from the plain photo (shape unchanged)
+    SKIPPED p1789109493867aad7 (Sheet gray): shape size differs (445, 1261) vs (445, 1386) -- left as it is
+    rim type: not set (0 clean lens holes)
+half-rim: 107 enclosed pieces, 3 candidates, rejected {'size': 104, 'shape': 0, 'place': 0, 'solid': 0, 'touch': 0}
+    colours taken from the plain photo (shape unchanged)
+    SKIPPED p17892249696909pgu (Skechers): shape size differs (422, 1318) vs (422, 1313) -- left as it is
+    rim type: not set (0 clean lens holes)
+    colours taken from the plain photo (shape unchanged)
+    RECOLOURED pmtyjadff35 (VG-1001 Frames): shape identical, colours from plain photo -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789977236/upp7jvlnkaamr51buq2r.png
+    rim type: not set (0 clean lens holes)
+    colours taken from the plain photo (shape unchanged)
+    SKIPPED pmtyjmyfc78 (Visibilla): shape size differs (504, 1350) vs (516, 1386) -- left as it is
+    rim type: not set (0 clean lens holes)
+    colours taken from the plain photo (shape unchanged)
+    SKIPPED pmtzl3ql140 (VG-1002 Frames): shape size differs (481, 1312) vs (483, 1452) -- left as it is
+    rim type: not set (0 clean lens holes)
+    colours taken from the plain photo (shape unchanged)
+    RECOLOURED pmtzl57qf92 (VG-1003 Frames): shape identical, colours from plain photo -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789977445/zzgfaomt00hka609ttnq.png
+    rim type: not set (0 clean lens holes)
+    colours taken from the plain photo (shape unchanged)
+    RECOLOURED pmtzn859c27 (New cat eye): shape identical, colours from plain photo -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789977508/ext4w8psgsujxcfer7no.png
+    rim type: not set (0 clean lens holes)
+    colours taken from the plain photo (shape unchanged)
+    SKIPPED pmtzt59ej89 (VG-1004 Frames): shape size differs (413, 1098) vs (414, 1144) -- left as it is
+    rim type: not set (0 clean lens holes)
+    colours taken from the plain photo (shape unchanged)
+    SKIPPED pmtztljhi39 (VG-1005 Frames): shape size differs (361, 923) vs (372, 929) -- left as it is
+    rim type: not set (0 clean lens holes)
+    colours taken from the plain photo (shape unchanged)
+    RECOLOURED pmu1eepls58 (VG-1008 Frames): shape identical, colours from plain photo -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789977718/m6mzi3h9uclf0qvnxnzc.png
+    rim type: not set (0 clean lens holes)
+    colours taken from the plain photo (shape unchanged)
+    SKIPPED pmu4g6b4x96 (Ocelot): shape size differs (383, 882) vs (407, 1038) -- left as it is
+    rim type: not set (0 clean lens holes)
+    colours taken from the plain photo (shape unchanged)
+    RECOLOURED pmu4h3h9579 (Heart stone): shape identical, colours from plain photo -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789977959/plif1jn87nev9o2jys7j.png
+    rim type: not set (0 clean lens holes)
+    colours taken from the plain photo (shape unchanged)
+    RECOLOURED pmu4hbhsm89 (Sizzler): shape identical, colours from plain photo -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789978029/w5zyxtt5tntmpxr8apro.png
+Re-colour finished: 6 re-coloured, 8 skipped (left as they were).
