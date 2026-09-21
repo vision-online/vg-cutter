@@ -1,22 +1,10 @@
-Run 361  Mon Sep 21 10:39:55 UTC 2026
-Trigger: workflow_dispatch
+Run 363  Mon Sep 21 10:47:26 UTC 2026
+Trigger: schedule
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): the photo could not be cut (index 725 is out of bounds for axis 0 with size 616)  [Ocelot Half trp]
-::notice::Frames: 16. Waiting: 1. Rejected: 1.  Trial re-cut asked for: test:pmub0kvfj72
+::notice::Frames: 16. Waiting: 0. Rejected: 1.
 
 --- what the robot did ---
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Test cut of 1 frame(s): Ocelot Half trp
-Catalogue: 16 frames. Waiting for a cut-out: 1.
-Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
---- pmub0kvfj72 : Ocelot Half trp
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    front box: (117, 116, 1384, 590) of 1400x1050 -- everything outside thrown away
-    rim type: not set (0 clean lens holes)
-    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789987192/aipobr7jetw6q3yw0a88.png
-  Finished. Cut 1, failed 0, rejected 0, still waiting 0.
