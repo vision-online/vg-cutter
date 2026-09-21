@@ -1,8 +1,8 @@
-Run 408  Mon Sep 21 19:16:13 UTC 2026
+Run 412  Mon Sep 21 19:55:00 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Test cut of 5 frame(s): VG-1002 Frames, VG-1003 Frames, Lot, Sizzler, VG-1005 Frames
-Catalogue: 16 frames. Waiting for a cut-out: 5.
+Catalogue: 15 frames. Waiting for a cut-out: 5.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
 --- pmtzl3ql140 : VG-1002 Frames
     colours taken from the plain photo (shape unchanged)
@@ -12,26 +12,26 @@ Model loaded: ZhengPeng7/BiRefNet at 1024 px
 /home/runner/work/vg-cutter/vg-cutter/vg_cut.py:293: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
     rim type: not set (0 clean lens holes)
-    lens step skipped, nothing changed: no rim line found in the photo
-    arms above the frame: 24.6% -> re-shoot note (nothing was cut)
+    lens step: lenses 197959 + 171473 px (found by two openings); 356242 pixels of glass cleared
+    arms above the frame: 0.0% (below 2.5%, no note)
     colours taken from the plain photo (shape unchanged)
     rim type: not set (0 clean lens holes)
     LENS CHECK pmtzl3ql140 (VG-1002 Frames): the outline size changed (481, 1312) -> (482, 1451)
-    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790017677/agcwchxqqhq207rv90f0.png
-    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790017678/blz4zqsiqlpvus054xqz.png
+    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790019865/qpjpbecqyihrjxfbeiav.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790019865/vidyht5jqtxzbklxmzlg.png
 --- pmtzl57qf92 : VG-1003 Frames
     colours taken from the plain photo (shape unchanged)
     rim type: not set (0 clean lens holes)
-    lens step: lenses 206837 + 184852 px; 381662 pixels of glass cleared
+    lens step: lenses 184277 + 184852 px (found by rim line); 361377 pixels of glass cleared
     arms above the frame: 0.0% (below 2.5%, no note)
     colours taken from the plain photo (shape unchanged)
     rim type: not set (0 clean lens holes)
     LENS CHECK pmtzl57qf92 (VG-1003 Frames): the outline size changed (530, 1451) -> (530, 1467)
-    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790017785/wmalewbchweykzzo4ave.png
-    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790017786/ngvehtl5uvieosq4kmlj.png
+    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790019995/g0teh74rbk4iitxjsytv.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790019995/v9w340mmchjekjpyw6xi.png
 --- pmu4gnug185 : Lot
     rim type: not set (0 clean lens holes)
-    lens step skipped, nothing changed: no rim line found in the photo
+    lens step: lenses 140678 + 137398 px (found by two openings); 265995 pixels of glass cleared
     arms above the frame: 5.2% -> re-shoot note (nothing was cut)
     full rim: rim about 10 px thick, edge band 3 px (was 17)
     rim type: full rim (1 clean lens holes)
@@ -41,31 +41,31 @@ half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 
     full rim: rim about 10 px thick, edge band 3 px (was 17)
     rim type: full rim (1 clean lens holes)
 half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 'place': 0, 'solid': 0, 'touch': 0}
-    lens step skipped, nothing changed: no rim line found in the photo
-    full-rim cleanup: solid 93927 -> keep_main_solid 93598
-    full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'rimIn': 0.0, 'rimOut': 11.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 5269, 'raysMoved': 254, 'byOutline': 183, 'specks': 11, 'noRim': [('L', 0, 0.82, 205.5, 205.0, 239.5, 205.0), ('L', 5, 0.97, 202.0, 202.0, 238.0, 206.0), ('R', 160, 0.71, 246.5, 243.5, 232.0, 243.5), ('R', 165, 0.61, 247.0, 244.5, 234.0, 244.5), ('R', 170, 1.0, 201.0, 200.0, 239.5, 201.0), ('R', 175, 0.71, 209.0, 208.0, 241.5, 209.0)], 'glassEdge': (957, 192), 'removed': 26617}
-    arms above the frame: 18.3% -> re-shoot note (nothing was cut)
+    lens step: lenses 140678 + 137398 px (found by two openings); 13884 pixels of glass cleared
+    full-rim cleanup: solid 93083 -> keep_main_solid 92865
+    full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'rimIn': 0.0, 'rimOut': 11.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 5331, 'raysMoved': 254, 'byOutline': 183, 'specks': 11, 'noRim': [('L', 0, 0.82, 205.5, 205.0, 239.5, 205.0), ('L', 5, 0.97, 202.0, 202.0, 238.0, 206.0), ('R', 160, 0.71, 246.5, 243.5, 232.0, 243.5), ('R', 165, 0.61, 247.0, 244.5, 234.0, 244.5), ('R', 170, 1.0, 201.0, 200.0, 239.5, 201.0), ('R', 175, 0.71, 209.0, 208.0, 241.5, 209.0)], 'glassEdge': (957, 192), 'removed': 26617}
+    arms above the frame: 18.4% -> re-shoot note (nothing was cut)
     METAL CHECK pmu4gnug185 (Lot) today (live):              1347 x 434 px
     METAL CHECK pmu4gnug185 (Lot) one rule (VG-1005 way):    1347 x 510 px
     METAL CHECK pmu4gnug185 (Lot) thin-metal way + lens step: 1348 x 434 px
-    METAL CHECK picture (today (live) | one rule (VG-1005 way) | thin-metal way + lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790017941/msqo6lnm7ihw1ibdsrvv.png
-    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790017942/uf9mtxfuflpjqvkis1sp.png
+    METAL CHECK picture (today (live) | one rule (VG-1005 way) | thin-metal way + lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790020187/xdnzxrjbfs6hnbuoqx2x.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790020187/bbmbfylhichtg7cbksah.png
 --- pmu4hbhsm89 : Sizzler
     colours taken from the plain photo (shape unchanged)
     rim type: not set (0 clean lens holes)
-    lens step skipped, nothing changed: no rim line found in the photo
-    arms above the frame: 14.1% -> re-shoot note (nothing was cut)
+    lens step: lenses 157885 + 149062 px (found by two openings); 299959 pixels of glass cleared
+    arms above the frame: 12.5% -> re-shoot note (nothing was cut)
     colours taken from the plain photo (shape unchanged)
     rim type: not set (0 clean lens holes)
-    LENS CHECK pmu4hbhsm89 (Sizzler): the outline size changed (467, 1513) -> (604, 1513)
-    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790018060/zkffcxvqn90li08twdo4.png
-    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790018060/uqeuekjl08jphl8ga0pt.png
+    LENS CHECK pmu4hbhsm89 (Sizzler): the outline size changed (467, 1513) -> (604, 1512)
+    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790020363/gsu8po3imbijm3mv6nze.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790020363/nntcxry5bgsxquxwyq0i.png
 --- pmub3333334 : VG-1005 Frames
     rim type: not set (0 clean lens holes)
-    lens step: lenses 117428 + 117575 px; 228927 pixels of glass cleared
+    lens step: lenses 117428 + 117575 px (found by rim line); 228927 pixels of glass cleared
     arms above the frame: 0.0% (below 2.5%, no note)
     rim type: not set (0 clean lens holes)
     LENS CHECK pmub3333334 (VG-1005 Frames): the outline size changed (410, 1028) -> (415, 1131)
-    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790018169/ojjktez81hvmqgfiwnid.png
-    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790018170/yxeu1skb5kknehq6oidd.png
+    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790020494/yk5wl58dpahxvcda9nf9.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790020495/bcuigtvauygpnieq1gha.png
   Finished. Cut 5, failed 0, rejected 0, still waiting 0.
