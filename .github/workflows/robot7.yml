@@ -420,6 +420,7 @@ jobs:
           # their LIVE cut. Empty until Rauf approves the test-lens: results.
           LENS_FIX_IDS = set()
           LENS_TEST = [False]   # True only in a 'test-lens:' run
+          LENS_MODE = [False]   # set by cut(): True while a lens-step cut is running (end-piece corners kept)
           MODEL_NAME = [""]        # a test run can ask for another model (e.g. BiRefNet_HR)
           MODEL_SIZE = [1024]      # and the size it looks at the photo
 
@@ -732,14 +733,14 @@ jobs:
               for x in range(W):
                   if x < lx0:
                       y = yl
-                      if te_l is not None and te_l > yl and lx0 > xe_l:
+                      if te_l is not None and te_l > yl and lx0 > xe_l and not LENS_MODE[0]:
                           y = yl + (te_l - yl) * (lx0 - x) / float(lx0 - xe_l)
                       lim[x] = int(np.floor(y)) - margin
                   elif x <= lx1:
                       lim[x] = int(np.floor(np.polyval(lc, x))) - margin
                   elif x > rx1:
                       y = yr
-                      if te_r is not None and te_r > yr and xe_r > rx1:
+                      if te_r is not None and te_r > yr and xe_r > rx1 and not LENS_MODE[0]:
                           y = yr + (te_r - yr) * (x - rx1) / float(xe_r - rx1)
                       lim[x] = int(np.floor(y)) - margin
                   elif x >= rx0:
@@ -807,6 +808,8 @@ jobs:
                   # arm root or a tag remnant is a thin slanted band (fills little)
                   if height <= 1.5 * rim_t and seated >= 0.6 * width and fill >= 0.45 and not leans_inward(comp) and rim_coloured(comp):
                       keep |= comp                              # a block sitting on the front: keep whole
+                  elif LENS_MODE[0] and height <= 0.5 * rim_t and seated >= 0.6 * width:
+                      keep |= comp                              # lens mode: a low strip on the edge is the front's own corner
               tlab, tn = ndimage.label(thick & ~keep)
               for c in range(1, tn + 1):
                   comp = tlab == c
@@ -829,13 +832,15 @@ jobs:
               # not the rim's colour goes -- scanning down from the line and
               # stopping at the first rim-coloured pixel, and never below the
               # rim's own normal thickness, so the rim is never thinned.
-              if rim_col is not None:
+              if rim_col is not None and not LENS_MODE[0]:   # lens mode: shape rules only, never colour
                   if True:
                       for x in range(W):
                           if lim[x] <= 0:
                               continue
                           if lens_top[x] > 0:
                               floor_y = lens_top[x] - int(round(rim_t))   # normal thickness: never cut below
+                          elif LENS_MODE[0]:
+                              continue                                    # lens mode: an end piece is never cut by colour
                           else:
                               floor_y = lim[x] + int(round(rim_t * 0.5))  # end piece: half a rim at most
                           y = lim[x]; run = 0
@@ -1001,6 +1006,18 @@ jobs:
               opened = ndimage.binary_opening(solid, structure=np.ones((1, L), bool))
               narrow = solid & ~opened
               narrow[top_of_glass:, :] = False
+              if LENS_MODE[0] and narrow.any():
+                  # lens mode: the top of a ROUNDED corner is short in its highest rows;
+                  # a strip no taller than a third of a rim, sitting on the wide front,
+                  # is that curve, not an arm root -- keep it
+                  nlab, nn = ndimage.label(narrow)
+                  below = np.zeros_like(opened); below[:-1] = opened[1:]
+                  for c in range(1, nn + 1):
+                      comp = nlab == c
+                      ys_c = np.where(comp)[0]
+                      if ys_c.max() - ys_c.min() + 1 <= max(4, 0.35 * rim_t) and \
+                              (ndimage.binary_dilation(comp, iterations=2) & opened).any():
+                          narrow[comp] = False
               if not narrow.any():
                   return alpha
               out = alpha.copy()
@@ -1083,6 +1100,8 @@ jobs:
                       continue
                   if int(xs_l.max()) < x < int(xs_r.min()):
                       continue                          # the bridge is its own mirror
+                  if LENS_MODE[0] and (x < int(xs_l.min()) or x > int(xs_r.max())):
+                      continue                          # lens mode: end pieces are not compared
                   twin = T[m] + (offset if x < cx else -offset)
                   excess = twin - T[x]                  # >0: this column stands higher than its twin
                   if excess < 3 or excess > 1.0 * rim_t:
@@ -2454,6 +2473,7 @@ jobs:
               rim_kind (the thin-metal method made for Lot)."""
               if half_rim_hint is None:
                   half_rim_hint = rim_kind in ("half", "rimless")
+              LENS_MODE[0] = bool(front and lens_fix)
               import cv2
               img = Image.open(io.BytesIO(photo_bytes)).convert("RGB")
               if max(img.size) > 1600:
@@ -2677,8 +2697,22 @@ jobs:
                   a0 = np.asarray(Image.open(io.BytesIO(png_old)).convert("RGBA"))
                   a1 = np.asarray(Image.open(io.BytesIO(png_new)).convert("RGBA"))
                   if a0.shape != a1.shape:
-                      log("    LENS CHECK: the outline size changed %s -> %s (should never happen)"
-                          % (a0.shape[:2], a1.shape[:2]))
+                      # sizes differ (e.g. the ends are no longer chopped): show both side by side
+                      log("    LENS CHECK %s (%s): the outline size changed %s -> %s"
+                          % (pid, (name or "")[:24], a0.shape[:2], a1.shape[:2]))
+                      Hm = max(a0.shape[0], a1.shape[0])
+                      def flat2(rgba):
+                          h, w = rgba.shape[:2]
+                          yy2, xx2 = np.mgrid[0:Hm, 0:w]
+                          c2 = np.where(((yy2 // 16 + xx2 // 16) % 2) == 0, 235, 200).astype(np.float32)[..., None]
+                          big = np.zeros((Hm, w, 4), np.uint8); big[:h] = rgba
+                          al2 = big[..., 3:4].astype(np.float32) / 255.0
+                          return (big[..., :3] * al2 + c2 * (1 - al2)).astype(np.uint8)
+                      pic = np.hstack([flat2(a0), np.full((Hm, 12, 3), 255, np.uint8), flat2(a1)])
+                      buf = io.BytesIO()
+                      Image.fromarray(pic).save(buf, "PNG", optimize=True)
+                      url = cloudinary_upload(buf.getvalue(), "lenscheck-%s" % pid, cname, cpreset)
+                      log("    LENS CHECK picture (today | with lens step): " + url)
                       return
                   o, nn = a0[..., 3].astype(int), a1[..., 3].astype(int)
                   cleared = int(((o > 127) & (nn <= 127)).sum())
