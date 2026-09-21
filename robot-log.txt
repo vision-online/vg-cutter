@@ -1,23 +1,35 @@
-Run 359  Mon Sep 21 10:26:04 UTC 2026
-Trigger: schedule
+Run 360  Mon Sep 21 10:34:57 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): the photo could not be cut (index 1926 is out of bounds for axis 0 with size 1364)  [Ocelot Half trp]
-::notice::Frames: 16. Waiting: 1. Rejected: 1.
+::notice::Frames: 16. Waiting: 1. Rejected: 1.  Trial re-cut asked for: test:pmub0kvfj72,pmtzl57qf92,pmtyjadff35
 
 --- what the robot did ---
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 16 frames. Waiting for a cut-out: 1.
+Test cut of 3 frame(s): VG-1001 Frames, VG-1003 Frames, Ocelot Half trp
+Catalogue: 16 frames. Waiting for a cut-out: 3.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
---- pmub3333334 : VG-1005 Frames
+--- pmtyjadff35 : VG-1001 Frames
+    colours taken from the plain photo (shape unchanged)
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
+    front box: (107, 578, 1497, 1035) of 1600x1600 -- everything outside thrown away
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:271: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
     rim type: not set (0 clean lens holes)
-    read from the photo: colour
-    45 degree cut too
-    90 degree side cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789986257/hnffgl7zdcsrt0vjgwzh.png
-  Finished. Cut 1, failed 0, rejected 0, still waiting 0.
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789986740/gob3k3podmu055zdj7en.png
+--- pmtzl57qf92 : VG-1003 Frames
+    colours taken from the plain photo (shape unchanged)
+    front box: (25, 558, 1577, 1138) of 1600x1600 -- everything outside thrown away
+    rim type: not set (0 clean lens holes)
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1789986812/jjkpy793ewxtrg8xw8ap.png
+--- pmub0kvfj72 : Ocelot Half trp
+    front box: (117, 116, 1384, 590) of 1400x1050 -- everything outside thrown away
+    rim type: not set (0 clean lens holes)
+    CRASH DETAIL:                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ |   File "/home/runner/work/vg-cutter/vg-cutter/vg_cut.py", line 2252, in cut |     a, arms_above = remove_arms_above(a, img) |                     ^^^^^^^^^^^^^^^^^^^^^^^^^ |   File "/home/runner/work/vg-cutter/vg-cutter/vg_cut.py", line 613, in remove_arms_above |     while y < floor_y and solid[y, x]: |                           ~~~~~^^^^^^ | IndexError: index 725 is out of bounds for axis 0 with size 616
+  pmub0kvfj72 FAILED (4 of 3): the photo could not be cut (index 725 is out of bounds for axis 0 with size 616)
+  Finished. Cut 2, failed 1, rejected 1, still waiting 1.  Rejected: Ocelot Half trp: the photo could not be cut (index 725 is out of bounds for axis 0 with size 616)
