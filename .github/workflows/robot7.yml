@@ -420,12 +420,13 @@ jobs:
           # their LIVE cut. Empty until Rauf approves the test-lens: results.
           LENS_FIX_IDS = set()
           # 2026-09-21, Rauf: "save setting for all". The lens step (and its corner
-          # rules) is now the NORMAL method for every frame, except: Sizzler (the
-          # reference frame, never changed), Lot and all metal frames (own method),
+          # rules) is now the NORMAL method for every frame, except: Lot and all
+          # metal frames (being tested with test-lens first),
           # and half-rim / supra / rimless frames (not tested with it yet).
           LENS_FOR_ALL = True
-          KEEP_OLD_IDS = {"pmu4hbhsm89"}   # Sizzler
+          KEEP_OLD_IDS = set()   # 2026-09-21, Rauf: Sizzler no longer kept on the old method
           ADOPT_LENS_ONLY = [False]        # True only in an 'adopt-lens:' run
+          ARMS_WARN = 0.025                # arms above the frame: re-shoot note from 2.5% of the frame
 
 
           def lens_ok(p):
@@ -2610,13 +2611,21 @@ jobs:
                   # front are removed here (v2, 2026-09-18: the first version also cut
                   # hinge blocks and the top of the bridge; this one never examines the
                   # bridge and keeps anything seated on the front's top edge).
-                  a, arms_above = remove_arms_above(a, img)
+                  if LENS_MODE[0]:
+                      # 2026-09-21, Rauf: the arm rules guessed wrong and cut hinges and
+                      # corners. In lens mode they never cut: the arm rule only MEASURES,
+                      # and arms clearly showing above the frame put a re-shoot note on
+                      # the frame instead (the photo is the problem, not the frame).
+                      _, arms_above = remove_arms_above(a.copy(), img)
+                  else:
+                      a, arms_above = remove_arms_above(a, img)
                   if half_ring is None:
                       a = cut_end_to_end(a)                         # step 6b: arms beyond the ends
                   # (a half-rim's end pieces are thin metal and would be mistaken for arm)
-                  a = trim_narrow_above(a, globals().get("LAST_RIM_T", 24.0))   # step 6b2: narrow stubs above the front
-                  a = mirror_top(a, globals().get("LAST_RIM_T", 24.0))          # step 6b3: a flat arm along one brow, by symmetry
-                  a = smooth_top_steps(a, globals().get("LAST_RIM_T", 24.0))    # step 6b4: a symmetric arm sliver, by its step
+                  if not LENS_MODE[0]:
+                      a = trim_narrow_above(a, globals().get("LAST_RIM_T", 24.0))   # step 6b2: narrow stubs above the front
+                      a = mirror_top(a, globals().get("LAST_RIM_T", 24.0))          # step 6b3: a flat arm along one brow, by symmetry
+                      a = smooth_top_steps(a, globals().get("LAST_RIM_T", 24.0))    # step 6b4: a symmetric arm sliver, by its step
                   a = clean_ghosts(a)                                            # step 6b5: no floating soft outlines
                   a = clear_behind_glass(a)                         # step 6c: nothing seen through the lenses
                   a = trim_ends(a)                                  # step 6d: half a millimetre off each end
@@ -2678,6 +2687,12 @@ jobs:
               if (off_x or off_y) and not rim_kind:
                   for e in nums.get("lenses") or []:              # positions as in the whole photo
                       e["centreX"] = float(e["centreX"] + off_x); e["centreY"] = float(e["centreY"] + off_y)
+              if front and LENS_MODE[0] and arms_above >= ARMS_WARN:
+                  nums["warning"] = ("Re-shoot please: the arms show above the frame, so the camera was a little "
+                                     "high. Hold the phone at the same height as the frame, straight, and take it again.")
+                  log("    arms above the frame: %.1f%% -> re-shoot note (nothing was cut)" % (arms_above * 100))
+              elif front and LENS_MODE[0]:
+                  log("    arms above the frame: %.1f%% (below %.1f%%, no note)" % (arms_above * 100, ARMS_WARN * 100))
               if False:   # arms over the front are normal for this shop: no CHECK PHOTO tag
                   nums["warning"] = ("arms were angled over the front (%d%% of the picture removed) "
                                      "-- fold them flat behind, or open them straight back, and re-shoot"
@@ -2703,6 +2718,32 @@ jobs:
           # ---------------------------------------------------------------- the round
 
           PLAIN_PHOTO = [False]   # True only in a 'test-plain:' run
+
+
+          def compare_many(pngs, names, pid, name, cname, cpreset):
+              """test-lens: on a METAL frame. Uploads one picture with every version
+              side by side (left to right in the order logged) and logs each size."""
+              try:
+                  arrs = [np.asarray(Image.open(io.BytesIO(b)).convert("RGBA")) for b in pngs]
+                  for n_, a_ in zip(names, arrs):
+                      log("    METAL CHECK %s (%s) %-26s %d x %d px"
+                          % (pid, (name or "")[:20], n_ + ":", a_.shape[1], a_.shape[0]))
+                  Hm = max(a_.shape[0] for a_ in arrs)
+                  parts = []
+                  for a_ in arrs:
+                      h, w = a_.shape[:2]
+                      yy, xx = np.mgrid[0:Hm, 0:w]
+                      chk = np.where(((yy // 16 + xx // 16) % 2) == 0, 235, 200).astype(np.float32)[..., None]
+                      big = np.zeros((Hm, w, 4), np.uint8); big[:h] = a_
+                      al = big[..., 3:4].astype(np.float32) / 255.0
+                      parts.append((big[..., :3] * al + chk * (1 - al)).astype(np.uint8))
+                      parts.append(np.full((Hm, 16, 3), 255, np.uint8))
+                  buf = io.BytesIO()
+                  Image.fromarray(np.hstack(parts[:-1])).save(buf, "PNG", optimize=True)
+                  url = cloudinary_upload(buf.getvalue(), "metalcheck-%s" % pid, cname, cpreset)
+                  log("    METAL CHECK picture (" + " | ".join(names) + "): " + url)
+              except Exception as ex:
+                  log("    METAL CHECK could not be made: %s" % str(ex)[:150])
 
 
           def lens_compare(png_old, png_new, pid, name, cname, cpreset):
@@ -3183,12 +3224,25 @@ jobs:
                       lf = LENS_TEST[0] or str(pid) in LENS_FIX_IDS or (LENS_FOR_ALL and lens_ok(p))
                       photo_b = download(src)
                       colour_b = download(colour_src) if colour_src else None
-                      png, nums = cut(photo_b, front=True, rim_kind=rk, half_rim_hint=old_hint,
+                      metal_test = LENS_TEST[0] and is_metal(p)
+                      # a metal frame in a test-lens run: the MAIN result is the one rule
+                      # for everyone (VG-1005's way, no thin-metal path)
+                      rk_use = "" if metal_test else rk
+                      hint_use = any(k in rim_txt for k in ("half", "supra", "semi", "rimless")) if metal_test else old_hint
+                      png, nums = cut(photo_b, front=True, rim_kind=rk_use, half_rim_hint=hint_use,
                                       colour_bytes=colour_b, front_crop=fc, lens_fix=lf)
                       if LENS_TEST[0]:
                           png0, _ = cut(photo_b, front=True, rim_kind=rk, half_rim_hint=old_hint,
                                         colour_bytes=colour_b, front_crop=fc, lens_fix=False)
-                          lens_compare(png0, png, pid, p.get("name"), cname, cpreset)
+                          if metal_test:
+                              pics, names_ = [png0, png], ["today (live)", "one rule (VG-1005 way)"]
+                              rk_m = rim_kind_of(rim_txt) or "full"
+                              png_m, _ = cut(photo_b, front=True, rim_kind=rk_m, half_rim_hint=None,
+                                             colour_bytes=colour_b, front_crop=fc, lens_fix=True)
+                              pics.append(png_m); names_.append("thin-metal way + lens step")
+                              compare_many(pics, names_, pid, p.get("name"), cname, cpreset)
+                          else:
+                              lens_compare(png0, png, pid, p.get("name"), cname, cpreset)
                       if test_mode:
                           url = cloudinary_upload(png, "test-%s-%s" % (test_mode, pid), cname, cpreset)
                           if test_mode == "plain":
