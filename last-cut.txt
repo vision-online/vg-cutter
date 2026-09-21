@@ -1,4 +1,82 @@
-Run 393  Mon Sep 21 16:28:45 UTC 2026
+Run 395  Mon Sep 21 16:57:59 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-    adopted pmub3333334 (VG-1005 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790007185/kcmkhprqugqkhj7ethdo.png
+Test cut of 8 frame(s): VG-1001 Frames, Visibilla, VG-1002 Frames, VG-1003 Frames, New cat eye, Heart stone, VG-1004 Frames, VG-1005 Frames
+Catalogue: 16 frames. Waiting for a cut-out: 8.
+Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
+--- pmtyjadff35 : VG-1001 Frames
+    colours taken from the plain photo (shape unchanged)
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Model loaded: ZhengPeng7/BiRefNet at 1024 px
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:292: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    rim type: not set (0 clean lens holes)
+    lens step skipped, nothing changed: no rim line found in the photo
+    colours taken from the plain photo (shape unchanged)
+    rim type: not set (0 clean lens holes)
+    LENS CHECK pmtyjadff35 (VG-1001 Frames): 5 pixels cleared, 2118 added, 3061 changed in all
+    LENS CHECK picture (today | with lens step | red = cleared): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790008987/h2hoqvzdwzsh0uvwv715.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790008988/seechx3nbfuhdzpuaeyo.png
+--- pmtyjmyfc78 : Visibilla
+    colours taken from the plain photo (shape unchanged)
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 159400 + 157800 px; 310068 pixels of glass cleared
+    colours taken from the plain photo (shape unchanged)
+    rim type: not set (0 clean lens holes)
+    LENS CHECK pmtyjmyfc78 (Visibilla): the outline size changed (504, 1350) -> (513, 1385)
+    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009146/dlrtguuj2uvdk0vd55va.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009146/akrq1ptgwjgs9yfkfzyt.png
+--- pmtzl3ql140 : VG-1002 Frames
+    colours taken from the plain photo (shape unchanged)
+    rim type: not set (0 clean lens holes)
+    lens step skipped, nothing changed: no rim line found in the photo
+    colours taken from the plain photo (shape unchanged)
+    rim type: not set (0 clean lens holes)
+    LENS CHECK pmtzl3ql140 (VG-1002 Frames): the outline size changed (481, 1312) -> (482, 1312)
+    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009268/p5lzihes5ivjur6lraub.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009268/kwmltk1n5k12pztttkwr.png
+--- pmtzl57qf92 : VG-1003 Frames
+    colours taken from the plain photo (shape unchanged)
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 206837 + 184852 px; 381662 pixels of glass cleared
+    colours taken from the plain photo (shape unchanged)
+    rim type: not set (0 clean lens holes)
+    LENS CHECK pmtzl57qf92 (VG-1003 Frames): the outline size changed (530, 1451) -> (530, 1467)
+    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009393/zjcwutvq4b5vklsn6w1p.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009394/kejkm1zeqa29zm1rc6yp.png
+--- pmtzn859c27 : New cat eye
+    colours taken from the plain photo (shape unchanged)
+    rim type: not set (0 clean lens holes)
+    lens step skipped, nothing changed: no rim line found in the photo
+    colours taken from the plain photo (shape unchanged)
+    rim type: not set (0 clean lens holes)
+    LENS CHECK pmtzn859c27 (New cat eye): the outline size changed (446, 1381) -> (446, 1382)
+    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009514/id1kfuvkc4egkwbior9e.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009514/uoeam2xks1ustse912qy.png
+--- pmu4h3h9579 : Heart stone
+    colours taken from the plain photo (shape unchanged)
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 211648 + 216955 px; 420475 pixels of glass cleared
+    colours taken from the plain photo (shape unchanged)
+    rim type: not set (0 clean lens holes)
+    LENS CHECK pmu4h3h9579 (Heart stone): the outline size changed (548, 1551) -> (549, 1552)
+    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009634/eirgkchyn8hqqfnvbuzu.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009635/bybgrxt1qwhmaclxi6aj.png
+--- pmub2wr7740 : VG-1004 Frames
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:292: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023226.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 190986 + 138016 px; 215820 pixels of glass cleared
+    rim type: not set (0 clean lens holes)
+    LENS CHECK pmub2wr7740 (VG-1004 Frames): the outline size changed (337, 1061) -> (510, 1067)
+    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009743/vciers9pohej6ur5ujzc.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009743/eilrhpvexofzx85wsfjq.png
+--- pmub3333334 : VG-1005 Frames
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 117428 + 117575 px; 228927 pixels of glass cleared
+    rim type: not set (0 clean lens holes)
+    LENS CHECK pmub3333334 (VG-1005 Frames): the outline size changed (410, 1028) -> (415, 1131)
+    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009875/cicimjgxrwwp3mcn79gg.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790009876/dr1seyf1keyruqk2po2g.png
+  Finished. Cut 8, failed 0, rejected 0, still waiting 0.
