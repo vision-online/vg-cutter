@@ -2434,14 +2434,31 @@ jobs:
               dist = cv2.distanceTransform(free, cv2.DIST_L2, 5)
               def border(i):
                   return st[i][0] == 0 or st[i][1] == 0 or st[i][0] + st[i][2] == W or st[i][1] + st[i][3] == H
+              big_a, thin_a, deep = 3000 * s * s, 2000 * s * s, 30 * s
               rims = [i for i in range(1, n) if st[i][2] > 0.6 * W and not border(i)]
-              if not rims:
-                  return None, "no rim line found in the photo"
-              rim = max(rims, key=lambda i: st[i][4])
-              mid = st[rim][0] + st[rim][2] / 2.0
+              how = "rim line"
+              if rims:
+                  rim = max(rims, key=lambda i: st[i][4])
+                  mid = st[rim][0] + st[rim][2] / 2.0
+              else:
+                  # 2026-09-21: a solid black rim (Sizzler) or a thin metal rim (Lot)
+                  # gives no rim band. The middle is then found from the two biggest
+                  # lens-shaped openings standing side by side at the same height.
+                  rim = -1
+                  cands = sorted([i for i in range(1, n) if st[i][4] >= big_a and not border(i)
+                                  and dist[lab == i].max() >= deep], key=lambda i: -st[i][4])[:2]
+                  if len(cands) < 2:
+                      return None, "no rim line and no two lens openings found"
+                  a_, b_ = sorted(cands, key=lambda i: st[i][0])
+                  if st[a_][0] + st[a_][2] > st[b_][0]:
+                      return None, "the two biggest openings overlap sideways"
+                  ca = st[a_][1] + st[a_][3] / 2.0; cb = st[b_][1] + st[b_][3] / 2.0
+                  if abs(ca - cb) > 0.25 * max(st[a_][3], st[b_][3]):
+                      return None, "the two biggest openings are not level"
+                  mid = (st[a_][0] + st[a_][2] + st[b_][0]) / 2.0
+                  how = "two openings"
               def ok(i):
                   return i != rim and not border(i) and not (st[i][0] < mid < st[i][0] + st[i][2])
-              big_a, thin_a, deep = 3000 * s * s, 2000 * s * s, 30 * s
               sides = {"L": [], "R": []}
               for i in range(1, n):
                   if st[i][4] >= big_a and ok(i) and dist[lab == i].max() >= deep:
@@ -2450,18 +2467,41 @@ jobs:
                   return None, "could not find both lenses"
               lens = np.zeros((H, W), np.uint8)
               areas = []
+              reach = max(3, int(round(6 * s)))     # a thin line (wall line, lens edge), never a rim
               for key in ("L", "R"):
-                  ids = sides[key]
+                  main = max(sides[key], key=lambda i: st[i][4])
+                  ids = [main]
+                  cand = [i for i in range(1, n) if i != main and st[i][4] >= thin_a and ok(i)
+                          and ((st[i][0] + st[i][2] < mid) == (key == "L"))]
+                  grown = True
+                  while grown:
+                      grown = False
+                      near = cv2.dilate(np.isin(lab, ids).astype(np.uint8), np.ones((2 * reach + 1, 2 * reach + 1), np.uint8)) > 0
+                      for i in list(cand):
+                          if (near & (lab == i)).any():
+                              ids.append(i); cand.remove(i); grown = True
                   bx = (min(st[i][0] for i in ids) - 3, min(st[i][1] for i in ids) - 3,
                         max(st[i][0] + st[i][2] for i in ids) + 3, max(st[i][1] + st[i][3] for i in ids) + 3)
-                  for i in range(1, n):
-                      x, y, w, h, a_ = st[i]
-                      if i not in ids and a_ >= thin_a and ok(i) and x >= bx[0] and y >= bx[1] \
-                              and x + w <= bx[2] and y + h <= bx[3]:
-                          ids.append(i)                        # e.g. the lens corner cut off by an arm
                   one = np.zeros((H, W), np.uint8)
-                  hull = cv2.convexHull(cv2.findNonZero(np.isin(lab, ids).astype(np.uint8)))
+                  pieces = np.isin(lab, ids)
+                  hull = cv2.convexHull(cv2.findNonZero(pieces.astype(np.uint8)))
                   cv2.fillPoly(one, [hull], 1)
+                  # the rounding (hull) is for arms and arm tips coming in from the OUTER
+                  # side; on the NOSE side (the quarter of the lens next to the bridge)
+                  # only what the photo shows open is cleared, so nose-pad arms stay
+                  lx0_, lx1_ = bx[0] + 3, bx[2] - 3
+                  q = int(round(0.25 * (lx1_ - lx0_)))
+                  nose = np.zeros((H, W), bool)
+                  if key == "L":
+                      nose[:, max(0, lx1_ - q):] = True
+                  else:
+                      nose[:, :min(W, lx0_ + q)] = True
+                  # keep only what is THICKER than a line there (pads, pad arms);
+                  # a thin line (the wall line, a lens edge) is still cleared
+                  gaps = ((one > 0) & nose & ~pieces).astype(np.uint8)
+                  k_ = np.ones((2 * reach + 1, 2 * reach + 1), np.uint8)
+                  thick = cv2.dilate(cv2.erode(gaps, k_), k_) > 0
+                  one[thick] = 0
                   areas.append(int(one.sum()))
                   lens |= one
               box_area = float(H * W)
@@ -2477,7 +2517,7 @@ jobs:
               outside = ndimage.binary_propagation(_border(not_frame), mask=not_frame)
               guard = ndimage.binary_dilation(outside, iterations=int(band_px))
               full &= ~guard                                   # never near the frame's outer outline
-              return full, "lenses %d + %d px" % tuple(areas)
+              return full, "lenses %d + %d px (found by %s)" % (areas[0], areas[1], how)
 
 
           def cut(photo_bytes, front=True, rim_kind="", half_rim_hint=None, colour_bytes=None,
