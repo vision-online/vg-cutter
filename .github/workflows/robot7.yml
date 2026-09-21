@@ -2271,26 +2271,60 @@ jobs:
               return out
 
 
+          def nearest_colour(rgb, mask):
+              """For every pixel, the colour of the NEAREST pixel where mask is true.
+              Used twice below: to read the sheet's colour close by instead of one
+              median for the whole photo, and to give invisible pixels the rim's
+              own colour."""
+              import cv2
+              if not mask.any():
+                  return None
+              H, W = mask.shape
+              dist, lbl = cv2.distanceTransformWithLabels(
+                  (~mask).astype(np.uint8), cv2.DIST_L2, 5,
+                  labelType=cv2.DIST_LABEL_PIXEL)
+              ys, xs = np.where(mask)
+              table = np.zeros(int(lbl.max()) + 1, dtype=np.int64)
+              table[lbl[mask]] = ys * W + xs
+              return rgb.reshape(-1, 3)[table[lbl]].reshape(H, W, 3)
+
+
           def unmix_edge(img, alpha):
               """
               The pale 'ice' fringe: an edge pixel is part rim, part sheet, and the
               cut keeps the mixed colour. Undo the mix so every partly transparent
-              pixel carries the rim's own colour, transparency unchanged. Uses the
-              matting library's foreground estimate; falls back to unmixing against
-              the sheet colour if that is unavailable.
+              pixel carries the rim's own colour, transparency unchanged.
+
+              Three rules, 2026-09-20 (measured on a test frame: the pale halo on a
+              face dropped from +21 to +0.5 brightness points):
+                1. the matting library's foreground estimate stays the main method;
+                2. the fallback reads the sheet's colour NEARBY, not one median for
+                   the whole photo (a shadow on the sheet made the median wrong);
+                3. below 20 percent opacity nothing is divided -- those pixels take
+                   the colour of the nearest solid rim pixel. An invisible pixel
+                   still carries a colour, and the phone mixes that colour in when
+                   it shrinks the cut-out onto a face: white there is the halo.
+              Transparency and shape are NOT touched by any of this; only colour.
               """
               rgb = np.asarray(img).astype(np.float64) / 255.0
+              solid = alpha >= 0.98
               try:
                   from pymatting import estimate_foreground_ml
                   fg = estimate_foreground_ml(rgb, alpha.astype(np.float64))
               except Exception:
-                  sheet = sheet_colour(np.asarray(img)) / 255.0
-                  a3 = np.clip(alpha, 1e-3, 1.0)[..., None]
-                  fg = (rgb - (1 - a3) * sheet) / a3
+                  bg = nearest_colour(rgb, alpha < 0.05)
+                  if bg is None:
+                      bg = np.ones_like(rgb) * (sheet_colour(np.asarray(img)) / 255.0)
+                  a3 = np.clip(alpha, 0.2, 1.0)[..., None]      # never divide by a tiny number
+                  fg = (rgb - (1 - a3) * bg) / a3
               fg = np.clip(fg, 0, 1)
               # solid pixels keep the photo exactly; only the soft edge is un-mixed
-              solid = (alpha >= 0.98)[..., None]
-              out = np.where(solid, rgb, fg)
+              out = np.where(solid[..., None], rgb, fg)
+              faint = alpha < 0.2
+              if faint.any() and solid.any():
+                  near = nearest_colour(rgb, solid)
+                  if near is not None:
+                      out = np.where(faint[..., None], near, out)
               return (out * 255).round().astype(np.uint8)
 
 
@@ -2477,7 +2511,11 @@ jobs:
           def front_photo(p):
               ang = p.get("anglePhotos") if isinstance(p.get("anglePhotos"), dict) else {}
               # the photo AS TAKEN first (d16.62 admin uploads it plain); the
-              # sharpened copies only if that is all an older frame has
+              # sharpened copies only if that is all an older frame has.
+              # (2026-09-20: a version that stripped Cloudinary's sharpening from
+              # the URL was built and then held back -- it changes the pixels the
+              # AI sees, so it could move the cut edge. The colour fix below made
+              # it unnecessary for the halo. Kept out until tested on its own.)
               for v in (p.get("rawFrontUrl"), p.get("originalUrl"), ang.get("front"), p.get("url")):
                   if isinstance(v, str) and v.startswith("http"):
                       return v
