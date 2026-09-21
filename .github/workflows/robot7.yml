@@ -2328,7 +2328,37 @@ jobs:
               return (out * 255).round().astype(np.uint8)
 
 
-          def cut(photo_bytes, front=True, rim_kind="", half_rim_hint=None, colour_bytes=None):
+          def front_box(img):
+              """Rauf's rule (2026-09-21): find the front's LEFT and RIGHT end points
+              and its TOP and BOTTOM, copy only that box, and throw everything
+              outside it away (temples going back, table, surface, wall) BEFORE
+              any cutting. A thin strip of background is kept outside the end
+              points so the end pieces are never sliced; it becomes transparent
+              anyway. Returns (left, top, right, bottom) or None (= no crop)."""
+              try:
+                  pad, (qx, qy) = pad_with_sheet(img)
+                  m = largest_component(coarse_mask(pad))
+                  H, W = m.shape
+                  m = m[qy:H - qy, qx:W - qx]
+                  ys, xs = np.where(m > 0.5)
+                  if xs.size < 500:
+                      return None
+                  x0, x1, y0, y1 = int(xs.min()), int(xs.max()), int(ys.min()), int(ys.max())
+                  w, h = img.size
+                  if (x1 - x0) * (y1 - y0) > 0.9 * w * h:
+                      return None                                   # nothing to throw away
+                  mx = max(4, int(round(0.03 * (x1 - x0))))
+                  my = max(4, int(round(0.06 * (y1 - y0))))
+                  box = (max(0, x0 - mx), max(0, y0 - my), min(w, x1 + mx + 1), min(h, y1 + my + 1))
+                  log("    front box: %s of %dx%d -- everything outside thrown away" % (box, w, h))
+                  return box
+              except Exception as e:
+                  log("    front box skipped: %s" % str(e)[:120])
+                  return None
+
+
+          def cut(photo_bytes, front=True, rim_kind="", half_rim_hint=None, colour_bytes=None,
+                  front_crop=False):
               """One photo in, one transparent PNG (and its numbers) out.
               rim_kind comes from the rim type typed in admin (see rim_kind_of).
               rim_kind == "" is the OLD method (the one that cut Sizzler well on
@@ -2342,6 +2372,29 @@ jobs:
               if max(img.size) > 1600:
                   s = 1600.0 / max(img.size)
                   img = img.resize((int(img.width * s), int(img.height * s)), Image.LANCZOS)
+              colour_img = None
+              if colour_bytes:
+                  # SHAPE from the photo above (unchanged); COLOURS from the plain
+                  # photo, which has no sharpening, so no white lines on the rim.
+                  # Same Cloudinary crop, so every pixel lines up; if the size
+                  # differs at all, the normal colours are kept.
+                  ci = Image.open(io.BytesIO(colour_bytes)).convert("RGB")
+                  if max(ci.size) > 1600:
+                      s2 = 1600.0 / max(ci.size)
+                      ci = ci.resize((int(ci.width * s2), int(ci.height * s2)), Image.LANCZOS)
+                  if ci.size == img.size:
+                      colour_img = ci
+                      log("    colours taken from the plain photo (shape unchanged)")
+                  else:
+                      log("    plain photo size %s differs from %s: normal colours kept" % (ci.size, img.size))
+              off_x = off_y = 0
+              if front_crop:
+                  box = front_box(img)
+                  if box:
+                      img = img.crop(box)
+                      if colour_img is not None:
+                          colour_img = colour_img.crop(box)
+                      off_x, off_y = box[0], box[1]
               img, (px, py) = pad_with_sheet(img)                   # margin for the model
 
               m = coarse_mask(img)                                  # step 2
@@ -2486,25 +2539,15 @@ jobs:
               else:
                   nums = measurements(a)
               nums["reading"] = read_frame(img, a) if front else {}
+              if (off_x or off_y) and not rim_kind:
+                  for e in nums.get("lenses") or []:              # positions as in the whole photo
+                      e["centreX"] = float(e["centreX"] + off_x); e["centreY"] = float(e["centreY"] + off_y)
               if False:   # arms over the front are normal for this shop: no CHECK PHOTO tag
                   nums["warning"] = ("arms were angled over the front (%d%% of the picture removed) "
                                      "-- fold them flat behind, or open them straight back, and re-shoot"
                                      % round(arms_above * 100))
-              colour_img = img
-              if colour_bytes:
-                  # SHAPE from the photo above (unchanged); COLOURS from the plain
-                  # photo, which has no sharpening, so no white lines on the rim.
-                  # Same Cloudinary crop, so every pixel lines up; if the size
-                  # differs at all, the normal colours are kept.
-                  ci = Image.open(io.BytesIO(colour_bytes)).convert("RGB")
-                  if max(ci.size) > 1600:
-                      s2 = 1600.0 / max(ci.size)
-                      ci = ci.resize((int(ci.width * s2), int(ci.height * s2)), Image.LANCZOS)
-                  if ci.size == img.size:
-                      colour_img = ci
-                      log("    colours taken from the plain photo (shape unchanged)")
-                  else:
-                      log("    plain photo size %s differs from %s: normal colours kept" % (ci.size, img.size))
+              if colour_img is None or colour_img.size != img.size:
+                  colour_img = img
               rgba = np.dstack([unmix_edge(colour_img, a), (a * 255).round().astype(np.uint8)])
               ys, xs = np.where(a > 0.02)
               if ys.size:
@@ -2804,7 +2847,8 @@ jobs:
                                   and not (p.get("tryOnTest") or {}).get("url"):
                               todo.append(p)
                   else:
-                      todo = [p for p in products if str(p.get("id")) == what]
+                      ids_ = [x.strip() for x in what.split(",") if x.strip()]
+                      todo = [p for p in products if str(p.get("id")) in ids_]
                   recut = ""
                   log("Test cut of %d frame(s): %s" % (len(todo), ", ".join((p.get("name") or "")[:16] for p in todo)))
               if recut.lower().startswith("restore:"):
@@ -2922,8 +2966,11 @@ jobs:
                       elif PLAIN_PHOTO[0]:
                           src = no_enhancement(src)
                           log("    plain photo (no enhancement): " + src)
+                      # front box first: TEST runs only until Rauf approves it
+                      fc = bool(test_mode) and not is_metal(p)
                       png, nums = cut(download(src), front=True, rim_kind=rk, half_rim_hint=old_hint,
-                                      colour_bytes=download(colour_src) if colour_src else None)
+                                      colour_bytes=download(colour_src) if colour_src else None,
+                                      front_crop=fc)
                       if test_mode:
                           url = cloudinary_upload(png, "test-%s-%s" % (test_mode, pid), cname, cpreset)
                           if test_mode == "plain":
@@ -2969,6 +3016,8 @@ jobs:
                       log("    done -> %s" % url)
                   except Exception as e:
                       failed += 1
+                      import traceback as _tb
+                      log("    CRASH DETAIL: " + " | ".join(_tb.format_exc().strip().splitlines()[-8:]))
                       why = plain_reason(e)
                       tries = (p.get("tryOnFails") or 0) + 1
                       p["tryOnFails"] = tries
