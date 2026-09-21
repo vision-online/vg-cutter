@@ -1,4 +1,4 @@
-Run 389  Mon Sep 21 15:59:52 UTC 2026
+Run 391  Mon Sep 21 16:13:09 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -20,6 +20,6 @@ Model loaded: ZhengPeng7/BiRefNet at 1024 px
     lens step: lenses 117428 + 117575 px; 228927 pixels of glass cleared
     rim type: not set (0 clean lens holes)
     LENS CHECK pmub3333334 (VG-1005 Frames): the outline size changed (410, 1028) -> (415, 1131)
-    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790006389/b0dgxvvinw2gnffexmg9.png
-    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790006390/nkloixyhokslsdjmed4y.png
+    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790007185/e4ckrljnpwrhrnlmbznl.png
+    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790007185/kcmkhprqugqkhj7ethdo.png
   Finished. Cut 1, failed 0, rejected 0, still waiting 0.
