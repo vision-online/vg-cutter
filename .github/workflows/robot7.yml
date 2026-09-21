@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       recut:
-        description: 'first / a frame id / reset / all / test:<id or fullrim> / test-lens:<ids or names> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
+        description: 'first / a frame id / reset / all / test:<id or fullrim> / test-lens:<ids, names or all> / adopt-lens:<ids or all> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
         required: false
         default: ''
 
@@ -419,6 +419,22 @@ jobs:
           # LENS STEP (2026-09-21): frames listed here get photo_lens_openings in
           # their LIVE cut. Empty until Rauf approves the test-lens: results.
           LENS_FIX_IDS = set()
+          # 2026-09-21, Rauf: "save setting for all". The lens step (and its corner
+          # rules) is now the NORMAL method for every frame, except: Sizzler (the
+          # reference frame, never changed), Lot and all metal frames (own method),
+          # and half-rim / supra / rimless frames (not tested with it yet).
+          LENS_FOR_ALL = True
+          KEEP_OLD_IDS = {"pmu4hbhsm89"}   # Sizzler
+          ADOPT_LENS_ONLY = [False]        # True only in an 'adopt-lens:' run
+
+
+          def lens_ok(p):
+              """May this frame be cut with the lens step?"""
+              pid = str(p.get("id"))
+              if pid in KEEP_OLD_IDS or pid in NEW_METHOD_IDS or is_metal(p):
+                  return False
+              rim = str(p.get("rim") or p.get("rimType") or "").lower()
+              return not any(k in rim for k in ("half", "supra", "semi", "rimless"))
           LENS_TEST = [False]   # True only in a 'test-lens:' run
           LENS_MODE = [False]   # set by cut(): True while a lens-step cut is running (end-piece corners kept)
           MODEL_NAME = [""]        # a test run can ask for another model (e.g. BiRefNet_HR)
@@ -2900,6 +2916,11 @@ jobs:
               todo = [p for p in products if waiting(p)]
               recut = (os.environ.get("RECUT") or "").strip()
               test_mode = ""
+              if recut.lower().startswith("adopt-lens:"):
+                  # like adopt:, but ONLY test cuts made by test-lens: (older test cuts,
+                  # e.g. Sizzler's, are never made live by this)
+                  ADOPT_LENS_ONLY[0] = True
+                  recut = "adopt:" + recut.split(":", 1)[1]
               if recut.lower().startswith("adopt:"):
                   # Make a checked test cut live: "adopt:id1,id2" or "adopt:all". The
                   # cut-out it replaces is kept in tryOnPrev (restore: puts it back).
@@ -2909,6 +2930,8 @@ jobs:
                       if not t or not t.get("url"):
                           continue
                       if "all" not in want and str(p.get("id")) not in want:
+                          continue
+                      if ADOPT_LENS_ONLY[0] and (not t.get("lens") or not lens_ok(p)):
                           continue
                       if p.get("tryOnUrl"):
                           p["tryOnPrev"] = {"url": p.get("tryOnUrl"), "numbers": p.get("tryOnNumbers"),
@@ -3016,7 +3039,13 @@ jobs:
                   # "test:<id>", "test:fullrim" (Full rim frames other than Lot).
                   test_mode = "plain"
                   what = recut.split(":", 1)[1].strip()
-                  if what.lower() == "fullrim":
+                  if LENS_TEST[0] and what.lower() == "all":
+                      # test-lens:all -- every frame the lens step is meant for, that has a
+                      # front photo, try-on switched on, and is not rejected or hand-supplied
+                      todo = [p for p in products if not str(p.get("id") or "").startswith("__")
+                              and lens_ok(p) and front_photo(p) and p.get("tryOnOk") is not False
+                              and not p.get("tryOnLocked") and (p.get("tryOnFails") or 0) < MAX_TRIES]
+                  elif what.lower() == "fullrim":
                       todo = []
                       for p in products:
                           rim = str(p.get("rim") or p.get("rimType") or "").lower()
@@ -3151,7 +3180,7 @@ jobs:
                           log("    plain photo (no enhancement): " + src)
                       # front box first: TEST runs only until Rauf approves it
                       fc = bool(test_mode) and not is_metal(p) and not LENS_TEST[0]
-                      lf = LENS_TEST[0] or str(pid) in LENS_FIX_IDS
+                      lf = LENS_TEST[0] or str(pid) in LENS_FIX_IDS or (LENS_FOR_ALL and lens_ok(p))
                       photo_b = download(src)
                       colour_b = download(colour_src) if colour_src else None
                       png, nums = cut(photo_b, front=True, rim_kind=rk, half_rim_hint=old_hint,
@@ -3166,6 +3195,8 @@ jobs:
                               nums.pop("reading", None); warn_ = nums.pop("warning", None)
                               p["tryOnTest"] = {"url": url, "numbers": nums, "warning": warn_,
                                                 "at": datetime.datetime.utcnow().isoformat() + "Z"}
+                              if LENS_TEST[0]:
+                                  p["tryOnTest"]["lens"] = True
                               save_product(p)
                           log("    TEST RESULT (%s, live cut-out unchanged) -> %s" % (test_mode, url))
                           done += 1
