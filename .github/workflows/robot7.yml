@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       recut:
-        description: 'first / a frame id / reset / all / test:<id or fullrim> / test-plain:<id> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
+        description: 'first / a frame id / reset / all / test:<id or fullrim> / test-plain:<id> / test-colour:<id> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
         required: false
         default: ''
 
@@ -2328,7 +2328,7 @@ jobs:
               return (out * 255).round().astype(np.uint8)
 
 
-          def cut(photo_bytes, front=True, rim_kind="", half_rim_hint=None):
+          def cut(photo_bytes, front=True, rim_kind="", half_rim_hint=None, colour_bytes=None):
               """One photo in, one transparent PNG (and its numbers) out.
               rim_kind comes from the rim type typed in admin (see rim_kind_of).
               rim_kind == "" is the OLD method (the one that cut Sizzler well on
@@ -2490,7 +2490,22 @@ jobs:
                   nums["warning"] = ("arms were angled over the front (%d%% of the picture removed) "
                                      "-- fold them flat behind, or open them straight back, and re-shoot"
                                      % round(arms_above * 100))
-              rgba = np.dstack([unmix_edge(img, a), (a * 255).round().astype(np.uint8)])
+              colour_img = img
+              if colour_bytes:
+                  # SHAPE from the photo above (unchanged); COLOURS from the plain
+                  # photo, which has no sharpening, so no white lines on the rim.
+                  # Same Cloudinary crop, so every pixel lines up; if the size
+                  # differs at all, the normal colours are kept.
+                  ci = Image.open(io.BytesIO(colour_bytes)).convert("RGB")
+                  if max(ci.size) > 1600:
+                      s2 = 1600.0 / max(ci.size)
+                      ci = ci.resize((int(ci.width * s2), int(ci.height * s2)), Image.LANCZOS)
+                  if ci.size == img.size:
+                      colour_img = ci
+                      log("    colours taken from the plain photo (shape unchanged)")
+                  else:
+                      log("    plain photo size %s differs from %s: normal colours kept" % (ci.size, img.size))
+              rgba = np.dstack([unmix_edge(colour_img, a), (a * 255).round().astype(np.uint8)])
               ys, xs = np.where(a > 0.02)
               if ys.size:
                   pad = 4
@@ -2709,6 +2724,11 @@ jobs:
                   # instead of the enhanced one. Result goes to tryOnTest; live unchanged.
                   PLAIN_PHOTO[0] = True
                   recut = "test:" + recut.split(":", 1)[1]
+              if recut.lower().startswith("test-colour:"):
+                  # TEST ONLY: shape exactly as today (enhanced photo, Sizzler
+                  # method); only the COLOURS come from the plain photo.
+                  PLAIN_PHOTO[0] = "colour"
+                  recut = "test:" + recut.split(":", 1)[1]
               if recut.lower().startswith("test:"):
                   # A CHECKED test: cut with the normal method, upload, and keep the
                   # result in tryOnTest for review. The live cut-out is NOT changed.
@@ -2830,10 +2850,15 @@ jobs:
                       # old method: the half-rim hint is read from the rim text, as before
                       old_hint = None if rk else any(k in rim_txt for k in ("half", "supra", "semi", "rimless"))
                       src = front_photo(p)
-                      if PLAIN_PHOTO[0]:
+                      colour_src = None
+                      if PLAIN_PHOTO[0] == "colour":
+                          colour_src = no_enhancement(src)
+                          log("    colour photo (no enhancement): " + colour_src)
+                      elif PLAIN_PHOTO[0]:
                           src = no_enhancement(src)
                           log("    plain photo (no enhancement): " + src)
-                      png, nums = cut(download(src), front=True, rim_kind=rk, half_rim_hint=old_hint)
+                      png, nums = cut(download(src), front=True, rim_kind=rk, half_rim_hint=old_hint,
+                                      colour_bytes=download(colour_src) if colour_src else None)
                       if test_mode:
                           url = cloudinary_upload(png, "test-%s-%s" % (test_mode, pid), cname, cpreset)
                           if test_mode == "plain":
