@@ -1,51 +1,10 @@
-Run 471  Tue Sep 22 07:20:35 UTC 2026
-Trigger: workflow_dispatch
+Run 472  Tue Sep 22 07:28:55 UTC 2026
+Trigger: schedule
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): the photo could not be cut (index 725 is out of bounds for axis 0 with size 616)  [Ocelot Half trp]
-::notice::Frames: 15. Waiting: 1. Rejected: 1.  Trial re-cut asked for: test-lens:VG-1002,VG-1003,VG-1005
+::notice::Frames: 15. Waiting: 0. Rejected: 1.
 
 --- what the robot did ---
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Test cut of 3 frame(s): VG-1002 Frames, VG-1003 Frames, VG-1005 Frames
-Catalogue: 15 frames. Waiting for a cut-out: 3.
-Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
---- pmtzl3ql140 : VG-1002 Frames
-    colours taken from the plain photo (shape unchanged)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet at 1024 px
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:300: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
-  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 174820 + 171473 px (found by two openings, left lens trimmed to match the other (197959 -> 174820 px)); 338833 pixels of glass cleared
-    RIM CHECK: both rims match (thinnest spot 90% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    colours taken from the plain photo (shape unchanged)
-    rim type: not set (0 clean lens holes)
-    LENS CHECK pmtzl3ql140 (VG-1002 Frames): the outline size changed (481, 1312) -> (482, 1453)
-    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790061470/ccqwujrmxcwbskweeps8.png
-    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790061471/q3svwzvmhdh2tojxuarc.png
---- pmtzl57qf92 : VG-1003 Frames
-    colours taken from the plain photo (shape unchanged)
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 191060 + 189466 px (found by rim line); 370217 pixels of glass cleared
-    RIM CHECK: both rims match (thinnest spot 95% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    colours taken from the plain photo (shape unchanged)
-    rim type: not set (0 clean lens holes)
-    LENS CHECK pmtzl57qf92 (VG-1003 Frames): the outline size changed (530, 1451) -> (530, 1470)
-    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790061549/cidcwfhvbv3xsrbims12.png
-    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790061550/fkfrrbaya6liy57gnwcv.png
---- pmub3333334 : VG-1005 Frames
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 117428 + 121260 px (found by rim line); 232032 pixels of glass cleared
-    RIM CHECK: both rims match (thinnest spot 92% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    rim type: not set (0 clean lens holes)
-    LENS CHECK pmub3333334 (VG-1005 Frames): the outline size changed (410, 1028) -> (415, 1131)
-    LENS CHECK picture (today | with lens step): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790061631/scyctmb8gu2q90v5ucvk.png
-    TEST RESULT (plain, live cut-out unchanged) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790061631/dzrv2suzhst9o8h7vdtd.png
-  Finished. Cut 3, failed 0, rejected 0, still waiting 0.
