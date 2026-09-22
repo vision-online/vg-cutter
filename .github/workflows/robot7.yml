@@ -427,9 +427,12 @@ jobs:
           KEEP_OLD_IDS = set()   # 2026-09-21, Rauf: Sizzler no longer kept on the old method
           ADOPT_LENS_ONLY = [False]        # True only in an 'adopt-lens:' run
           ARMS_WARN = 0.025                # arms above the frame: rejected from 2.5% of the frame
+          SIDE_WARN = 0.03                 # a thin strip beyond an end longer than 3% of the width = an arm
+          ARMS_SIDE_REASON = ("Please re-take this photo: an arm shows beside the frame, so the phone was held "
+                              "at an angle. Hold the phone straight in front of the frame, at the same height, "
+                              "and take it again.")
           ARMS_REASON = ("Please re-take this photo: the arms show above the frame, so the camera was a little high. "
-                         "Open both arms fully, hold the phone at the same height as the frame, keep it straight, "
-                         "and take it again.")
+                         "Hold the phone at the same height as the frame, keep it straight, and take it again.")
 
 
           def lens_ok(p):
@@ -1938,6 +1941,26 @@ jobs:
               return out
 
 
+          def side_arm_span(alpha):
+              """How far a thin strip (thinner than 12% of the frame's depth) reaches out
+              beyond the frame's ends, as a fraction of the frame's width -- the larger
+              of the two sides. Measures only, never cuts."""
+              A = alpha > 0.5
+              heights = A.sum(axis=0)
+              cols = np.where(heights > 0)[0]
+              if cols.size < 10:
+                  return 0.0
+              depth = float(heights.max()); x0, x1 = int(cols.min()), int(cols.max())
+              thin = heights < depth * 0.12
+              l = x0
+              while l < x1 and thin[l]:
+                  l += 1
+              r = x1
+              while r > l and thin[r]:
+                  r -= 1
+              return max(l - x0, x1 - r) / float(max(1, x1 - x0 + 1))
+
+
           def cut_end_to_end(alpha):
               """
               The front try-on picture: arms removed, end pieces kept.
@@ -2731,7 +2754,13 @@ jobs:
                       _, arms_above = remove_arms_above(a.copy(), img)
                   else:
                       a, arms_above = remove_arms_above(a, img)
-                  if half_ring is None:
+                  arms_side = 0.0
+                  if half_ring is None and LENS_MODE[0]:
+                      # 2026-09-21, Rauf: this step cut VG-1002's short hinge tabs. In lens
+                      # mode it never cuts: short tabs are the end pieces; a long thin
+                      # strip beyond an end is an arm -> the photo is rejected below
+                      arms_side = side_arm_span(a)
+                  elif half_ring is None:
                       a = cut_end_to_end(a)                         # step 6b: arms beyond the ends
                   # (a half-rim's end pieces are thin metal and would be mistaken for arm)
                   if not LENS_MODE[0]:
@@ -2799,7 +2828,11 @@ jobs:
               if (off_x or off_y) and not rim_kind:
                   for e in nums.get("lenses") or []:              # positions as in the whole photo
                       e["centreX"] = float(e["centreX"] + off_x); e["centreY"] = float(e["centreY"] + off_y)
-              if front and LENS_MODE[0] and arms_above >= ARMS_WARN:
+              if front and LENS_MODE[0] and arms_side > SIDE_WARN:
+                  nums["reject"] = ARMS_SIDE_REASON
+                  log("    arms beside the frame: %.1f%% of its width -> REJECTED, re-shoot (nothing was cut)"
+                      % (arms_side * 100))
+              elif front and LENS_MODE[0] and arms_above >= ARMS_WARN:
                   # 2026-09-21, Rauf: such a photo is REJECTED (kept off the website,
                   # reason shown in admin), not published with a note
                   nums["reject"] = ARMS_REASON
