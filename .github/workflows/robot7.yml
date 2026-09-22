@@ -428,6 +428,7 @@ jobs:
           ADOPT_LENS_ONLY = [False]        # True only in an 'adopt-lens:' run
           ARMS_WARN = 0.025                # arms above the frame: rejected from 2.5% of the frame
           SIDE_WARN = 0.03                 # a thin strip beyond an end longer than 3% of the width = an arm
+          RIM_MIN = 0.75                   # rim thinner than 75% of the other side's (mirrored) = not published
           ARMS_SIDE_REASON = ("Please re-take this photo: an arm shows beside the frame, so the phone was held "
                               "at an angle. Hold the phone straight in front of the frame, at the same height, "
                               "and take it again.")
@@ -1941,6 +1942,70 @@ jobs:
               return out
 
 
+          def rim_balance(alpha):
+              """RIM CHECK (2026-09-21, Rauf: the rim must be as thick as in the photo).
+              A frame is symmetric: measure the rim's thickness around each lens in 36
+              directions (from the lens edge outward to the background) and compare the
+              left lens with the mirrored right lens. Returns (worst ratio thinner/
+              thicker, direction in degrees, which side is thinner) or None."""
+              from scipy import ndimage
+              A = alpha > 0.5
+              H, W = A.shape
+              outside = ndimage.binary_propagation(_border(~A), mask=~A)
+              holes = ~A & ~outside
+              lab_, n = ndimage.label(holes)
+              if n < 2:
+                  return None
+              sizes = ndimage.sum(holes, lab_, range(1, n + 1))
+              two = [int(i) + 1 for i in np.argsort(sizes)[-2:]]
+              if sizes[two[0] - 1] < 0.5 * sizes[two[1] - 1]:
+                  return None
+              cen = {}
+              for i in two:
+                  ys, xs = np.where(lab_ == i)
+                  cen[i] = (ys.mean(), xs.mean(), ys, xs)
+              li, ri = sorted(two, key=lambda i: cen[i][1])
+              step = 0.5
+              def thick(i, ang):
+                  cy, cx = cen[i][0], cen[i][1]
+                  dy, dx = -np.sin(np.radians(ang)), np.cos(np.radians(ang))
+                  r, in_hole = 0.0, True
+                  solid = 0
+                  while True:
+                      y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                      if y < 0 or x < 0 or y >= H or x >= W:
+                          return None
+                      if in_hole:
+                          if lab_[y, x] != i:
+                              in_hole = False
+                          else:
+                              r += step
+                              continue
+                      if outside[y, x] or (lab_[y, x] > 0 and lab_[y, x] != i):
+                          return solid * step
+                      if A[y, x]:
+                          solid += 1
+                      r += step
+                      if r > 3 * max(H, W):
+                          return None
+              worst = (1.0, None, None)
+              angs = list(range(0, 360, 10))
+              tl = [thick(li, a_) for a_ in angs]
+              tr = [thick(ri, 180 - a_) for a_ in angs]      # mirrored direction
+              for k, a_ in enumerate(angs):
+                  vals = []
+                  for j in (k - 1, k, k + 1):                 # 3 neighbouring directions, against noise
+                      l_, r_ = tl[j % len(angs)], tr[j % len(angs)]
+                      if l_ is None or r_ is None or max(l_, r_) < 4:
+                          continue
+                      vals.append((min(l_, r_) / max(l_, r_), "left" if l_ < r_ else "right"))
+                  if len(vals) == 3:
+                      m = max(v[0] for v in vals)              # all three must agree it is thin
+                      if m < worst[0]:
+                          worst = (m, a_, vals[1][1])
+              return worst
+
+
           def side_arm_span(alpha):
               """How far a thin strip (thinner than 12% of the frame's depth) reaches out
               beyond the frame's ends, as a fraction of the frame's width -- the larger
@@ -2497,6 +2562,7 @@ jobs:
                   return None, "could not find both lenses"
               lens = np.zeros((H, W), np.uint8)
               areas = []
+              ones_ = {}
               reach = max(3, int(round(6 * s)))     # a thin line (wall line, lens edge), never a rim
               # ENTIRE demo area (Rauf 2026-09-21: "the entire demo area has to be
               # transparent"). When the rim is one closed band in the photo (its band
@@ -2599,11 +2665,29 @@ jobs:
                               if not ring_.any():
                                   break
                               one[ring_] = 1; grow_px += int(ring_.sum())
+                  ones_[key] = one.copy()
                   areas.append(int(one.sum()))
                   lens |= one
+              # PAIR RULE (2026-09-21, VG-1002: the left "lens" took in part of the
+              # see-through left rim). The two lenses of a frame are the same size. If
+              # one is more than 7% bigger, it is trimmed to the MIRROR image of the
+              # other (a few pixels of tolerance): rim it took is given back. When in
+              # doubt a sliver of glass stays -- never rim.
+              if max(areas) > 0 and min(areas) < 0.93 * max(areas) and ones_.get("L") is not None and ones_.get("R") is not None:
+                  big_k, small_k = ("L", "R") if areas[0] > areas[1] else ("R", "L")
+                  mx = np.clip(np.round(2 * mid - np.arange(W)).astype(int), 0, W - 1)
+                  tp = max(2, int(round(3 * s)))          # 3 px: rim always given back
+                  tol = np.ones((2 * tp + 1, 2 * tp + 1), np.uint8)
+                  allowed = cv2.dilate(ones_[small_k][:, mx], tol) > 0
+                  before = int(ones_[big_k].sum())
+                  trimmed = (ones_[big_k] > 0) & allowed
+                  lens[(ones_[big_k] > 0) & ~allowed] = 0
+                  areas[0 if big_k == "L" else 1] = int(trimmed.sum())
+                  how += ", %s lens trimmed to match the other (%d -> %d px)" % (
+                      "left" if big_k == "L" else "right", before, int(trimmed.sum()))
               box_area = float(H * W)
-              if min(areas) < 0.67 * max(areas):
-                  return None, "the two lenses are not a pair (%d vs %d px)" % tuple(areas)
+              if min(areas) < 0.85 * max(areas):
+                  return None, "the two lenses are not a pair even after trimming (%d vs %d px)" % tuple(areas)
               if min(areas) < 0.06 * box_area or max(areas) > 0.45 * box_area:
                   return None, "lens size out of range (%.0f%%, %.0f%% of the frame box)" % (
                       100.0 * areas[0] / box_area, 100.0 * areas[1] / box_area)
@@ -2721,6 +2805,7 @@ jobs:
                           a, half_ring = apply_half_rim(img, a, half_regions)
                           if rim_kind:
                               a = firm_rim(a)                      # new method only
+              lens_ran = False
               if front and lens_fix:
                   # step 5z (LENS STEP): lens openings found from the photo's own
                   # edges and cleared. Only frames in LENS_FIX_IDS, or a test-lens run.
@@ -2729,6 +2814,7 @@ jobs:
                   except Exception as ex:
                       lz, lnote = None, "error: %s" % str(ex)[:120]
                   if lz is not None:
+                      lens_ran = True
                       was = int(((a > 0.5) & lz).sum())
                       a = np.where(lz, np.float32(0.0), a).astype(np.float32)
                       log("    lens step: %s; %d pixels of glass cleared" % (lnote, was))
@@ -2828,6 +2914,29 @@ jobs:
               if (off_x or off_y) and not rim_kind:
                   for e in nums.get("lenses") or []:              # positions as in the whole photo
                       e["centreX"] = float(e["centreX"] + off_x); e["centreY"] = float(e["centreY"] + off_y)
+              if front and LENS_MODE[0] and not nums.get("reject"):
+                  try:
+                      rb = rim_balance(a)
+                  except Exception as ex:
+                      rb = None
+                      log("    rim check could not run: %s" % str(ex)[:100])
+                  if rb is None and lens_ran:
+                      # the lens step cleared two lenses, but the finished frame no longer
+                      # encloses two: a rim has been cut right through
+                      nums["reject"] = ("Robot check: the rim came out broken (a lens is open to the outside). "
+                                        "Not published -- needs a look, the photo is not the problem.")
+                      log("    RIM CHECK: the rim is broken through -> kept off the website")
+                  if rb is not None and rb[1] is not None:
+                      where_ = {0: "bridge side", 90: "top", 180: "outer side", 270: "bottom"}   # as seen on the left lens
+                      dname = min(where_, key=lambda d: min(abs(rb[1] - d), 360 - abs(rb[1] - d)))
+                      if rb[0] < RIM_MIN:
+                          nums["reject"] = ("Robot check: the rim came out thinner on the %s lens (%s, %d%% of the "
+                                            "other side). Not published -- needs a look, the photo is not the problem."
+                                            % (rb[2], where_[dname], int(rb[0] * 100)))
+                          log("    RIM CHECK: %s rim only %d%% of the other side near the %s -> kept off the website"
+                              % (rb[2], int(rb[0] * 100), where_[dname]))
+                      else:
+                          log("    RIM CHECK: both rims match (thinnest spot %d%% of the other side)" % int(rb[0] * 100))
               if front and LENS_MODE[0] and arms_side > SIDE_WARN:
                   nums["reject"] = ARMS_SIDE_REASON
                   log("    arms beside the frame: %.1f%% of its width -> REJECTED, re-shoot (nothing was cut)"
