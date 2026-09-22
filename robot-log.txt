@@ -1,33 +1,12 @@
-Run 531  Tue Sep 22 19:32:56 UTC 2026
+Run 532  Tue Sep 22 19:41:43 UTC 2026
 Trigger: schedule
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): the photo could not be cut (index 725 is out of bounds for axis 0 with size 616)  [Ocelot Half trp]
-::notice::Frames: 19. Waiting: 2. Rejected: 1.
+  1 frame(s): Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.  [I spec]
+  1 frame(s): Robot check: the rim came out thinner on the right lens (bottom, 57% of the other side). Not published -- needs a look, the photo is not the problem.  [I spec]
+::notice::Frames: 19. Waiting: 0. Rejected: 3.
 
 --- what the robot did ---
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 19 frames. Waiting for a cut-out: 2.
-Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
---- pmud2592y72 : I spec
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet at 1024 px
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:307: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
-  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 35741 + 34591 px (found by rim line); 64792 pixels of glass cleared
-    the frame fills 113% of the photo's width
-    RIM CHECK: right rim only 57% of the other side near the bottom -> kept off the website
-    arms above the frame: 0.0% (below 2.5%, no note)
-  pmud2592y72 REJECTED, kept off the website: Robot check: the rim came out thinner on the right lens (bottom, 57% of the other side). Not published -- needs a look, the photo is not the problem.
---- pmud2ciqu40 : I spec
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 26541 + 26264 px (found by rim line); 47280 pixels of glass cleared
-    the frame fills 100% of the photo's width
-    RIM CHECK: the rim is broken through -> kept off the website
-    arms above the frame: 0.0% (below 2.5%, no note)
-  pmud2ciqu40 REJECTED, kept off the website: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.
-  Finished. Cut 0, failed 0, rejected 2, still waiting 2.  Rejected: I spec: Robot check: the rim came out thinner on the right lens (bottom, 57% of the other side). Not published -- needs a look, the photo is not the problem.; I spec: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.
