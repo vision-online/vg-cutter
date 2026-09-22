@@ -1,25 +1,24 @@
-Run 534  Tue Sep 22 20:07:34 UTC 2026
+Run 535  Tue Sep 22 20:22:05 UTC 2026
 Trigger: schedule
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): the photo could not be cut (index 725 is out of bounds for axis 0 with size 616)  [Ocelot Half trp]
-  1 frame(s): Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.  [I spec]
-  1 frame(s): Robot check: the rim came out thinner on the right lens (bottom, 57% of the other side). Not published -- needs a look, the photo is not the problem.  [I spec]
-::notice::Frames: 20. Waiting: 1. Rejected: 3.
+::notice::Frames: 16. Waiting: 1. Rejected: 1.
 
 --- what the robot did ---
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 20 frames. Waiting for a cut-out: 1.
+Catalogue: 14 frames. Waiting for a cut-out: 1.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
---- pmud3fbxt32 : I spec
+--- pmud47r5631 : I spec
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
     rim type: not set (0 clean lens holes)
-    lens step skipped, nothing changed: could not find both lenses
-    the frame is SIDEWAYS in the photo (466 wide x 1386 tall) -> REJECTED, re-shoot
-    arms above the frame: 32.7% -> REJECTED, re-shoot (nothing was cut)
-  pmud3fbxt32 REJECTED, kept off the website: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.
-  Finished. Cut 0, failed 0, rejected 1, still waiting 1.  Rejected: I spec: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.
+    lens step: lenses 115576 + 115672 px (found by rim line, right lens trimmed to match the other (124642 -> 115672 px)); 224815 pixels of glass cleared
+    the frame fills 120% of the photo's width
+    RIM CHECK: right rim only 50% of the other side near the bottom -> kept off the website
+    arms above the frame: 0.0% (below 2.5%, no note)
+  pmud47r5631 REJECTED, kept off the website: Robot check: the rim came out thinner on the right lens (bottom, 50% of the other side). Not published -- needs a look, the photo is not the problem.
+  Finished. Cut 0, failed 0, rejected 1, still waiting 1.  Rejected: I spec: Robot check: the rim came out thinner on the right lens (bottom, 50% of the other side). Not published -- needs a look, the photo is not the problem.
