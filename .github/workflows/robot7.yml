@@ -2944,6 +2944,13 @@ jobs:
                               log("    the frame fills only %d%% of the photo's width -> REJECTED, take it closer" % (_fill * 100))
                           else:
                               log("    the frame fills %d%% of the photo's width" % (_fill * 100))
+                          # WHERE THE FRAME SITS IN THE PHOTO (2026-09-22, Rauf: every
+                          # frame must look the same size on the shop page, whatever
+                          # distance it was shot from). The shop page zooms each card
+                          # photo by these numbers, so distance stops mattering.
+                          nums["photoFrac"] = round(_fill, 4)
+                          nums["photoCx"] = round(((_xs.min() + _xs.max()) / 2.0 - px) / float(_pw), 4)
+                          nums["photoCy"] = round(((_ys.min() + _ys.max()) / 2.0 - py) / float(max(1, a.shape[0] - 2 * py)), 4)
               if front and LENS_MODE[0] and not nums.get("reject"):
                   try:
                       rb = rim_balance(a)
