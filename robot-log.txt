@@ -1,14 +1,10 @@
-Run 481  Tue Sep 22 09:23:18 UTC 2026
-Trigger: workflow_dispatch
+Run 482  Tue Sep 22 09:36:47 UTC 2026
+Trigger: schedule
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): the photo could not be cut (index 725 is out of bounds for axis 0 with size 616)  [Ocelot Half trp]
-::notice::Frames: 15. Waiting: 1. Rejected: 1.  Trial re-cut asked for: adopt:pmtzl3ql140,pmtzl57qf92,pmub3333334
+::notice::Frames: 15. Waiting: 0. Rejected: 1.
 
 --- what the robot did ---
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-    adopted pmtzl3ql140 (VG-1002 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790061471/q3svwzvmhdh2tojxuarc.png
-    adopted pmtzl57qf92 (VG-1003 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790061550/fkfrrbaya6liy57gnwcv.png
-    adopted pmub3333334 (VG-1005 Frames) -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790061631/dzrv2suzhst9o8h7vdtd.png
