@@ -427,6 +427,13 @@ jobs:
           KEEP_OLD_IDS = set()   # 2026-09-21, Rauf: Sizzler no longer kept on the old method
           ADOPT_LENS_ONLY = [False]        # True only in an 'adopt-lens:' run
           ARMS_WARN = 0.025                # arms above the frame: rejected from 2.5% of the frame
+          FILL_MIN = 0.55                  # the frame must fill at least 55% of the photo's width
+          FAR_REASON = ("Please re-take this photo a little closer: the frame is small in the picture, so its rim "
+                        "comes out only a few pixels wide. Bring the frame's ends level with the marks on the "
+                        "camera screen, keeping the phone straight and at the frame's height.")
+          SIDEWAYS_REASON = ("Please re-take this photo: the frame is sideways in the picture (it came out taller "
+                             "than it is wide). Stand or lay the frame the right way up, hold the phone straight "
+                             "in front of it, and take it again.")
           SIDE_WARN = 0.03                 # a thin strip beyond an end longer than 3% of the width = an arm
           RIM_MIN = 0.75                   # rim thinner than 75% of the other side's (mirrored) = not published
           ARMS_SIDE_REASON = ("Please re-take this photo: an arm shows beside the frame, so the phone was held "
@@ -2914,6 +2921,29 @@ jobs:
               if (off_x or off_y) and not rim_kind:
                   for e in nums.get("lenses") or []:              # positions as in the whole photo
                       e["centreX"] = float(e["centreX"] + off_x); e["centreY"] = float(e["centreY"] + off_y)
+              if front and LENS_MODE[0]:
+                  # SIDEWAYS PHOTO (2026-09-22, the "I spec" frame came out standing on
+                  # end, one lens above the other: the try-on then reads the distance
+                  # between lens centres as tiny and draws the frame huge on the face).
+                  # A frame is always wider than it is tall.
+                  _ys, _xs = np.where(a > 0.5)
+                  if _xs.size > 100:
+                      _w, _h = _xs.max() - _xs.min() + 1, _ys.max() - _ys.min() + 1
+                      if _h > _w:
+                          nums["reject"] = SIDEWAYS_REASON
+                          log("    the frame is SIDEWAYS in the photo (%d wide x %d tall) -> REJECTED, re-shoot" % (_w, _h))
+                      else:
+                          # TOO FAR AWAY (2026-09-22, Rauf: set how far the camera stands
+                          # from the frame). Measured against the photo itself, without
+                          # the sheet margin the robot adds. A thin metal rim in a small
+                          # picture is only a few pixels wide and cannot be cut cleanly.
+                          _pw = max(1, a.shape[1] - 2 * px)
+                          _fill = _w / float(_pw)
+                          if _fill < FILL_MIN:
+                              nums["reject"] = FAR_REASON
+                              log("    the frame fills only %d%% of the photo's width -> REJECTED, take it closer" % (_fill * 100))
+                          else:
+                              log("    the frame fills %d%% of the photo's width" % (_fill * 100))
               if front and LENS_MODE[0] and not nums.get("reject"):
                   try:
                       rb = rim_balance(a)
