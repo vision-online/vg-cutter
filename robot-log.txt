@@ -1,25 +1,31 @@
-Run 588  Wed Sep 23 07:11:44 UTC 2026
+Run 590  Wed Sep 23 07:28:14 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): Robot check: the rim came out thinner on the right lens (bottom, 50% of the other side). Not published -- needs a look, the photo is not the problem.  [I spec]
-::notice::Frames: 19. Waiting: 1. Rejected: 1.  Trial re-cut asked for: first
+::notice::Frames: 19. Waiting: 1. Rejected: 1.  Trial re-cut asked for: guard:save:all
 
 --- what the robot did ---
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Trial re-cut of p1789109493867aad7 (Sheet gray).
-Catalogue: 19 frames. Waiting for a cut-out: 1.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
---- p1789109493867aad7 : Sheet gray
-    colours taken from the plain photo (shape unchanged)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet at 1024 px
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:313: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
-  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
-    rim type: not set (0 clean lens holes)
-half-rim: 138 enclosed pieces, 2 candidates, rejected {'size': 136, 'shape': 0, 'place': 0, 'solid': 0, 'touch': 0}
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790147500/tjlu5kyvhlubfus1zq6n.png
-  Finished. Cut 1, failed 0, rejected 0, still waiting 0.
+    approved cut-out remembered for p1789109493867aad7 (Sheet gray)
+    approved cut-out remembered for p17892249696909pgu (Skechers)
+    approved cut-out remembered for pmtyjadff35 (VG-1001 Frames)
+    approved cut-out remembered for pmtyjmyfc78 (Visibilla)
+    approved cut-out remembered for pmtzl3ql140 (VG-1002 Frames)
+    approved cut-out remembered for pmtzl57qf92 (VG-1003 Frames)
+    approved cut-out remembered for pmtzn859c27 (New cat eye)
+    approved cut-out remembered for pmu4f9tzw42 (Romeo line)
+    approved cut-out remembered for pmu4gg5u210 (Eyeconic)
+    approved cut-out remembered for pmu4gnug185 (Lot)
+    approved cut-out remembered for pmu4h3h9579 (Heart stone)
+    approved cut-out remembered for pmu4hbhsm89 (Sizzler)
+    approved cut-out remembered for pmub3333334 (VG-1005 Frames)
+    approved cut-out remembered for pmud5z8os47 (I spec)
+    approved cut-out remembered for pmud70ild56 (Romeo line)
+    approved cut-out remembered for pmud79lvj55 (Novel)
+    approved cut-out remembered for pmud7l10l14 (9.9.9 metal)
+    approved cut-out remembered for pmud7q2nw86 (999)
+  GUARD: 18 reference frame(s) saved. From now on  guard  checks every robot change against them.
