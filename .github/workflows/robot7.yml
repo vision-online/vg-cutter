@@ -3402,10 +3402,48 @@ jobs:
               out["widthChange"] = (n.shape[1] - o.shape[1]) / float(max(1, o.shape[1]))
               out["heightChange"] = (n.shape[0] - o.shape[0]) / float(max(1, o.shape[0]))
               import cv2
+              from scipy import ndimage
               n2 = cv2.resize(n, (o.shape[1], o.shape[0]), interpolation=cv2.INTER_NEAREST)
               solid_o, solid_n = o > 127, n2 > 127
-              diff = int((solid_o ^ solid_n).sum())
-              out["pixelChange"] = diff / float(max(1, int(solid_o.sum())))
+              # 2026-09-23: judge the OUTLINE apart from the GLASS. Clearing more of a
+              # demo lens is an improvement (MobileSAM did exactly that on Visibilla and
+              # it read as "29.5% moved"); a change to the frame's own shape or rim is
+              # the thing that must never pass unseen.
+              fill_o = ndimage.binary_fill_holes(solid_o)
+              fill_n = ndimage.binary_fill_holes(solid_n)
+              out["outlineChange"] = int((fill_o ^ fill_n).sum()) / float(max(1, int(fill_o.sum())))
+              glass_o, glass_n = fill_o & ~solid_o, fill_n & ~solid_n
+              out["glassCleared"] = (int(glass_n.sum()) - int(glass_o.sum())) / float(max(1, int(fill_o.sum())))
+              out["pixelChange"] = int((solid_o ^ solid_n).sum()) / float(max(1, int(solid_o.sum())))
+              # RIM LOSS: material that disappeared close to the frame's outer edge. Glass
+              # cleared inside a lens lies deep in; a rim eaten from the inside lies within
+              # about a rim's thickness of the outside, and the outline does not move, so
+              # nothing else here would see it.
+              # HOW WIDE IS THE RIM in each cut-out: for a pixel just inside a lens
+              # edge, the distance to the outside IS the rim's thickness there. Compare
+              # the typical value in both. Glass cleared deeper inside a lens barely
+              # changes it; a rim eaten from the inside drops it at once, with the
+              # outline unmoved and nothing else able to see it.
+              def rim_width(fill, solid):
+                  glass = fill & ~solid
+                  if not glass.any() or not solid.any():
+                      return 0.0, 0.0
+                  d = ndimage.distance_transform_edt(fill)
+                  ring = ndimage.binary_dilation(glass, iterations=2) & solid
+                  if not ring.any():
+                      return 0.0, 0.0
+                  v = d[ring]
+                  # leave out the ring around any leftover patch deep inside a lens: it
+                  # sits far from the outside and would hide a thin spot on the rim
+                  v = v[v <= np.median(v) * 1.5]
+                  if not v.size:
+                      return 0.0, 0.0
+                  # the thinnest tenth matters: a rim eaten on ONE side leaves the
+                  # middle value untouched, exactly as the robot's own rim check found
+                  return float(np.median(v)), float(np.percentile(v, 10))
+              (rw_o, thin_o), (rw_n, thin_n) = rim_width(fill_o, solid_o), rim_width(fill_n, solid_n)
+              out["rimWidth"] = (rw_o, rw_n)
+              out["rimThinner"] = 0.0 if thin_o <= 0 or thin_n <= 0 else max(0.0, (thin_o - thin_n) / thin_o)
               return out
 
 
@@ -3434,12 +3472,15 @@ jobs:
                                       half_rim_hint=any(k in rim_txt for k in ("half", "supra", "semi", "rimless")),
                                       colour_bytes=None, front_crop=False, lens_fix=lens_ok(p))
                       d = guard_compare(download(base["url"]), png)
-                      moved = max(abs(d["widthChange"]), abs(d["heightChange"]), d["pixelChange"])
+                      # glass GAINED is an improvement; glass LOST means a lens went solid again
+                      moved = max(abs(d["widthChange"]), abs(d["heightChange"]), d["outlineChange"],
+                                  max(0.0, -d["glassCleared"]), d.get("rimThinner", 0.0))
                       worst = max(worst, moved)
                       mark = "SAME" if moved <= 0.01 else ("CHANGED" if moved <= 0.05 else "BADLY CHANGED")
-                      log("    %-22s %-13s width %+.1f%%  height %+.1f%%  pixels moved %.1f%%  (%s -> %s)"
-                          % (nm, mark, d["widthChange"] * 100, d["heightChange"] * 100,
-                             d["pixelChange"] * 100, d["oldSize"], d["newSize"]))
+                      glass = d["glassCleared"] * 100
+                      log("    %-22s %-13s outline %+.1f%%  width %+.1f%%  height %+.1f%%  glass %s%.1f%%  rim %.0f->%.0f px  (%s -> %s)"
+                          % (nm, mark, d["outlineChange"] * 100, d["widthChange"] * 100, d["heightChange"] * 100,
+                             "+" if glass >= 0 else "", glass, d.get("rimWidth", (0, 0))[0], d.get("rimWidth", (0, 0))[1], d["oldSize"], d["newSize"]))
                       if moved > 0.01:
                           try:
                               url = cloudinary_upload(png, "guard-%s" % pid, cname, cpreset)
