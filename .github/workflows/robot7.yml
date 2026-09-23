@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       recut:
-        description: 'first / a frame id / reset / all / test:<id or fullrim> / test-lens:<ids, names or all> / adopt-lens:<ids or all> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
+        description: 'first / a frame id / reset / all / test:<id or fullrim> / test-lens:<ids, names or all> / guard / guard:save:<ids or all> / adopt-lens:<ids or all> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
         required: false
         default: ''
 
@@ -428,6 +428,9 @@ jobs:
           ADOPT_LENS_ONLY = [False]        # True only in an 'adopt-lens:' run
           ARMS_WARN = 0.025                # arms above the frame: rejected from 2.5% of the frame
           FILL_MIN = 0.55                  # the frame must fill at least 55% of the photo's width
+          CUT_OFF_REASON = ("Please re-take this photo a little further back: the frame runs off the edge of the "
+                            "picture, so its ends are missing. Bring the whole frame inside the picture with a "
+                            "little space all round, keeping the phone straight and at the frame's height.")
           FAR_REASON = ("Please re-take this photo a little closer: the frame is small in the picture, so its rim "
                         "comes out only a few pixels wide. Bring the frame's ends level with the marks on the "
                         "camera screen, keeping the phone straight and at the frame's height.")
@@ -2952,7 +2955,14 @@ jobs:
                           # picture is only a few pixels wide and cannot be cut cleanly.
                           _pw = max(1, a.shape[1] - 2 * px)
                           _fill = _w / float(_pw)
-                          if _fill < FILL_MIN:
+                          if _fill > 0.99:
+                              # 2026-09-23 (the "999" aviator read 137%): the frame runs
+                              # past the edge of the photo, so its ends are simply not
+                              # there -- no cut can be right, and the rim check would
+                              # only catch it afterwards.
+                              nums["reject"] = CUT_OFF_REASON
+                              log("    the frame fills %d%% of the photo's width: it is CUT OFF at the edge -> REJECTED" % (_fill * 100))
+                          elif _fill < FILL_MIN:
                               nums["reject"] = FAR_REASON
                               log("    the frame fills only %d%% of the photo's width -> REJECTED, take it closer" % (_fill * 100))
                           else:
@@ -3242,6 +3252,87 @@ jobs:
               return r.content
 
 
+          def alpha_of(png_bytes):
+              a = np.asarray(Image.open(io.BytesIO(png_bytes)).convert("RGBA"))[..., 3]
+              return a
+
+
+          def guard_compare(old_png, new_png):
+              """How far a fresh cut has moved from the approved one. Returns a dict:
+              the outline size of each, and the share of pixels that changed once the
+              two are laid on top of each other at the same size."""
+              o, n = alpha_of(old_png), alpha_of(new_png)
+              out = {"oldSize": "%dx%d" % (o.shape[1], o.shape[0]),
+                     "newSize": "%dx%d" % (n.shape[1], n.shape[0])}
+              out["widthChange"] = (n.shape[1] - o.shape[1]) / float(max(1, o.shape[1]))
+              out["heightChange"] = (n.shape[0] - o.shape[0]) / float(max(1, o.shape[0]))
+              import cv2
+              n2 = cv2.resize(n, (o.shape[1], o.shape[0]), interpolation=cv2.INTER_NEAREST)
+              solid_o, solid_n = o > 127, n2 > 127
+              diff = int((solid_o ^ solid_n).sum())
+              out["pixelChange"] = diff / float(max(1, int(solid_o.sum())))
+              return out
+
+
+          def run_guard(products, cname, cpreset):
+              """THE SAFETY NET (2026-09-23). A change to the robot must never quietly
+              spoil a frame that was already right. These reference frames carry an
+              approved cut-out; this re-cuts each one with the robot as it stands now
+              and compares. Nothing is published, nothing is saved.
+                guard:save:<ids or all-live>  remember today's cut-outs as approved
+                guard                          re-cut them all and report the differences"""
+              ref = [p for p in products if (p.get("guardBase") or {}).get("url")]
+              if not ref:
+                  log("::warning::GUARD: no reference frames yet. Run  guard:save:<ids>  on frames whose "
+                      "cut-outs you have approved, then  guard  checks every robot change against them.")
+                  return
+              log("GUARD: checking %d reference frame(s) against their approved cut-outs" % len(ref))
+              worst = 0.0
+              for p in ref:
+                  pid = str(p.get("id")); nm = (p.get("name") or "")[:22]
+                  base = p["guardBase"]
+                  try:
+                      src = front_photo(p)
+                      rim_txt = str(p.get("rim") or p.get("rimType") or "").lower()
+                      rk = rim_kind_of(rim_txt) if (is_metal(p) or str(pid) in NEW_METHOD_IDS) else ""
+                      png, nums = cut(download(src), front=True, rim_kind=rk,
+                                      half_rim_hint=any(k in rim_txt for k in ("half", "supra", "semi", "rimless")),
+                                      colour_bytes=None, front_crop=False, lens_fix=lens_ok(p))
+                      d = guard_compare(download(base["url"]), png)
+                      moved = max(abs(d["widthChange"]), abs(d["heightChange"]), d["pixelChange"])
+                      worst = max(worst, moved)
+                      mark = "SAME" if moved <= 0.01 else ("CHANGED" if moved <= 0.05 else "BADLY CHANGED")
+                      log("    %-22s %-13s width %+.1f%%  height %+.1f%%  pixels moved %.1f%%  (%s -> %s)"
+                          % (nm, mark, d["widthChange"] * 100, d["heightChange"] * 100,
+                             d["pixelChange"] * 100, d["oldSize"], d["newSize"]))
+                      if moved > 0.01:
+                          try:
+                              url = cloudinary_upload(png, "guard-%s" % pid, cname, cpreset)
+                              log("      the fresh cut: " + url)
+                          except Exception:
+                              pass
+                  except Exception as e:
+                      log("    %-22s could not be checked: %s" % (nm, str(e)[:90]))
+              if worst <= 0.01:
+                  log("::notice::GUARD: every reference frame came out the same. The change is safe.")
+              else:
+                  log("::warning::GUARD: a reference frame moved by %.1f%%. Look at the pictures above "
+                      "before putting this robot to work on the shop." % (worst * 100))
+
+
+          def save_guard(products, want):
+              """Remember today's cut-outs as the approved ones."""
+              n = 0
+              for p in products:
+                  pid = str(p.get("id"))
+                  if ("all" not in want and pid not in want) or not p.get("tryOnUrl"):
+                      continue
+                  p["guardBase"] = {"url": p["tryOnUrl"], "at": datetime.datetime.utcnow().isoformat() + "Z"}
+                  save_product(p); n += 1
+                  log("    approved cut-out remembered for %s (%s)" % (pid, (p.get("name") or "")[:24]))
+              log("::notice::GUARD: %d reference frame(s) saved. From now on  guard  checks every robot change against them." % n)
+
+
           def main():
               if not SUPABASE_URL or not SUPABASE_KEY:
                   log("STOP: SUPABASE_URL or SUPABASE_KEY is missing from the repository secrets.")
@@ -3262,6 +3353,15 @@ jobs:
               todo = [p for p in products if waiting(p)]
               recut = (os.environ.get("RECUT") or "").strip()
               test_mode = ""
+              if recut.lower().startswith("guard:save:") or recut.lower() == "guard:save":
+                  want = [x.strip() for x in recut.split(":", 2)[2].split(",") if x.strip()] if recut.count(":") >= 2 else ["all"]
+                  cname, cpreset = cloudinary_probe(products)
+                  save_guard(products, want)
+                  return 0
+              if recut.lower() == "guard":
+                  cname, cpreset = cloudinary_probe(products)
+                  run_guard(products, cname, cpreset)
+                  return 0
               if recut.lower().startswith("adopt-lens:"):
                   # like adopt:, but ONLY test cuts made by test-lens: (older test cuts,
                   # e.g. Sizzler's, are never made live by this)
