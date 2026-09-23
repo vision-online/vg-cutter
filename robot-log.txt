@@ -1,10 +1,90 @@
-Run 613  Wed Sep 23 11:37:32 UTC 2026
-Trigger: schedule
+Run 614  Wed Sep 23 12:09:14 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): Robot check: the rim came out thinner on the right lens (bottom, 50% of the other side). Not published -- needs a look, the photo is not the problem.  [I spec]
-::notice::Frames: 19. Waiting: 0. Rejected: 1.
+::notice::Frames: 19. Waiting: 1. Rejected: 1.  Trial re-cut asked for: guard
 
 --- what the robot did ---
+    Romeo line             SAME          width +0.0%  height +0.0%  pixels moved 0.0%  (779x293 -> 779x293)
+    rim type: half (0 clean lens holes)
+half-rim: 179 enclosed pieces, 3 candidates, rejected {'size': 175, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
+    half-rim cleanup: solid 56652 -> keep_main_solid 50172 -> trim 46044
+    Eyeconic               SAME          width +0.0%  height +0.0%  pixels moved 0.0%  (1523x333 -> 1523x333)
+    full rim: rim about 10 px thick, edge band 3 px (was 17)
+    rim type: full rim (1 clean lens holes)
+half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 'place': 0, 'solid': 0, 'touch': 0}
+    lens step: lenses 140678 + 137398 px (found by two openings, SAM: nothing to add); 13884 pixels of glass cleared
+    full-rim cleanup: solid 93217 -> keep_main_solid 92999
+    full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'rimIn': 0.0, 'rimOut': 11.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 5331, 'raysMoved': 254, 'byOutline': 183, 'specks': 11, 'noRim': [('L', 0, 0.82, 205.5, 205.0, 239.5, 205.0), ('L', 5, 0.97, 202.0, 202.0, 238.0, 206.0), ('R', 160, 0.71, 246.5, 243.5, 232.0, 243.5), ('R', 165, 0.61, 247.0, 244.5, 234.0, 244.5), ('R', 170, 1.0, 201.0, 200.0, 239.5, 201.0), ('R', 175, 0.71, 209.0, 208.0, 241.5, 209.0)], 'glassEdge': (957, 192), 'removed': 26608}
+    glass check: the demo is clear (0.0% left)
+    the frame fills 119% of the photo's width: it is CUT OFF at the edge -> REJECTED
+    arms above the frame: 18.4% -> REJECTED, re-shoot (nothing was cut)
+    Lot                    BADLY CHANGED width +0.4%  height +0.0%  pixels moved 10.4%  (1347x434 -> 1352x434)
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790164837/k0r3sstdl6khmuacbyi3.png
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 215771 + 223659 px (found by rim line, SAM: +2769 px of glass); 433325 pixels of glass cleared
+    glass check: the demo is clear (0.0% left)
+    the frame fills 137% of the photo's width: it is CUT OFF at the edge -> REJECTED
+    arms above the frame: 0.0% (below 2.5%, no note)
+    Heart stone            BADLY CHANGED width +0.2%  height +0.2%  pixels moved 5.7%  (1551x548 -> 1554x549)
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790164899/ifcacuehj0d18lgvwf3r.png
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 157885 + 149062 px (found by two openings, SAM: +27506 px of glass); 327465 pixels of glass cleared
+    glass check: the demo is clear (0.0% left)
+    the frame fills 134% of the photo's width: it is CUT OFF at the edge -> REJECTED
+    arms above the frame: 14.1% -> REJECTED, re-shoot (nothing was cut)
+    Sizzler                BADLY CHANGED width +0.3%  height +29.3%  pixels moved 116.4%  (1513x467 -> 1517x604)
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790165000/iwksyafvvxzhk3qf3jpu.png
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 117428 + 121260 px (found by rim line, SAM: nothing to add); 232032 pixels of glass cleared
+    glass check: the demo is clear (0.0% left)
+    the frame fills 114% of the photo's width: it is CUT OFF at the edge -> REJECTED
+    arms above the frame: 0.0% (below 2.5%, no note)
+    VG-1005 Frames         SAME          width +0.0%  height +0.0%  pixels moved 0.0%  (1131x415 -> 1131x415)
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 125045 + 132468 px (found by rim line, SAM: nothing to add); 250610 pixels of glass cleared
+    glass check: the demo is clear (0.0% left)
+    the frame fills 124% of the photo's width: it is CUT OFF at the edge -> REJECTED
+    arms above the frame: 0.0% (below 2.5%, no note)
+    I spec                 SAME          width +0.0%  height +0.0%  pixels moved 0.0%  (1231x412 -> 1231x412)
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 105716 + 102195 px (found by rim line, SAM: +2240 px of glass); 204162 pixels of glass cleared
+    glass check: the demo is clear (0.0% left)
+    the frame fills 108% of the photo's width: it is CUT OFF at the edge -> REJECTED
+    arms above the frame: 0.0% (below 2.5%, no note)
+    Romeo line             CHANGED       width +0.0%  height +0.0%  pixels moved 1.5%  (1078x394 -> 1078x394)
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790165160/othsz9hktpbticmbojzn.png
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:319: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    rim type: not set (0 clean lens holes)
+    lens step skipped, nothing changed: the two lenses are not a pair even after trimming (3133 vs 7891 px)
+    glass check: two openings found in the finished cut
+    the frame fills 80% of the photo's width
+    RIM CHECK: both rims match (thinnest spot 84% of the other side)
+    arms above the frame: 1.9% (below 2.5%, no note)
+    Novel                  SAME          width +0.0%  height +0.0%  pixels moved 0.0%  (800x271 -> 800x271)
+    rim type: full rim (1 clean lens holes)
+half-rim: 84 enclosed pieces, 7 candidates, rejected {'size': 74, 'shape': 3, 'place': 0, 'solid': 0, 'touch': 0}
+    lens step: lenses 116586 + 119728 px (found by two openings, SAM: nothing to add); 77979 pixels of glass cleared
+    full-rim cleanup: solid 49040 -> keep_main_solid 43858
+    full-rim front: {'rimT': 5.0, 'rimOff': 0.0, 'rimIn': -5.0, 'rimOut': -1.0, 'bgL': 166, 'frameL': 23, 'darkFrame': True, 'rimPutBack': 720, 'raysMoved': 2499, 'byOutline': 193, 'specks': 10, 'noRim': [('L', 20, 0.42, 180.0, 171.0, 166.0, 172.0), ('L', 45, 0.42, 193.0, 185.5, 179.5, 185.5), ('L', 50, 0.55, 190.0, 191.5, 181.0, 191.5), ('L', 55, 1.0, 177.2, 195.5, 183.5, 198.2), ('L', 60, 1.0, 168.5, None, 186.5, 202.5), ('L', 65, 1.0, 163.0, None, 189.0, None), ('L', 70, 1.0, 157.8, None, 192.0, None), ('L', 75, 1.0, 154.0, None, 134.0, None), ('L', 80, 1.0, 151.5, None, 133.0, None), ('L', 85, 1.0, 151.5, None, 127.5, None), ('L', 90, 0.7, 151.5, 134.0, 122.5, 122.5), ('L', 185, 1.0, 233.0, 233.5, 210.0, None), ('L', 190, 1.0, 236.5, 231.5, 210.0, None), ('L', 195, 0.76, 232.5, 227.5, 210.0, 225.5)], 'glassEdge': (631, 92), 'removed': 22340}
+    glass check: the demo is clear (0.4% left)
+    the frame fills 95% of the photo's width
+    RIM CHECK: the rim is broken through -> kept off the website
+    arms above the frame: 39.2% -> REJECTED, re-shoot (nothing was cut)
+    9.9.9 metal            BADLY CHANGED width -5.1%  height -26.8%  pixels moved 97.7%  (997x406 -> 946x297)
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790165280/hcirnvkka1o0vnqhy1vz.png
+    rim type: full rim (0 clean lens holes)
+half-rim: 80 enclosed pieces, 3 candidates, rejected {'size': 76, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
+    lens step skipped, nothing changed: the two biggest openings are not level
+    full-rim cleanup: solid 161477 -> keep_main_solid 137910
+    full-rim front: {'rimT': 4.0, 'rimOff': 0.0, 'rimIn': -3.0, 'rimOut': -1.0, 'bgL': 148, 'frameL': 21, 'darkFrame': True, 'rimPutBack': 6503, 'raysMoved': 2082, 'byOutline': 199, 'specks': 23, 'noRim': [('L', 15, 0.79, 249.0, 242.2, 243.0, 242.5), ('L', 25, 0.56, 244.0, 237.5, 238.2, 237.5), ('L', 30, 0.76, 243.5, None, 238.2, 237.0), ('L', 320, 1.0, 299.5, 291.0, 277.5, 289.2), ('L', 325, 1.0, 301.0, 296.5, 277.5, None), ('L', 330, 0.39, 291.0, 291.0, 277.5, 290.0), ('R', 140, 0.52, 242.0, 233.0, 236.8, 233.0), ('R', 145, 1.0, 241.5, None, 235.9, None), ('R', 150, 1.0, 242.0, None, 235.2, None), ('R', 155, 1.0, 243.0, None, 246.5, None), ('R', 160, 1.0, 249.0, None, 247.5, None), ('R', 165, 1.0, 261.0, None, 249.5, None), ('R', 170, 0.36, 253.0, 247.0, 250.0, 247.0), ('R', 210, 1.0, 298.5, 293.0, 275.0, None)], 'glassEdge': (52, 221), 'removed': 2112}
+    GLASS CHECK: the demo lenses did not clear (openings found: 0) -> kept off the website
+    the frame fills 122% of the photo's width: it is CUT OFF at the edge -> REJECTED
+    arms above the frame: 0.0% (below 2.5%, no note)
+    999                    BADLY CHANGED width -0.4%  height -2.7%  pixels moved 38.1%  (1210x488 -> 1205x475)
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790165352/baigftbxc9coiyfkyyiq.png
+  GUARD: a reference frame moved by 116.4%. Look at the pictures above before putting this robot to work on the shop.
