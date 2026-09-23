@@ -444,9 +444,15 @@ jobs:
 
 
           def lens_ok(p):
-              """May this frame be cut with the lens step?"""
+              """May this frame be cut with the lens step?
+              2026-09-22: METAL frames included. They keep their own thin-metal
+              cutting (rim_kind), but the lens step runs on them too -- without it
+              the demo lenses stay solid, the try-on cannot find the openings and
+              guesses the size (the 999 aviator sat on the face with its lenses
+              opaque). Proven on Lot: thin-metal method + lens step gave the same
+              outline size as its live cut, with the lenses cleared."""
               pid = str(p.get("id"))
-              if pid in KEEP_OLD_IDS or pid in NEW_METHOD_IDS or is_metal(p):
+              if pid in KEEP_OLD_IDS:
                   return False
               rim = str(p.get("rim") or p.get("rimType") or "").lower()
               return not any(k in rim for k in ("half", "supra", "semi", "rimless"))
@@ -2139,10 +2145,17 @@ jobs:
 
           def read_colours(rgb, alpha, bg_lum):
               """Top and bottom band of the rim: two names, and whether they differ."""
-              H = alpha.shape[0]
               solid = alpha >= 0.8
+              ys_, _xs = np.where(solid)
+              if not ys_.size:
+                  return None
+              # 2026-09-22: the bands were taken from the whole picture, so a frame
+              # sitting in the middle of a tall photo gave no colour at all. Measure
+              # the top and bottom of the FRAME.
+              fy0, fy1 = int(ys_.min()), int(ys_.max()) + 1
+              fh = max(1, fy1 - fy0)
               out = []
-              for y0, y1 in ((0, int(H * 0.40)), (int(H * 0.60), H)):
+              for y0, y1 in ((fy0, fy0 + int(fh * 0.40)), (fy0 + int(fh * 0.60), fy1)):
                   m = solid[y0:y1]
                   px = rgb[y0:y1][m]
                   out.append(px.reshape(-1, 3).mean(axis=0) if px.size else None)
@@ -3274,6 +3287,10 @@ jobs:
                           p["tryOnPrev"] = {"url": p.get("tryOnUrl"), "numbers": p.get("tryOnNumbers"),
                                             "angle": p.get("tryOnAngleUrl"), "side": p.get("tryOnSideUrl")}
                       p["tryOnUrl"] = t["url"]; p["tryOnReady"] = True
+                      if t.get("reading"):
+                          fl = apply_reading(p, t["reading"])     # shape, rim, material, colour
+                          if fl:
+                              log("    read from the photo: " + ", ".join(fl))
                       if t.get("numbers"):
                           p["tryOnNumbers"] = t["numbers"]
                       p.pop("tryOnWarning", None); p.pop("tryOnTest", None)
@@ -3544,8 +3561,11 @@ jobs:
                           if test_mode == "plain":
                               nums.pop("reading", None); warn_ = nums.pop("warning", None)
                               rej_ = nums.pop("reject", None)
+                              read_ = nums.pop("reading", None)
                               p["tryOnTest"] = {"url": url, "numbers": nums, "warning": rej_ or warn_,
                                                 "at": datetime.datetime.utcnow().isoformat() + "Z"}
+                              if read_:
+                                  p["tryOnTest"]["reading"] = read_      # applied when the cut is adopted
                               if rej_:
                                   p["tryOnTest"]["reject"] = True
                                   log("    (in a live run this photo would be REJECTED: " + rej_ + ")")
