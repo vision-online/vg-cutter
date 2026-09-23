@@ -3025,6 +3025,8 @@ jobs:
               H, W = a.shape
               a = a[py:H - py, px:W - px]
               img = img.crop((px, py, W - px, H - py))
+              if lens_mask is not None and lens_mask.shape != a.shape:
+                  lens_mask = lens_mask[py:H - py, px:W - px]    # the glass check measures the same picture
 
               if half_regions:
                   half_regions = [rg[py:H - py, px:W - px] for rg in half_regions]
