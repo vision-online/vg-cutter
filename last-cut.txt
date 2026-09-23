@@ -1,7 +1,20 @@
-Run 593  Wed Sep 23 08:02:40 UTC 2026
+Run 598  Wed Sep 23 08:42:29 UTC 2026
 
+Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
+Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
+GUARD: checking 18 reference frame(s) against their approved cut-outs
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Model loaded: ZhengPeng7/BiRefNet at 1024 px
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:319: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    rim type: not set (0 clean lens holes)
+half-rim: 138 enclosed pieces, 2 candidates, rejected {'size': 136, 'shape': 0, 'place': 0, 'solid': 0, 'touch': 0}
+    Sheet gray             SAME          width +0.0%  height +0.0%  pixels moved 0.0%  (1261x445 -> 1261x445)
+    rim type: not set (0 clean lens holes)
+half-rim: 107 enclosed pieces, 3 candidates, rejected {'size': 104, 'shape': 0, 'place': 0, 'solid': 0, 'touch': 0}
     Skechers               BADLY CHANGED width +0.4%  height +0.0%  pixels moved 35.8%  (1313x422 -> 1318x422)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790149483/gxockr91suxb2k9ulfpc.png
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790151915/lxg7zj9smiuuazzyzxpt.png
     rim type: not set (0 clean lens holes)
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_5m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
   return register_model(fn_wrapper)
@@ -13,43 +26,26 @@ Run 593  Wed Sep 23 08:02:40 UTC 2026
   return register_model(fn_wrapper)
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_512 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_512. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
   return register_model(fn_wrapper)
-    fetching MobileSAM once (about 40 MB)
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/build_sam.py:91: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
   state_dict = torch.load(f)
     MobileSAM ready
     lens step: lenses 134345 + 131921 px (found by two openings, SAM: +101 px of glass); 259931 pixels of glass cleared
-    the frame fills 116% of the photo's width: it is CUT OFF at the edge -> REJECTED
-    arms above the frame: 0.0% (below 2.5%, no note)
-    VG-1001 Frames         BADLY CHANGED width +0.1%  height +0.0%  pixels moved 10.1%  (1317x422 -> 1318x422)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790149544/sglwhodibo3amgh0vcg5.png
+    VG-1001 Frames         could not be checked: operands could not be broadcast together with shapes (1600,1600) (2080,2080) 
     rim type: not set (0 clean lens holes)
     lens step: lenses 164883 + 163677 px (found by rim line, SAM: +384 px of glass); 320474 pixels of glass cleared
-    the frame fills 122% of the photo's width: it is CUT OFF at the edge -> REJECTED
-    arms above the frame: 0.0% (below 2.5%, no note)
-    Visibilla              BADLY CHANGED width +0.0%  height +0.0%  pixels moved 29.5%  (1386x516 -> 1386x516)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790149630/n7od7ejdacjhcwipcep6.png
+    Visibilla              could not be checked: operands could not be broadcast together with shapes (1600,1600) (2080,2080) 
     rim type: not set (0 clean lens holes)
     lens step: lenses 174820 + 171473 px (found by two openings, left lens trimmed to match the other (197959 -> 174820 px), SAM: nothing to add); 338833 pixels of glass cleared
-    the frame fills 128% of the photo's width: it is CUT OFF at the edge -> REJECTED
-    arms above the frame: 0.0% (below 2.5%, no note)
-    VG-1002 Frames         SAME          width +0.0%  height +0.0%  pixels moved 0.0%  (1453x482 -> 1453x482)
+    VG-1002 Frames         could not be checked: operands could not be broadcast together with shapes (1600,1600) (2080,2080) 
     rim type: not set (0 clean lens holes)
     lens step: lenses 191060 + 189466 px (found by rim line, SAM: +845 px of glass); 371062 pixels of glass cleared
-    the frame fills 130% of the photo's width: it is CUT OFF at the edge -> REJECTED
-    arms above the frame: 0.0% (below 2.5%, no note)
-    VG-1003 Frames         SAME          width +0.0%  height +0.0%  pixels moved 0.2%  (1470x530 -> 1470x530)
+    VG-1003 Frames         could not be checked: operands could not be broadcast together with shapes (1600,1600) (2080,2080) 
     rim type: not set (0 clean lens holes)
     lens step: lenses 151726 + 153335 px (found by two openings, SAM: +481 px of glass); 298606 pixels of glass cleared
-    the frame fills 122% of the photo's width: it is CUT OFF at the edge -> REJECTED
-    arms above the frame: 0.0% (below 2.5%, no note)
-    New cat eye            BADLY CHANGED width +0.2%  height +0.0%  pixels moved 9.8%  (1381x446 -> 1384x446)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790149831/phfgaejtkhxp0sh4w7ez.png
+    New cat eye            could not be checked: operands could not be broadcast together with shapes (1600,1600) (2080,2080) 
     rim type: not set (0 clean lens holes)
     lens step: lenses 51704 + 49463 px (found by rim line, SAM: nothing to add); 97191 pixels of glass cleared
-    the frame fills 68% of the photo's width
-    RIM CHECK: both rims match (thinnest spot 86% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    Romeo line             SAME          width +0.0%  height +0.0%  pixels moved 0.0%  (779x293 -> 779x293)
+    Romeo line             could not be checked: operands could not be broadcast together with shapes (1600,1600) (2080,2080) 
     rim type: half (0 clean lens holes)
 half-rim: 179 enclosed pieces, 3 candidates, rejected {'size': 175, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
     half-rim cleanup: solid 56652 -> keep_main_solid 50172 -> trim 46044
@@ -60,42 +56,27 @@ half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 
     lens step: lenses 140678 + 137398 px (found by two openings, SAM: nothing to add); 13884 pixels of glass cleared
     full-rim cleanup: solid 93217 -> keep_main_solid 92999
     full-rim front: {'rimT': 13.0, 'rimOff': 0.0, 'rimIn': 0.0, 'rimOut': 11.0, 'bgL': 191, 'frameL': 1, 'darkFrame': True, 'rimPutBack': 5331, 'raysMoved': 254, 'byOutline': 183, 'specks': 11, 'noRim': [('L', 0, 0.82, 205.5, 205.0, 239.5, 205.0), ('L', 5, 0.97, 202.0, 202.0, 238.0, 206.0), ('R', 160, 0.71, 246.5, 243.5, 232.0, 243.5), ('R', 165, 0.61, 247.0, 244.5, 234.0, 244.5), ('R', 170, 1.0, 201.0, 200.0, 239.5, 201.0), ('R', 175, 0.71, 209.0, 208.0, 241.5, 209.0)], 'glassEdge': (957, 192), 'removed': 26608}
-    the frame fills 119% of the photo's width: it is CUT OFF at the edge -> REJECTED
-    arms above the frame: 18.4% -> REJECTED, re-shoot (nothing was cut)
-    Lot                    BADLY CHANGED width +0.4%  height +0.0%  pixels moved 10.4%  (1347x434 -> 1352x434)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790150036/m9ic7zd5cvwclzjvro1p.png
+    Lot                    could not be checked: operands could not be broadcast together with shapes (1600,1600) (2080,2080) 
     rim type: not set (0 clean lens holes)
     lens step: lenses 215771 + 223659 px (found by rim line, SAM: +2769 px of glass); 433325 pixels of glass cleared
-    the frame fills 137% of the photo's width: it is CUT OFF at the edge -> REJECTED
-    arms above the frame: 0.0% (below 2.5%, no note)
-    Heart stone            BADLY CHANGED width +0.2%  height +0.2%  pixels moved 5.7%  (1551x548 -> 1554x549)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790150099/z4u3swppiygwrj5ocl1q.png
+    Heart stone            could not be checked: operands could not be broadcast together with shapes (1600,1600) (2080,2080) 
     rim type: not set (0 clean lens holes)
     lens step: lenses 157885 + 149062 px (found by two openings, SAM: +27506 px of glass); 327465 pixels of glass cleared
-    the frame fills 134% of the photo's width: it is CUT OFF at the edge -> REJECTED
-    arms above the frame: 14.1% -> REJECTED, re-shoot (nothing was cut)
-    Sizzler                BADLY CHANGED width +0.3%  height +29.3%  pixels moved 116.4%  (1513x467 -> 1517x604)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790150199/sfssessiaqejlgclwzl5.png
+    Sizzler                could not be checked: operands could not be broadcast together with shapes (1600,1600) (2080,2080) 
     rim type: not set (0 clean lens holes)
     lens step: lenses 117428 + 121260 px (found by rim line, SAM: nothing to add); 232032 pixels of glass cleared
-    the frame fills 114% of the photo's width: it is CUT OFF at the edge -> REJECTED
-    arms above the frame: 0.0% (below 2.5%, no note)
-    VG-1005 Frames         SAME          width +0.0%  height +0.0%  pixels moved 0.0%  (1131x415 -> 1131x415)
+    VG-1005 Frames         could not be checked: operands could not be broadcast together with shapes (1050,1400) (1364,1820) 
     rim type: not set (0 clean lens holes)
     lens step: lenses 125045 + 132468 px (found by rim line, SAM: nothing to add); 250610 pixels of glass cleared
-    the frame fills 124% of the photo's width: it is CUT OFF at the edge -> REJECTED
-    arms above the frame: 0.0% (below 2.5%, no note)
-    I spec                 SAME          width +0.0%  height +0.0%  pixels moved 0.0%  (1231x412 -> 1231x412)
+    I spec                 could not be checked: operands could not be broadcast together with shapes (788,1400) (1024,1820) 
     rim type: not set (0 clean lens holes)
     lens step: lenses 105716 + 102195 px (found by rim line, SAM: +2240 px of glass); 204162 pixels of glass cleared
-    the frame fills 108% of the photo's width: it is CUT OFF at the edge -> REJECTED
-    arms above the frame: 0.0% (below 2.5%, no note)
-    Romeo line             CHANGED       width +0.0%  height +0.0%  pixels moved 1.5%  (1078x394 -> 1078x394)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790150362/dqdzdmqveyywakjjzzfj.png
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:316: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
+    Romeo line             could not be checked: operands could not be broadcast together with shapes (788,1400) (1024,1820) 
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:319: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
     rim type: not set (0 clean lens holes)
     lens step skipped, nothing changed: the two lenses are not a pair even after trimming (3133 vs 7891 px)
+    glass check: two openings found in the finished cut
     the frame fills 80% of the photo's width
     RIM CHECK: both rims match (thinnest spot 84% of the other side)
     arms above the frame: 1.9% (below 2.5%, no note)
@@ -105,18 +86,15 @@ half-rim: 84 enclosed pieces, 7 candidates, rejected {'size': 74, 'shape': 3, 'p
     lens step: lenses 116586 + 119728 px (found by two openings, SAM: nothing to add); 77979 pixels of glass cleared
     full-rim cleanup: solid 49040 -> keep_main_solid 43858
     full-rim front: {'rimT': 5.0, 'rimOff': 0.0, 'rimIn': -5.0, 'rimOut': -1.0, 'bgL': 166, 'frameL': 23, 'darkFrame': True, 'rimPutBack': 720, 'raysMoved': 2499, 'byOutline': 193, 'specks': 10, 'noRim': [('L', 20, 0.42, 180.0, 171.0, 166.0, 172.0), ('L', 45, 0.42, 193.0, 185.5, 179.5, 185.5), ('L', 50, 0.55, 190.0, 191.5, 181.0, 191.5), ('L', 55, 1.0, 177.2, 195.5, 183.5, 198.2), ('L', 60, 1.0, 168.5, None, 186.5, 202.5), ('L', 65, 1.0, 163.0, None, 189.0, None), ('L', 70, 1.0, 157.8, None, 192.0, None), ('L', 75, 1.0, 154.0, None, 134.0, None), ('L', 80, 1.0, 151.5, None, 133.0, None), ('L', 85, 1.0, 151.5, None, 127.5, None), ('L', 90, 0.7, 151.5, 134.0, 122.5, 122.5), ('L', 185, 1.0, 233.0, 233.5, 210.0, None), ('L', 190, 1.0, 236.5, 231.5, 210.0, None), ('L', 195, 0.76, 232.5, 227.5, 210.0, 225.5)], 'glassEdge': (631, 92), 'removed': 22340}
-    the frame fills 95% of the photo's width
-    RIM CHECK: the rim is broken through -> kept off the website
-    arms above the frame: 39.2% -> REJECTED, re-shoot (nothing was cut)
-    9.9.9 metal            BADLY CHANGED width -5.1%  height -26.8%  pixels moved 97.7%  (997x406 -> 946x297)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790150484/vmqiomrfn3yrfbhetrpp.png
+    9.9.9 metal            could not be checked: operands could not be broadcast together with shapes (788,1400) (1024,1820) 
     rim type: full rim (0 clean lens holes)
 half-rim: 80 enclosed pieces, 3 candidates, rejected {'size': 76, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
     lens step skipped, nothing changed: the two biggest openings are not level
     full-rim cleanup: solid 161477 -> keep_main_solid 137910
     full-rim front: {'rimT': 4.0, 'rimOff': 0.0, 'rimIn': -3.0, 'rimOut': -1.0, 'bgL': 148, 'frameL': 21, 'darkFrame': True, 'rimPutBack': 6503, 'raysMoved': 2082, 'byOutline': 199, 'specks': 23, 'noRim': [('L', 15, 0.79, 249.0, 242.2, 243.0, 242.5), ('L', 25, 0.56, 244.0, 237.5, 238.2, 237.5), ('L', 30, 0.76, 243.5, None, 238.2, 237.0), ('L', 320, 1.0, 299.5, 291.0, 277.5, 289.2), ('L', 325, 1.0, 301.0, 296.5, 277.5, None), ('L', 330, 0.39, 291.0, 291.0, 277.5, 290.0), ('R', 140, 0.52, 242.0, 233.0, 236.8, 233.0), ('R', 145, 1.0, 241.5, None, 235.9, None), ('R', 150, 1.0, 242.0, None, 235.2, None), ('R', 155, 1.0, 243.0, None, 246.5, None), ('R', 160, 1.0, 249.0, None, 247.5, None), ('R', 165, 1.0, 261.0, None, 249.5, None), ('R', 170, 0.36, 253.0, 247.0, 250.0, 247.0), ('R', 210, 1.0, 298.5, 293.0, 275.0, None)], 'glassEdge': (52, 221), 'removed': 2112}
+    GLASS CHECK: the demo lenses did not clear (openings found: 0) -> kept off the website
     the frame fills 122% of the photo's width: it is CUT OFF at the edge -> REJECTED
     arms above the frame: 0.0% (below 2.5%, no note)
     999                    BADLY CHANGED width -0.4%  height -2.7%  pixels moved 38.1%  (1210x488 -> 1205x475)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790150558/esaurexy9oe1aoqcadop.png
-  GUARD: a reference frame moved by 116.4%. Look at the pictures above before putting this robot to work on the shop.
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790152947/m3sscsbv23bcglqncbcj.png
+  GUARD: a reference frame moved by 38.1%. Look at the pictures above before putting this robot to work on the shop.
