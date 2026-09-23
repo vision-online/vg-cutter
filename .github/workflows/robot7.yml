@@ -2514,6 +2514,92 @@ jobs:
                   return None
 
 
+          SAM_ON = True                    # MobileSAM helps find the glass (free, Apache licence)
+          SAM_URL = "https://github.com/ChaoningZhang/MobileSAM/raw/master/weights/mobile_sam.pt"
+          _SAM = [None]
+
+
+          def sam_predictor():
+              """MobileSAM, downloaded once and kept in the run cache. If anything is
+              missing the robot simply carries on with its own lens finding."""
+              if _SAM[0] is not None:
+                  return _SAM[0] or None
+              try:
+                  import torch
+                  from mobile_sam import sam_model_registry, SamPredictor
+                  w = os.path.join(os.path.expanduser("~"), ".cache", "mobile_sam.pt")
+                  if not os.path.exists(w):
+                      os.makedirs(os.path.dirname(w), exist_ok=True)
+                      log("    fetching MobileSAM once (about 40 MB)")
+                      with open(w, "wb") as f:
+                          f.write(download(SAM_URL))
+                  sam = sam_model_registry["vit_t"](checkpoint=w)
+                  sam.eval()
+                  _SAM[0] = SamPredictor(sam)
+                  log("    MobileSAM ready")
+              except Exception as e:
+                  _SAM[0] = False
+                  log("    MobileSAM not available (%s) -- carrying on without it" % str(e)[:80])
+              return _SAM[0] or None
+
+
+          def sam_open_lenses(img, alpha, lens, band_px):
+              """Ask MobileSAM for the glass, one lens at a time, prompted with a point
+              inside the opening the robot already found.
+
+              The answer may only ADD to what is already cleared, never take away, and
+              never reach the band along the frame's outer edge. An answer that does
+              not contain what we had, or is far larger, is ignored. So the worst case
+              is today's result; the best case is a lens cleared properly on a rim the
+              edge rules cannot read (a streaked crystal rim, a 4 px metal rim).
+              Returns (new lens mask, note)."""
+              from scipy import ndimage
+              pred = sam_predictor()
+              if pred is None:
+                  return lens, ""
+              lab, n = ndimage.label(lens)
+              if n < 2:
+                  return lens, "SAM: skipped, no pair to prompt with"
+              sizes = ndimage.sum(lens, lab, range(1, n + 1))
+              two = [int(i) + 1 for i in np.argsort(sizes)[-2:]]
+              rgb = np.asarray(img.convert("RGB"))
+              solid = alpha > 0.5
+              outside = ndimage.binary_propagation(_border(~solid), mask=~solid)
+              keep_off = ndimage.binary_dilation(outside, iterations=int(band_px))
+              try:
+                  pred.set_image(rgb)
+              except Exception as e:
+                  return lens, "SAM: could not read the picture (%s)" % str(e)[:60]
+              out = lens.copy(); added = 0
+              for i in two:
+                  comp = lab == i
+                  ys, xs = np.where(comp)
+                  cy, cx = int(ys.mean()), int(xs.mean())
+                  if not comp[cy, cx]:                      # centre of gravity outside the shape
+                      cy, cx = int(ys[len(ys) // 2]), int(xs[len(xs) // 2])
+                  try:
+                      masks, scores, _ = pred.predict(
+                          point_coords=np.array([[cx, cy]]), point_labels=np.array([1]), multimask_output=True)
+                  except Exception as e:
+                      return lens, "SAM: no answer (%s)" % str(e)[:60]
+                  best = None
+                  for m in masks:
+                      m = m.astype(bool)
+                      if (m & keep_off).any():
+                          continue                          # reaches the frame's outer edge: not glass
+                      inside = (m & comp).sum() / float(max(1, comp.sum()))
+                      grow = m.sum() / float(max(1, comp.sum()))
+                      if inside < 0.85 or grow > 1.6 or grow < 0.9:
+                          continue                          # must contain what we had, and stay its size
+                      if best is None or m.sum() > best.sum():
+                          best = m
+                  if best is not None:
+                      gain = int((best & ~out).sum())
+                      if gain > 0:
+                          out |= best; added += gain
+              return out, ("SAM: +%d px of glass" % added if added else "SAM: nothing to add")
+
+
           def photo_lens_openings(img, alpha, band_px):
               """
               LENS STEP (2026-09-21). The AI often keeps part of the glass as frame:
@@ -2715,6 +2801,13 @@ jobs:
                   return None, "lens size out of range (%.0f%%, %.0f%% of the frame box)" % (
                       100.0 * areas[0] / box_area, 100.0 * areas[1] / box_area)
               lens = cv2.erode(lens, np.ones((5, 5), np.uint8)).astype(bool)   # 2 px off the rim's inner edge
+              full0 = np.zeros((H0, W0), bool)
+              full0[y0:y1, x0:x1] = lens
+              if SAM_ON:
+                  full0, snote = sam_open_lenses(img, alpha, full0, band_px)
+                  if snote:
+                      how += ", " + snote
+                  lens = full0[y0:y1, x0:x1]
               full = np.zeros((H0, W0), bool)
               full[y0:y1, x0:x1] = lens
               guard = ndimage.binary_dilation(outside, iterations=int(band_px))
@@ -3765,6 +3858,7 @@ jobs:
           pymatting==1.1.12
           opencv-python-headless==4.10.0.84
           requests==2.32.3
+          git+https://github.com/ChaoningZhang/MobileSAM.git
           PYEOF
           echo "robot unpacked: $(wc -l < vg_look.py) + $(wc -l < vg_cut.py) lines"
 
@@ -3791,8 +3885,10 @@ jobs:
         if: steps.look.outputs.waiting != '0'
         uses: actions/cache@v4
         with:
-          path: ~/.cache/huggingface
-          key: birefnet-cache-v1
+          path: |
+            ~/.cache/huggingface
+            ~/.cache/mobile_sam.pt
+          key: birefnet-cache-v2
 
       - name: Cut whatever is waiting
         if: steps.look.outputs.waiting != '0'
