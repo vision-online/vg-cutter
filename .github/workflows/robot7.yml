@@ -438,6 +438,9 @@ jobs:
                              "than it is wide). Stand or lay the frame the right way up, hold the phone straight "
                              "in front of it, and take it again.")
           SIDE_WARN = 0.03                 # a thin strip beyond an end longer than 3% of the width = an arm
+          GLASS_LEFT = 0.02                # more than 2% of a lens still solid = the glass did not clear
+          GLASS_REASON = ("Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the "
+                          "customer would see it over their eye. Not published, needs a look.")
           RIM_MIN = 0.75                   # rim thinner than 75% of the other side's (mirrored) = not published
           ARMS_SIDE_REASON = ("Please re-take this photo: an arm shows beside the frame, so the phone was held "
                               "at an angle. Hold the phone straight in front of the frame, at the same height, "
@@ -2922,6 +2925,7 @@ jobs:
                           if rim_kind:
                               a = firm_rim(a)                      # new method only
               lens_ran = False
+              lens_mask = None
               if front and lens_fix:
                   # step 5z (LENS STEP): lens openings found from the photo's own
                   # edges and cleared. Only frames in LENS_FIX_IDS, or a test-lens run.
@@ -2931,6 +2935,7 @@ jobs:
                       lz, lnote = None, "error: %s" % str(ex)[:120]
                   if lz is not None:
                       lens_ran = True
+                      lens_mask = lz
                       was = int(((a > 0.5) & lz).sum())
                       a = np.where(lz, np.float32(0.0), a).astype(np.float32)
                       log("    lens step: %s; %d pixels of glass cleared" % (lnote, was))
@@ -3030,6 +3035,41 @@ jobs:
               if (off_x or off_y) and not rim_kind:
                   for e in nums.get("lenses") or []:              # positions as in the whole photo
                       e["centreX"] = float(e["centreX"] + off_x); e["centreY"] = float(e["centreY"] + off_y)
+              if front and LENS_MODE[0] and lens_mask is not None:
+                  # THE DEMO MUST BE TRANSPARENT (2026-09-23, Rauf's rule). Steps after
+                  # the lens step can close part of an opening again, and the try-on
+                  # then reads the lens in the wrong place (Novel sat 8mm low because
+                  # only the half above the join line had cleared). Measure what is
+                  # left inside the openings; clear it once more with the same mask,
+                  # which has already passed every rim check; refuse if it is still
+                  # not clear.
+                  left = float(((a > 0.5) & lens_mask).sum()) / max(1.0, float(lens_mask.sum()))
+                  if left > GLASS_LEFT:
+                      a = np.where(lens_mask, np.float32(0.0), a).astype(np.float32)
+                      left2 = float(((a > 0.5) & lens_mask).sum()) / max(1.0, float(lens_mask.sum()))
+                      log("    glass check: %.1f%% of the lens was solid again -> cleared once more (now %.1f%%)"
+                          % (left * 100, left2 * 100))
+                      left = left2
+                  if left > GLASS_LEFT:
+                      nums["reject"] = GLASS_REASON
+                      log("    GLASS CHECK: %.1f%% of the lens is still solid -> kept off the website" % (left * 100))
+                  else:
+                      log("    glass check: the demo is clear (%.1f%% left)" % (left * 100))
+              if front and LENS_MODE[0] and lens_mask is None and not nums.get("reject"):
+                  # the lens step could not run: then the finished frame must still
+                  # enclose two openings, or the demo lenses are solid (the "999"
+                  # aviator went on the face with its lenses opaque)
+                  from scipy import ndimage as _nd
+                  _h, _ = lens_holes(a)
+                  _lab, _n = _nd.label(_h)
+                  _big = sorted([int(s) for s in _nd.sum(_h, _lab, range(1, _n + 1))], reverse=True) if _n else []
+                  _need = 0.02 * float((a > 0.5).sum())
+                  if len(_big) < 2 or _big[1] < _need:
+                      nums["reject"] = GLASS_REASON
+                      log("    GLASS CHECK: the demo lenses did not clear (openings found: %d) -> kept off the website"
+                          % len([b for b in _big if b >= _need]))
+                  else:
+                      log("    glass check: two openings found in the finished cut")
               if front and LENS_MODE[0]:
                   # SIDEWAYS PHOTO (2026-09-22, the "I spec" frame came out standing on
                   # end, one lens above the other: the try-on then reads the distance
