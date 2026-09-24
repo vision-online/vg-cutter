@@ -3044,7 +3044,7 @@ jobs:
               # the robot straightens the cut-out instead: it turns it until the line
               # between the two lens centres is level. The shelf lines up, and the
               # try-on stops drawing a tilted frame on a customer's face.
-              if front and LENS_MODE[0]:
+              if front:
                   try:
                       _m0 = measurements(a)
                       _e0 = _m0.get("lenses") or []
@@ -3073,7 +3073,7 @@ jobs:
               if (off_x or off_y) and not rim_kind:
                   for e in nums.get("lenses") or []:              # positions as in the whole photo
                       e["centreX"] = float(e["centreX"] + off_x); e["centreY"] = float(e["centreY"] + off_y)
-              if front and LENS_MODE[0] and not nums.get("reject"):
+              if front and not nums.get("reject"):
                   # THE SIZE THE CUSTOMER WILL SEE (2026-09-23). The try-on works the
                   # frame's width out from the lens centres in this cut-out and the
                   # lens + bridge the shop typed. If the cut is wrong, the frame is
@@ -3098,7 +3098,7 @@ jobs:
                                   log("    SIZE CHECK: %.0f%% away from the typed numbers -> kept off the website" % (_off * 100))
                   except Exception as _ex:
                       log("    size check could not run: %s" % str(_ex)[:80])
-              if front and LENS_MODE[0] and lens_mask is not None:
+              if front and lens_mask is not None:
                   # THE DEMO MUST BE TRANSPARENT (2026-09-23, Rauf's rule). Steps after
                   # the lens step can close part of an opening again, and the try-on
                   # then reads the lens in the wrong place (Novel sat 8mm low because
@@ -3118,7 +3118,7 @@ jobs:
                       log("    GLASS CHECK: %.1f%% of the lens is still solid -> kept off the website" % (left * 100))
                   else:
                       log("    glass check: the demo is clear (%.1f%% left)" % (left * 100))
-              if front and LENS_MODE[0] and lens_mask is None and not nums.get("reject"):
+              if front and lens_mask is None and not nums.get("reject") and not half_rim_hint:
                   # the lens step could not run: then the finished frame must still
                   # enclose two openings, or the demo lenses are solid (the "999"
                   # aviator went on the face with its lenses opaque)
@@ -3133,7 +3133,7 @@ jobs:
                           % len([b for b in _big if b >= _need]))
                   else:
                       log("    glass check: two openings found in the finished cut")
-              if front and LENS_MODE[0]:
+              if front:
                   # SIDEWAYS PHOTO (2026-09-22, the "I spec" frame came out standing on
                   # end, one lens above the other: the try-on then reads the distance
                   # between lens centres as tiny and draws the frame huge on the face).
@@ -3170,7 +3170,7 @@ jobs:
                           nums["photoFrac"] = round(_fill, 4)
                           nums["photoCx"] = round(((_xs.min() + _xs.max()) / 2.0 - px) / float(_pw), 4)
                           nums["photoCy"] = round(((_ys.min() + _ys.max()) / 2.0 - py) / float(max(1, a.shape[0] - 2 * py)), 4)
-              if front and LENS_MODE[0] and not nums.get("reject"):
+              if front and not nums.get("reject"):
                   try:
                       rb = rim_balance(a)
                   except Exception as ex:
