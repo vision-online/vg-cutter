@@ -3143,7 +3143,7 @@ jobs:
                       log("    GLASS CHECK: %.1f%% of the lens is still solid -> kept off the website" % (left * 100))
                   else:
                       log("    glass check: the demo is clear (%.1f%% left)" % (left * 100))
-              if front and lens_mask is None and not nums.get("reject") and not half_rim_hint:
+              if front and lens_mask is None and not nums.get("reject") and not half_rim_hint and half_ring is None:
                   # the lens step could not run: then the finished frame must still
                   # enclose two openings, or the demo lenses are solid (the "999"
                   # aviator went on the face with its lenses opaque)
@@ -3195,7 +3195,10 @@ jobs:
                           nums["photoFrac"] = round(_fill, 4)
                           nums["photoCx"] = round(((_xs.min() + _xs.max()) / 2.0 - px) / float(_pw), 4)
                           nums["photoCy"] = round(((_ys.min() + _ys.max()) / 2.0 - py) / float(max(1, a.shape[0] - 2 * py)), 4)
-              if front and not nums.get("reject"):
+              if front and not nums.get("reject") and half_ring is None and not half_rim_hint:
+                  # (half-rim and rimless frames have no rim below the lens by design, so
+                  #  comparing rim thickness around the lens means nothing there -- 25 Sep,
+                  #  Eyeconic was held off for a "6% bottom rim" it never had)
                   try:
                       rb = rim_balance(a)
                   except Exception as ex:
