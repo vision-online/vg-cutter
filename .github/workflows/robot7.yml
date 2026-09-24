@@ -443,6 +443,7 @@ jobs:
           SIZE_REASON = ("Robot check: the cut-out does not match the numbers typed for this frame -- the try-on would "
                          "draw it the wrong size on a customer. Not published, needs a look at the photo and at the "
                          "lens and bridge boxes.")
+          LENS_EDGE = 0.80                 # the thin bright line along the lens edge on a half-rim or rimless frame
           LENS_TINT = 0.17                 # how visible the demo is on a half-rim or rimless frame (0 = invisible; the shop settled on 17% on 25 Sep)
           GLASS_LEFT = 0.02                # more than 2% of a lens still solid = the glass did not clear
           GLASS_REASON = ("Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the "
@@ -1354,7 +1355,7 @@ jobs:
               out = alpha.copy()
               ring_all = np.zeros_like(alpha, dtype=bool)
               for r in regions:
-                  inner = ndimage.binary_erosion(r, iterations=2)
+                  inner = ndimage.binary_erosion(r, iterations=3)   # 3 px: about 1.5 px on a phone, like a real lens edge (25 Sep)
                   ring = r & ~inner
                   out[inner] = 0.0
                   out[ring] = 1.0                 # solid for now, so the arm rules can see the opening
@@ -2908,7 +2909,7 @@ jobs:
               # HALF-RIM: metal on top only, the demo lens on a thread below. No closed
               # hole, so trace the lens edge from the photograph instead; its ring is
               # made solid for the moment so every rule below sees a proper opening.
-              half_ring = None; half_regions = []; tint_mask = None
+              half_ring = None; half_regions = []; tint_mask = None; edge_mask = None
               if front and rim_kind == "full":
                   # FULL RIM (typed in admin): never the half-rim path. If the
                   # model kept the glass solid, the traced outline is used only to
@@ -3029,8 +3030,11 @@ jobs:
                       a, finfo = shape_full_rim_front(img, a, regs)
                       log("    full-rim front: %s" % (finfo,))
               if half_ring is not None:
-                  # the demo lens edge: a faint thin line, as a real one shows
-                  a = np.where(half_ring & (a > 0.5), np.float32(0.45), a).astype(np.float32)
+                  # the demo lens edge: a thin line, as a real one shows -- painted bright
+                  # into the finished pixels at the very end (25 Sep), because at a faint
+                  # sheet grey it could not be seen on a face
+                  edge_mask = half_ring & (a > 0.5)
+                  a = np.where(edge_mask, np.float32(LENS_EDGE), a).astype(np.float32)
 
               # A LITTLE TINT ON THE DEMO, HALF-RIM AND RIMLESS ONLY (2026-09-24, shop).
               # With nothing below the lens, a fully transparent demo leaves only a bar
@@ -3058,6 +3062,8 @@ jobs:
                   lens_mask = lens_mask[py:H - py, px:W - px]    # the glass check measures the same picture
               if tint_mask is not None and tint_mask.shape != a.shape:
                   tint_mask = tint_mask[py:H - py, px:W - px]
+              if edge_mask is not None and edge_mask.shape != a.shape:
+                  edge_mask = edge_mask[py:H - py, px:W - px]
 
               # LEVELLING (2026-09-23, Rauf: every frame on the shelf must look level,
               # the way an optical company's pictures do). They fix the camera on a
@@ -3083,6 +3089,8 @@ jobs:
                                   lens_mask = _rot(lens_mask.astype(np.uint8) * 255, 0) > 127
                               if tint_mask is not None:
                                   tint_mask = _rot(tint_mask.astype(np.uint8) * 255, 0) > 127
+                              if edge_mask is not None:
+                                  edge_mask = _rot(edge_mask.astype(np.uint8) * 255, 0) > 127
                               log("    levelled: the frame was %.1f degrees off, turned straight" % _tilt)
                   except Exception as _ex:
                       log("    levelling could not run: %s" % str(_ex)[:80])
@@ -3252,6 +3260,11 @@ jobs:
                   _m = tint_mask & (a <= LENS_TINT + 0.01)
                   rgba[_m, 0] = 232; rgba[_m, 1] = 236; rgba[_m, 2] = 244
                   rgba[_m, 3] = int(round(LENS_TINT * 255))
+              if edge_mask is not None and edge_mask.shape == a.shape and edge_mask.any():
+                  # the lens edge line, bright and thin, like the edge of a real demo lens
+                  rgba = rgba.copy() if not rgba.flags.writeable else rgba
+                  rgba[edge_mask, 0] = 242; rgba[edge_mask, 1] = 245; rgba[edge_mask, 2] = 250
+                  rgba[edge_mask, 3] = int(round(LENS_EDGE * 255))
               ys, xs = np.where(a > 0.02)
               if ys.size:
                   pad = 4
