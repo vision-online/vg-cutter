@@ -1,4 +1,4 @@
-Run 764  Thu Sep 24 19:01:58 UTC 2026
+Run 766  Thu Sep 24 19:11:46 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Trial re-cut of pmu4gg5u210 (Eyeconic).
@@ -15,7 +15,5 @@ half-rim: 179 enclosed pieces, 3 candidates, rejected {'size': 175, 'shape': 1, 
     a little tint left on the demo (half-rim / rimless): 415505 px
     size check: frame works out at 134 mm (typed 53 + 17 -> about 142 mm expected)
     the frame fills 94% of the photo's width
-    RIM CHECK: right rim only 6% of the other side near the bottom -> kept off the website
-  pmu4gg5u210 REJECTED, kept off the website: Robot check: the rim came out thinner on the right lens (bottom, 6% of the other side). Not published -- needs a look, the photo is not the problem.
-  Why they were held back: 1 rim damaged
-  Finished. Cut 0, failed 0, rejected 1, still waiting 1.  Rejected: Eyeconic: Robot check: the rim came out thinner on the right lens (bottom, 6% of the other side). Not published -- needs a look, the photo is not the problem.
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790277103/qyeuu6nxe8tfwtklwaef.png
+  Finished. Cut 1, failed 0, rejected 0, still waiting 0.
