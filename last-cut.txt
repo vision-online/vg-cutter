@@ -1,4 +1,4 @@
-Run 732  Thu Sep 24 12:42:46 UTC 2026
+Run 745  Thu Sep 24 15:47:45 UTC 2026
 
     arms above the frame: 0.0% (below 2.5%, no note)
     VG-1002 Frames         SAME          outline +0.0%  width +0.0%  height +0.0%  glass +0.0%  rim 33->33 px  (1453x482 -> 1453x482)
@@ -18,7 +18,7 @@ Run 732  Thu Sep 24 12:42:46 UTC 2026
     RIM CHECK: both rims match (thinnest spot 94% of the other side)
     arms above the frame: 0.0% (below 2.5%, no note)
     New cat eye            CHANGED       outline +1.1%  width +0.2%  height +0.0%  glass -1.5%  rim 22->25 px  (1381x446 -> 1384x446)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790253145/fb48lskwiv8cabtpgvyn.png
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790264228/ta46prx472cp76jscrro.png
     rim type: not set (0 clean lens holes)
     lens step: lenses 51704 + 49463 px (found by rim line, SAM: nothing to add); 97191 pixels of glass cleared
     levelled: the frame was 0.7 degrees off, turned straight
@@ -28,7 +28,7 @@ Run 732  Thu Sep 24 12:42:46 UTC 2026
     RIM CHECK: both rims match (thinnest spot 91% of the other side)
     arms above the frame: 0.0% (below 2.5%, no note)
     Romeo line             CHANGED       outline +2.7%  width +0.1%  height -1.0%  glass +0.6%  rim 27->26 px  (779x293 -> 780x290)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790253206/t6agdx0qm7y4zzxwrqok.png
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790264293/tmt5u1qmxvrosmzjzgdz.png
     rim type: half (0 clean lens holes)
 half-rim: 179 enclosed pieces, 3 candidates, rejected {'size': 175, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
     half-rim cleanup: solid 56652 -> keep_main_solid 50172 -> trim 46044
@@ -48,7 +48,7 @@ half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 
     RIM CHECK: both rims match (thinnest spot 81% of the other side)
     arms above the frame: 18.4% -> REJECTED, re-shoot (nothing was cut)
     Lot                    CHANGED       outline +4.3%  width +0.4%  height -0.5%  glass -0.2%  rim 12->12 px  (1347x434 -> 1353x432)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790253336/fy5tr63cgdfiecggxpq6.png
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790264426/gihisz7ejwiqx6450srn.png
     rim type: not set (0 clean lens holes)
     lens step: lenses 215771 + 223659 px (found by rim line, SAM: +2769 px of glass); 433325 pixels of glass cleared
     levelled: the frame was 0.7 degrees off, turned straight
@@ -58,7 +58,7 @@ half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 
     RIM CHECK: both rims match (thinnest spot 93% of the other side)
     arms above the frame: 0.0% (below 2.5%, no note)
     Heart stone            CHANGED       outline +1.9%  width +0.3%  height -0.4%  glass -0.1%  rim 38->40 px  (1551x548 -> 1556x546)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790253395/uogebr2qrkizczo7gn5x.png
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790264487/jzwtc8b5ks6st5szbe0b.png
     rim type: not set (0 clean lens holes)
     lens step: lenses 157885 + 149062 px (found by two openings, SAM: +27506 px of glass); 327465 pixels of glass cleared
     levelled: the frame was 1.0 degrees off, turned straight
@@ -68,7 +68,7 @@ half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 
     RIM CHECK: right rim only 68% of the other side near the bottom -> kept off the website
     arms above the frame: 14.1% -> REJECTED, re-shoot (nothing was cut)
     Sizzler                BADLY CHANGED outline +24.6%  width +0.4%  height +27.6%  glass -13.2%  rim 45->36 px  (1513x467 -> 1519x596)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790253494/cvrqah1jqdvwjyhk6hbt.png
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790264587/z0xsnkfaym9bxv3dbwdc.png
     rim type: not set (0 clean lens holes)
     lens step: lenses 117428 + 121260 px (found by rim line, SAM: nothing to add); 232032 pixels of glass cleared
     size check: frame works out at 136 mm (typed 52 + 18 -> about 133 mm expected)
@@ -94,7 +94,7 @@ half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 
     RIM CHECK: both rims match (thinnest spot 78% of the other side)
     arms above the frame: 0.0% (below 2.5%, no note)
     Romeo line             CHANGED       outline +1.0%  width +0.1%  height +0.0%  glass +0.5%  rim 31->31 px  (1078x394 -> 1079x394)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790253650/jmnog9ixhvpi3wfz6jgx.png
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790264744/lznhd9tprc55gfxn9lbx.png
 /home/runner/work/vg-cutter/vg-cutter/vg_cut.py:324: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
     rim type: not set (0 clean lens holes)
@@ -106,7 +106,7 @@ half-rim: 128 enclosed pieces, 2 candidates, rejected {'size': 123, 'shape': 3, 
     RIM CHECK: both rims match (thinnest spot 82% of the other side)
     arms above the frame: 1.9% (below 2.5%, no note)
     Novel                  BADLY CHANGED outline +8.8%  width +0.2%  height -1.1%  glass +0.4%  rim 16->16 px  (800x271 -> 802x268)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790253699/ugv9day2f3vkgeqyqcgg.png
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790264794/v8csiipadjixgxhgpfsr.png
     rim type: full rim (1 clean lens holes)
 half-rim: 84 enclosed pieces, 7 candidates, rejected {'size': 74, 'shape': 3, 'place': 0, 'solid': 0, 'touch': 0}
     lens step: lenses 116586 + 119728 px (found by two openings, SAM: nothing to add); 77979 pixels of glass cleared
@@ -118,5 +118,5 @@ half-rim: 84 enclosed pieces, 7 candidates, rejected {'size': 74, 'shape': 3, 'p
     RIM CHECK: the rim is broken through -> kept off the website
     arms above the frame: 39.2% -> REJECTED, re-shoot (nothing was cut)
     9.9.9 metal            BADLY CHANGED outline +97.4%  width -5.1%  height -26.8%  glass -4.4%  rim 6->2 px  (997x406 -> 946x297)
-      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790253764/q0uqaolnnzfklm9wrssv.png
+      the fresh cut: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790264863/aa6tjquvvomkn5iezval.png
   GUARD: a reference frame moved by 97.4%. Look at the pictures above before putting this robot to work on the shop.
