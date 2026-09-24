@@ -1,4 +1,4 @@
-Run 766  Thu Sep 24 19:11:46 UTC 2026
+Run 768  Thu Sep 24 19:29:56 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Trial re-cut of pmu4gg5u210 (Eyeconic).
@@ -15,5 +15,5 @@ half-rim: 179 enclosed pieces, 3 candidates, rejected {'size': 175, 'shape': 1, 
     a little tint left on the demo (half-rim / rimless): 415505 px
     size check: frame works out at 134 mm (typed 53 + 17 -> about 142 mm expected)
     the frame fills 94% of the photo's width
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790277103/qyeuu6nxe8tfwtklwaef.png
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790278194/tbsbz2m2qe4bbgeiww99.png
   Finished. Cut 1, failed 0, rejected 0, still waiting 0.
