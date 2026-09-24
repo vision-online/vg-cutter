@@ -3184,6 +3184,7 @@ jobs:
                       # encloses two: a rim has been cut right through
                       nums["reject"] = ("Robot check: the rim came out broken (a lens is open to the outside). "
                                         "Not published -- needs a look, the photo is not the problem.")
+                      nums["rimBad"] = True     # so the second try can see it even if a later check changes the reason
                       log("    RIM CHECK: the rim is broken through -> kept off the website")
                   if rb is not None and rb[1] is not None:
                       where_ = {0: "bridge side", 90: "top", 180: "outer side", 270: "bottom"}   # as seen on the left lens
@@ -3192,6 +3193,7 @@ jobs:
                           nums["reject"] = ("Robot check: the rim came out thinner on the %s lens (%s, %d%% of the "
                                             "other side). Not published -- needs a look, the photo is not the problem."
                                             % (rb[2], where_[dname], int(rb[0] * 100)))
+                          nums["rimBad"] = True
                           log("    RIM CHECK: %s rim only %d%% of the other side near the %s -> kept off the website"
                               % (rb[2], int(rb[0] * 100), where_[dname]))
                       else:
@@ -3537,7 +3539,7 @@ jobs:
                                       colour_bytes=None, front_crop=False, lens_fix=lens_ok(p), size=p.get("size"))
                       # the same second try the live cutting does, so guard shows what
                       # the shop would really get (2026-09-23)
-                      if rk and nums.get("reject") and "rim" in str(nums.get("reject")).lower():
+                      if rk and nums.get("rimBad"):
                           log("    the thin-metal way damaged the rim -- trying the plain way once")
                           png2, nums2 = cut(download(src), front=True, rim_kind="", half_rim_hint=_hint,
                                             colour_bytes=None, front_crop=False, lens_fix=lens_ok(p), size=p.get("size"))
@@ -3900,7 +3902,7 @@ jobs:
                       # check caught it. Rather than lose the frame, cut it once more the
                       # plain way and keep that if it passes. Frames that already cut
                       # well never reach this.
-                      if rk_use and nums.get("reject") and "rim" in str(nums.get("reject")).lower():
+                      if rk_use and nums.get("rimBad"):
                           log("    the thin-metal way damaged the rim -- trying the plain way once")
                           png2, nums2 = cut(photo_b, front=True, rim_kind="", half_rim_hint=hint_use,
                                             colour_bytes=colour_b, front_crop=fc, lens_fix=lf, size=p.get("size"))
