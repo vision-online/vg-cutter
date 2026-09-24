@@ -443,6 +443,7 @@ jobs:
           SIZE_REASON = ("Robot check: the cut-out does not match the numbers typed for this frame -- the try-on would "
                          "draw it the wrong size on a customer. Not published, needs a look at the photo and at the "
                          "lens and bridge boxes.")
+          LENS_TINT = 0.17                 # how visible the demo is on a half-rim or rimless frame (0 = invisible; the shop settled on 17% on 25 Sep)
           GLASS_LEFT = 0.02                # more than 2% of a lens still solid = the glass did not clear
           GLASS_REASON = ("Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the "
                           "customer would see it over their eye. Not published, needs a look.")
@@ -3030,6 +3031,27 @@ jobs:
               if half_ring is not None:
                   # the demo lens edge: a faint thin line, as a real one shows
                   a = np.where(half_ring & (a > 0.5), np.float32(0.45), a).astype(np.float32)
+
+              # A LITTLE TINT ON THE DEMO, HALF-RIM AND RIMLESS ONLY (2026-09-24, shop).
+              # With nothing below the lens, a fully transparent demo leaves only a bar
+              # floating on the customer's face and the lens shape cannot be seen. A
+              # real half-rim shows a faint sheen, so the robot leaves one: the glass
+              # stays see-through, just not invisible. Full-rim frames are untouched --
+              # there the rim shows the shape by itself.
+              if (half_ring is not None or "rimless" in str(rim_kind).lower() or half_rim_hint) and half_regions:
+                  try:
+                      _tint = np.zeros(a.shape, bool)
+                      for _rg in half_regions:
+                          _tint |= _rg
+                      _tint &= (a < 0.2)                       # only where the demo is clear
+                      if _tint.any():
+                          a = np.where(_tint, np.float32(LENS_TINT), a).astype(np.float32)
+                          _px = np.asarray(img.convert("RGB")).copy()
+                          _px[_tint] = (0.55 * _px[_tint] + 0.45 * np.array([232, 236, 244])).astype(np.uint8)
+                          img = Image.fromarray(_px)
+                          log("    a little tint left on the demo (half-rim / rimless): %d px" % int(_tint.sum()))
+                  except Exception as _ex:
+                      log("    the demo tint could not be added: %s" % str(_ex)[:70])
 
               # the margin comes off again
               H, W = a.shape
