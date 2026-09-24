@@ -256,6 +256,7 @@ jobs:
           import sys
           import time
 
+          import math
           import numpy as np
           import requests
           from PIL import Image
@@ -3036,6 +3037,32 @@ jobs:
               img = img.crop((px, py, W - px, H - py))
               if lens_mask is not None and lens_mask.shape != a.shape:
                   lens_mask = lens_mask[py:H - py, px:W - px]    # the glass check measures the same picture
+
+              # LEVELLING (2026-09-23, Rauf: every frame on the shelf must look level,
+              # the way an optical company's pictures do). They fix the camera on a
+              # stand and then straighten each picture; we cannot fix the camera, so
+              # the robot straightens the cut-out instead: it turns it until the line
+              # between the two lens centres is level. The shelf lines up, and the
+              # try-on stops drawing a tilted frame on a customer's face.
+              if front and LENS_MODE[0]:
+                  try:
+                      _m0 = measurements(a)
+                      _e0 = _m0.get("lenses") or []
+                      if len(_e0) >= 2:
+                          _dx = float(_e0[1]["centreX"]) - float(_e0[0]["centreX"])
+                          _dy = float(_e0[1]["centreY"]) - float(_e0[0]["centreY"])
+                          _tilt = math.degrees(math.atan2(_dy, _dx)) if _dx else 0.0
+                          if 0.25 <= abs(_tilt) <= 12.0:
+                              _rgb = np.asarray(img.convert("RGB")).astype(np.float32)
+                              _rot = lambda arr, fill: np.asarray(Image.fromarray(arr).rotate(
+                                  _tilt, resample=Image.BICUBIC, expand=True, fillcolor=fill))
+                              a = _rot((a * 255).astype(np.uint8), 0).astype(np.float32) / 255.0
+                              img = Image.fromarray(_rot(_rgb.astype(np.uint8), (255, 255, 255)))
+                              if lens_mask is not None:
+                                  lens_mask = _rot(lens_mask.astype(np.uint8) * 255, 0) > 127
+                              log("    levelled: the frame was %.1f degrees off, turned straight" % _tilt)
+                  except Exception as _ex:
+                      log("    levelling could not run: %s" % str(_ex)[:80])
 
               if half_regions:
                   half_regions = [rg[py:H - py, px:W - px] for rg in half_regions]
