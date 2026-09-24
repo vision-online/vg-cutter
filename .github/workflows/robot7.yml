@@ -438,6 +438,10 @@ jobs:
                              "than it is wide). Stand or lay the frame the right way up, hold the phone straight "
                              "in front of it, and take it again.")
           SIDE_WARN = 0.03                 # a thin strip beyond an end longer than 3% of the width = an arm
+          SIZE_OFF = 0.15                  # the frame's measured size may differ from the typed numbers by 15%
+          SIZE_REASON = ("Robot check: the cut-out does not match the numbers typed for this frame -- the try-on would "
+                         "draw it the wrong size on a customer. Not published, needs a look at the photo and at the "
+                         "lens and bridge boxes.")
           GLASS_LEFT = 0.02                # more than 2% of a lens still solid = the glass did not clear
           GLASS_REASON = ("Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the "
                           "customer would see it over their eye. Not published, needs a look.")
@@ -2008,7 +2012,12 @@ jobs:
                       if r > 3 * max(H, W):
                           return None
               worst = (1.0, None, None)
-              angs = list(range(0, 360, 10))
+              # 2026-09-23: skip the bridge direction. A ray fired from the lens centre
+              # toward the nose can slip through the gap under the bridge and measure
+              # almost nothing, which read as "left rim only 8%" on the cat-eye and held
+              # a good frame off the website. The bridge is not rim, and its thickness
+              # varies by design.
+              angs = [a_ for a_ in range(0, 360, 10) if not (a_ <= 25 or a_ >= 335)]
               tl = [thick(li, a_) for a_ in angs]
               tr = [thick(ri, 180 - a_) for a_ in angs]      # mirrored direction
               for k, a_ in enumerate(angs):
@@ -2819,7 +2828,7 @@ jobs:
 
 
           def cut(photo_bytes, front=True, rim_kind="", half_rim_hint=None, colour_bytes=None,
-                  front_crop=False, lens_fix=False):
+                  front_crop=False, lens_fix=False, size=None):
               """One photo in, one transparent PNG (and its numbers) out.
               rim_kind comes from the rim type typed in admin (see rim_kind_of).
               rim_kind == "" is the OLD method (the one that cut Sizzler well on
@@ -3037,6 +3046,31 @@ jobs:
               if (off_x or off_y) and not rim_kind:
                   for e in nums.get("lenses") or []:              # positions as in the whole photo
                       e["centreX"] = float(e["centreX"] + off_x); e["centreY"] = float(e["centreY"] + off_y)
+              if front and LENS_MODE[0] and not nums.get("reject"):
+                  # THE SIZE THE CUSTOMER WILL SEE (2026-09-23). The try-on works the
+                  # frame's width out from the lens centres in this cut-out and the
+                  # lens + bridge the shop typed. If the cut is wrong, the frame is
+                  # drawn the wrong size on a face and nothing else here would notice.
+                  try:
+                      _e = nums.get("lenses") or []
+                      _sz = size or {}
+                      _lens_mm = float(_sz.get("lens") or 0); _bridge_mm = float(_sz.get("bridge") or 0)
+                      if len(_e) >= 2 and _lens_mm > 20 and _bridge_mm > 8:
+                          _gap = abs(float(_e[1]["centreX"]) - float(_e[0]["centreX"]))
+                          _ys2, _xs2 = np.where(a > 0.5)
+                          _front_px = float(_xs2.max() - _xs2.min() + 1)
+                          if _gap > 10:
+                              _mm_px = (_lens_mm + _bridge_mm) / _gap
+                              _front_mm = _front_px * _mm_px
+                              _expect = _lens_mm * 2 + _bridge_mm + 11        # rim allowance, both ends
+                              _off = abs(_front_mm - _expect) / max(1.0, _expect)
+                              log("    size check: frame works out at %.0f mm (typed %.0f + %.0f -> about %.0f mm expected)"
+                                  % (_front_mm, _lens_mm, _bridge_mm, _expect))
+                              if _off > SIZE_OFF:
+                                  nums["reject"] = SIZE_REASON
+                                  log("    SIZE CHECK: %.0f%% away from the typed numbers -> kept off the website" % (_off * 100))
+                  except Exception as _ex:
+                      log("    size check could not run: %s" % str(_ex)[:80])
               if front and LENS_MODE[0] and lens_mask is not None:
                   # THE DEMO MUST BE TRANSPARENT (2026-09-23, Rauf's rule). Steps after
                   # the lens step can close part of an opening again, and the try-on
@@ -3470,7 +3504,7 @@ jobs:
                       rk = rim_kind_of(rim_txt) if (is_metal(p) or str(pid) in NEW_METHOD_IDS) else ""
                       png, nums = cut(download(src), front=True, rim_kind=rk,
                                       half_rim_hint=any(k in rim_txt for k in ("half", "supra", "semi", "rimless")),
-                                      colour_bytes=None, front_crop=False, lens_fix=lens_ok(p))
+                                      colour_bytes=None, front_crop=False, lens_fix=lens_ok(p), size=p.get("size"))
                       d = guard_compare(download(base["url"]), png)
                       # glass GAINED is an improvement; glass LOST means a lens went solid again
                       moved = max(abs(d["widthChange"]), abs(d["heightChange"]), d["outlineChange"],
@@ -3819,15 +3853,29 @@ jobs:
                       rk_use = "" if metal_test else rk
                       hint_use = any(k in rim_txt for k in ("half", "supra", "semi", "rimless")) if metal_test else old_hint
                       png, nums = cut(photo_b, front=True, rim_kind=rk_use, half_rim_hint=hint_use,
-                                      colour_bytes=colour_b, front_crop=fc, lens_fix=lf)
+                                      colour_bytes=colour_b, front_crop=fc, lens_fix=lf, size=p.get("size"))
+                      # SECOND TRY FOR A THIN METAL RIM (2026-09-23). The thin-metal path
+                      # shaved 3 px off the 4 px rim of the "9.9.9" aviator and the rim
+                      # check caught it. Rather than lose the frame, cut it once more the
+                      # plain way and keep that if it passes. Frames that already cut
+                      # well never reach this.
+                      if rk_use and nums.get("reject") and "rim came out" in str(nums.get("reject")):
+                          log("    the thin-metal way damaged the rim -- trying the plain way once")
+                          png2, nums2 = cut(photo_b, front=True, rim_kind="", half_rim_hint=hint_use,
+                                            colour_bytes=colour_b, front_crop=fc, lens_fix=lf, size=p.get("size"))
+                          if not nums2.get("reject"):
+                              png, nums = png2, nums2
+                              log("    the plain way came out clean -- using that")
+                          else:
+                              log("    the plain way was no better: " + str(nums2.get("reject"))[:70])
                       if LENS_TEST[0]:
                           png0, _ = cut(photo_b, front=True, rim_kind=rk, half_rim_hint=old_hint,
-                                        colour_bytes=colour_b, front_crop=fc, lens_fix=False)
+                                        colour_bytes=colour_b, front_crop=fc, lens_fix=False, size=p.get("size"))
                           if metal_test:
                               pics, names_ = [png0, png], ["today (live)", "one rule (VG-1005 way)"]
                               rk_m = rim_kind_of(rim_txt) or "full"
                               png_m, _ = cut(photo_b, front=True, rim_kind=rk_m, half_rim_hint=None,
-                                             colour_bytes=colour_b, front_crop=fc, lens_fix=True)
+                                             colour_bytes=colour_b, front_crop=fc, lens_fix=True, size=p.get("size"))
                               pics.append(png_m); names_.append("thin-metal way + lens step")
                               compare_many(pics, names_, pid, p.get("name"), cname, cpreset)
                           else:
@@ -3916,6 +3964,24 @@ jobs:
                            "\n\nThese frames are NOT on the website. Please take a proper "
                            "photo again and save it in admin.")
 
+              # WHY FRAMES WERE HELD BACK (2026-09-23). Counting the causes shows which
+              # one to fix next, instead of guessing: "6 held back: 4 cut off, 2 glass".
+              if rejected:
+                  kinds = {}
+                  for r in rejected:
+                      low = r.lower()
+                      if "sideways" in low:            k = "photo sideways"
+                      elif "runs off the edge" in low: k = "frame cut off at the edge"
+                      elif "a little closer" in low:   k = "photo taken too far away"
+                      elif "arms show above" in low:   k = "arms above the frame"
+                      elif "arm shows beside" in low:  k = "arm beside the frame"
+                      elif "glass did not clear" in low: k = "glass did not clear"
+                      elif "rim came out" in low:      k = "rim damaged"
+                      elif "does not match the numbers" in low: k = "size does not match the typed numbers"
+                      else:                            k = "other"
+                      kinds[k] = kinds.get(k, 0) + 1
+                  log("::notice::Why they were held back: " +
+                      ", ".join("%d %s" % (v, k) for k, v in sorted(kinds.items(), key=lambda x: -x[1])))
               health({"ok": True, "cut": done, "failed": failed,
                       "rejectedNow": len(rejected),
                       "waiting": max(0, len(todo) - done)})
