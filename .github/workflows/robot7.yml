@@ -2908,7 +2908,7 @@ jobs:
               # HALF-RIM: metal on top only, the demo lens on a thread below. No closed
               # hole, so trace the lens edge from the photograph instead; its ring is
               # made solid for the moment so every rule below sees a proper opening.
-              half_ring = None; half_regions = []
+              half_ring = None; half_regions = []; tint_mask = None
               if front and rim_kind == "full":
                   # FULL RIM (typed in admin): never the half-rim path. If the
                   # model kept the glass solid, the traced outline is used only to
@@ -3045,10 +3045,7 @@ jobs:
                           _tint |= _rg
                       _tint &= (a < 0.2)                       # only where the demo is clear
                       if _tint.any():
-                          a = np.where(_tint, np.float32(LENS_TINT), a).astype(np.float32)
-                          _px = np.asarray(img.convert("RGB")).copy()
-                          _px[_tint] = (0.55 * _px[_tint] + 0.45 * np.array([232, 236, 244])).astype(np.uint8)
-                          img = Image.fromarray(_px)
+                          tint_mask = _tint                    # painted onto the finished pixels at the very end
                           log("    a little tint left on the demo (half-rim / rimless): %d px" % int(_tint.sum()))
                   except Exception as _ex:
                       log("    the demo tint could not be added: %s" % str(_ex)[:70])
@@ -3059,6 +3056,8 @@ jobs:
               img = img.crop((px, py, W - px, H - py))
               if lens_mask is not None and lens_mask.shape != a.shape:
                   lens_mask = lens_mask[py:H - py, px:W - px]    # the glass check measures the same picture
+              if tint_mask is not None and tint_mask.shape != a.shape:
+                  tint_mask = tint_mask[py:H - py, px:W - px]
 
               # LEVELLING (2026-09-23, Rauf: every frame on the shelf must look level,
               # the way an optical company's pictures do). They fix the camera on a
@@ -3082,6 +3081,8 @@ jobs:
                               img = Image.fromarray(_rot(_rgb.astype(np.uint8), (255, 255, 255)))
                               if lens_mask is not None:
                                   lens_mask = _rot(lens_mask.astype(np.uint8) * 255, 0) > 127
+                              if tint_mask is not None:
+                                  tint_mask = _rot(tint_mask.astype(np.uint8) * 255, 0) > 127
                               log("    levelled: the frame was %.1f degrees off, turned straight" % _tilt)
                   except Exception as _ex:
                       log("    levelling could not run: %s" % str(_ex)[:80])
@@ -3241,6 +3242,16 @@ jobs:
               if colour_img is None or colour_img.size != img.size:
                   colour_img = img
               rgba = np.dstack([unmix_edge(colour_img, a), (a * 255).round().astype(np.uint8)])
+              if tint_mask is not None and tint_mask.shape == a.shape:
+                  # THE DEMO TINT, painted last (2026-09-25): the colour of the finished
+                  # picture comes from the plain photo and then has the sheet un-mixed
+                  # out of its faint pixels, which turned the tint into a wash of sheet
+                  # grey nobody could see on a face. Now the tint is a fixed pale
+                  # blue-white at LENS_TINT, set directly on the output.
+                  rgba = rgba.copy()
+                  _m = tint_mask & (a <= LENS_TINT + 0.01)
+                  rgba[_m, 0] = 232; rgba[_m, 1] = 236; rgba[_m, 2] = 244
+                  rgba[_m, 3] = int(round(LENS_TINT * 255))
               ys, xs = np.where(a > 0.02)
               if ys.size:
                   pad = 4
