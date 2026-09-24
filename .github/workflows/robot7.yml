@@ -3089,7 +3089,10 @@ jobs:
                           if _gap > 10:
                               _mm_px = (_lens_mm + _bridge_mm) / _gap
                               _front_mm = _front_px * _mm_px
-                              _expect = _lens_mm * 2 + _bridge_mm + 11        # rim allowance, both ends
+                              # 2026-09-23: 11 mm was too little. Measured on the shop's
+                              # own frames the cut-outs come out about 8-10 mm wider, so
+                              # both end pieces are nearer 19 mm together.
+                              _expect = _lens_mm * 2 + _bridge_mm + 19
                               _off = abs(_front_mm - _expect) / max(1.0, _expect)
                               log("    size check: frame works out at %.0f mm (typed %.0f + %.0f -> about %.0f mm expected)"
                                   % (_front_mm, _lens_mm, _bridge_mm, _expect))
@@ -3529,9 +3532,20 @@ jobs:
                       src = front_photo(p)
                       rim_txt = str(p.get("rim") or p.get("rimType") or "").lower()
                       rk = rim_kind_of(rim_txt) if (is_metal(p) or str(pid) in NEW_METHOD_IDS) else ""
-                      png, nums = cut(download(src), front=True, rim_kind=rk,
-                                      half_rim_hint=any(k in rim_txt for k in ("half", "supra", "semi", "rimless")),
+                      _hint = any(k in rim_txt for k in ("half", "supra", "semi", "rimless"))
+                      png, nums = cut(download(src), front=True, rim_kind=rk, half_rim_hint=_hint,
                                       colour_bytes=None, front_crop=False, lens_fix=lens_ok(p), size=p.get("size"))
+                      # the same second try the live cutting does, so guard shows what
+                      # the shop would really get (2026-09-23)
+                      if rk and nums.get("reject") and "rim" in str(nums.get("reject")).lower():
+                          log("    the thin-metal way damaged the rim -- trying the plain way once")
+                          png2, nums2 = cut(download(src), front=True, rim_kind="", half_rim_hint=_hint,
+                                            colour_bytes=None, front_crop=False, lens_fix=lens_ok(p), size=p.get("size"))
+                          if not nums2.get("reject"):
+                              png, nums = png2, nums2
+                              log("    the plain way came out clean -- using that")
+                          else:
+                              log("    the plain way was no better: " + str(nums2.get("reject"))[:70])
                       d = guard_compare(download(base["url"]), png)
                       # glass GAINED is an improvement; glass LOST means a lens went solid again
                       moved = max(abs(d["widthChange"]), abs(d["heightChange"]), d["outlineChange"],
@@ -3886,7 +3900,7 @@ jobs:
                       # check caught it. Rather than lose the frame, cut it once more the
                       # plain way and keep that if it passes. Frames that already cut
                       # well never reach this.
-                      if rk_use and nums.get("reject") and "rim came out" in str(nums.get("reject")):
+                      if rk_use and nums.get("reject") and "rim" in str(nums.get("reject")).lower():
                           log("    the thin-metal way damaged the rim -- trying the plain way once")
                           png2, nums2 = cut(photo_b, front=True, rim_kind="", half_rim_hint=hint_use,
                                             colour_bytes=colour_b, front_crop=fc, lens_fix=lf, size=p.get("size"))
