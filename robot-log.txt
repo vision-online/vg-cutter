@@ -1,10 +1,32 @@
-Run 752  Thu Sep 24 16:50:09 UTC 2026
-Trigger: schedule
+Run 753  Thu Sep 24 16:51:41 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): Robot check: the rim came out thinner on the right lens (bottom, 50% of the other side). Not published -- needs a look, the photo is not the problem.  [I spec]
-::notice::Frames: 20. Waiting: 0. Rejected: 1.
+::notice::Frames: 20. Waiting: 1. Rejected: 1.  Trial re-cut asked for: guard:save:all
 
 --- what the robot did ---
+Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
+Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
+    approved cut-out remembered for p1789109493867aad7 (Sheet gray)
+    approved cut-out remembered for p17892249696909pgu (Skechers)
+    approved cut-out remembered for pmtyjadff35 (VG-1001 Frames)
+    approved cut-out remembered for pmtyjmyfc78 (Visibilla)
+    approved cut-out remembered for pmtzl3ql140 (VG-1002 Frames)
+    approved cut-out remembered for pmtzl57qf92 (VG-1003 Frames)
+    approved cut-out remembered for pmtzn859c27 (New cat eye)
+    approved cut-out remembered for pmu4f9tzw42 (Romeo line)
+    approved cut-out remembered for pmu4gg5u210 (Eyeconic)
+    approved cut-out remembered for pmu4gnug185 (Lot)
+    approved cut-out remembered for pmu4h3h9579 (Heart stone)
+    approved cut-out remembered for pmu4hbhsm89 (Sizzler)
+    approved cut-out remembered for pmub3333334 (VG-1005 Frames)
+    approved cut-out remembered for pmud5z8os47 (I spec)
+    approved cut-out remembered for pmud70ild56 (Romeo line)
+    approved cut-out remembered for pmud79lvj55 (Novel)
+    approved cut-out remembered for pmud7l10l14 (9.9.9 metal)
+    approved cut-out remembered for pmufetnmk62 (Novel)
+    approved cut-out remembered for pmuff2s2f47 (Tiger)
+  GUARD: 19 reference frame(s) saved. From now on  guard  checks every robot change against them.
