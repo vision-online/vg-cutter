@@ -443,6 +443,7 @@ jobs:
           SIZE_REASON = ("Robot check: the cut-out does not match the numbers typed for this frame -- the try-on would "
                          "draw it the wrong size on a customer. Not published, needs a look at the photo and at the "
                          "lens and bridge boxes.")
+          LAST_SOURCE = [None]             # the plain-photo crop matching the last cut (bytes), for FIX IT
           LENS_EDGE = 0.80                 # the thin bright line along the lens edge on a half-rim or rimless frame
           LENS_TINT = 0.17                 # how visible the demo is on a half-rim or rimless frame (0 = invisible; the shop settled on 17% on 25 Sep)
           GLASS_LEFT = 0.02                # more than 2% of a lens still solid = the glass did not clear
@@ -2910,6 +2911,7 @@ jobs:
               # hole, so trace the lens edge from the photograph instead; its ring is
               # made solid for the moment so every rule below sees a proper opening.
               half_ring = None; half_regions = []; tint_mask = None; edge_mask = None
+              LAST_SOURCE[0] = None
               if front and rim_kind == "full":
                   # FULL RIM (typed in admin): never the half-rim path. If the
                   # model kept the glass solid, the traced outline is used only to
@@ -3035,6 +3037,7 @@ jobs:
                   # sheet grey it could not be seen on a face
                   edge_mask = half_ring & (a > 0.5)
                   a = np.where(edge_mask, np.float32(LENS_EDGE), a).astype(np.float32)
+                  log("    lens edge line drawn (half-rim / rimless): %d px at %d%%" % (int(edge_mask.sum()), int(LENS_EDGE * 100)))
 
               # A LITTLE TINT ON THE DEMO, HALF-RIM AND RIMLESS ONLY (2026-09-24, shop).
               # With nothing below the lens, a fully transparent demo leaves only a bar
@@ -3277,6 +3280,17 @@ jobs:
                       nums["frontWidthPx"] = int(x1 - x0); nums["frontHeightPx"] = int(y1 - y0)
               buf = io.BytesIO()
               Image.fromarray(rgba, "RGBA").save(buf, "PNG", optimize=True)
+              # THE SOURCE PICTURE (2026-09-26, FIX IT): the same crop of the plain
+              # photo, same size and turn as the cut-out, so staff can rub an eaten rim
+              # back with the true pixels. Kept as a JPEG beside every cut-out.
+              try:
+                  _src = np.asarray(colour_img.convert("RGB"))
+                  if ys.size:
+                      _src = _src[y0:y1, x0:x1]
+                  _sb = io.BytesIO(); Image.fromarray(_src, "RGB").save(_sb, "JPEG", quality=90)
+                  LAST_SOURCE[0] = _sb.getvalue()          # never inside nums: nums is saved as JSON
+              except Exception as _ex:
+                  log("    source picture could not be kept: %s" % str(_ex)[:60])
               return buf.getvalue(), nums
 
 
@@ -3997,11 +4011,28 @@ jobs:
                           p["tryOnReady"] = False
                           p["tryOnFails"] = MAX_TRIES
                           p["tryOnFail"] = why
+                          # FIX IT (2026-09-26): the cut is kept as a draft, with its source
+                          # picture, so staff can open it, clean or put back, look once and
+                          # publish -- instead of only being able to re-shoot.
+                          try:
+                              _durl = cloudinary_upload(png, "draft-" + str(pid), cname, cpreset)
+                              _surl = cloudinary_upload(LAST_SOURCE[0], "source-" + str(pid), cname, cpreset) if LAST_SOURCE[0] else ""
+                              p["tryOnDraft"] = {"url": _durl, "source": _surl, "why": why,
+                                                 "at": datetime.datetime.utcnow().isoformat() + "Z"}
+                              log("    draft kept for FIX IT: " + _durl)
+                          except Exception as _ex:
+                              log("    draft could not be kept: %s" % str(_ex)[:70])
                           save_product(p)
                           rejected.append("%s: %s" % (p.get("name") or pid, why))
                           log("::warning::%s REJECTED, kept off the website: %s" % (pid, why))
                           continue
                       url = cloudinary_upload(png, "tryon-" + str(pid), cname, cpreset)
+                      try:
+                          if LAST_SOURCE[0]:
+                              p["tryOnSource"] = cloudinary_upload(LAST_SOURCE[0], "source-" + str(pid), cname, cpreset)
+                      except Exception as _ex:
+                          log("    source picture could not be kept: %s" % str(_ex)[:60])
+                      p.pop("tryOnDraft", None)
                       p["tryOnUrl"] = url
                       p["tryOnReady"] = True
                       reading = nums.pop("reading", {}) or {}
