@@ -1,4 +1,4 @@
-Run 768  Thu Sep 24 19:29:56 UTC 2026
+Run 834  Fri Sep 25 09:34:39 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Trial re-cut of pmu4gg5u210 (Eyeconic).
@@ -8,12 +8,12 @@ Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploa
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:325: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:326: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
     rim type: not set (0 clean lens holes)
 half-rim: 179 enclosed pieces, 3 candidates, rejected {'size': 175, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
-    a little tint left on the demo (half-rim / rimless): 415505 px
+    a little tint left on the demo (half-rim / rimless): 413916 px
     size check: frame works out at 134 mm (typed 53 + 17 -> about 142 mm expected)
     the frame fills 94% of the photo's width
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790278194/tbsbz2m2qe4bbgeiww99.png
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790328876/grsaogyizpjocxezntod.png
   Finished. Cut 1, failed 0, rejected 0, still waiting 0.
