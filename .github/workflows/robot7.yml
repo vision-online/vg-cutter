@@ -3503,6 +3503,8 @@ jobs:
 
           def waiting(p):
               """A frame is waiting if it has a photo but no ready cut-out."""
+              if p.get("draft"):
+                  return False          # a DRAFT: photos taken, details not typed yet (2026-09-26) -- cut when it is put live
               if p.get("tryOnLocked"):
                   return False
               if p.get("tryOnOk") is False:
@@ -3732,7 +3734,7 @@ jobs:
                   for p in products:
                       if out_of_time():
                           break
-                      if not (p.get("tryOnReady") and p.get("tryOnUrl")) or p.get("deleted"):
+                      if not (p.get("tryOnReady") and p.get("tryOnUrl")) or p.get("deleted") or p.get("draft"):
                           continue
                       if int(p.get("tryOnViewsV") or 0) >= VIEWS_VERSION:
                           continue
@@ -3855,7 +3857,7 @@ jobs:
                       pid = str(p.get("id"))
                       if "all" not in want and pid not in want:
                           continue
-                      if not p.get("tryOnUrl") or p.get("deleted"):
+                      if not p.get("tryOnUrl") or p.get("deleted") or p.get("draft"):
                           continue
                       if "all" in want and int(p.get("tryOnViewsV") or 0) >= VIEWS_VERSION:
                           continue                                   # done in an earlier run
@@ -4035,7 +4037,7 @@ jobs:
               if recut:
                   # a trial: cut one frame again even though it already has a cut-out
                   if recut.lower() == "first":
-                      pick = next((p for p in products if front_photo(p) and not p.get("tryOnLocked")), None)
+                      pick = next((p for p in products if front_photo(p) and not p.get("tryOnLocked") and not p.get("draft")), None)
                   else:
                       pick = next((p for p in products if str(p.get("id")) == recut or str(p.get("sku")) == recut), None)
                   if pick is None:
