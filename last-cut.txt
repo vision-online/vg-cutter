@@ -1,5 +1,22 @@
-Run 969  Sat Sep 26 13:55:21 UTC 2026
+Run 970  Sat Sep 26 14:02:29 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
-  Views done for 0 frame(s).
+--- pmuff2s2f47 : Tiger
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Model loaded: ZhengPeng7/BiRefNet at 1024 px
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:328: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    angled lens step skipped, nothing changed: the two biggest openings are not level
+    45 degree left cut too (glass not found -- the shop keeps the photo for this view)
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:328: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000596046457.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    angled lens step skipped, nothing changed: no rim line and no two lens openings found
+    45 degree right cut too (glass not found -- the shop keeps the photo for this view)
+    90 degree side cut too
+    views on white: angle photo kept, angleR photo kept, side clean
+      tryOnAngleUrl: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790431195/igu9qpfdp0yw27xjxim4.png
+      tryOnAngleRUrl: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790431287/trhlxgb8typxkvreewjy.png
+      tryOnSideUrl: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790431347/dgk4k52fsjyxxkyqldic.png
+  Views done for 1 frame(s).
