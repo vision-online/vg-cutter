@@ -256,6 +256,7 @@ jobs:
           import sys
           import time
 
+          import math
           import numpy as np
           import requests
           from PIL import Image
@@ -427,7 +428,7 @@ jobs:
           KEEP_OLD_IDS = set()   # 2026-09-21, Rauf: Sizzler no longer kept on the old method
           ADOPT_LENS_ONLY = [False]        # True only in an 'adopt-lens:' run
           ARMS_WARN = 0.025                # arms above the frame: rejected from 2.5% of the frame
-          FILL_MIN = 0.55                  # the frame must fill at least 55% of the photo's width
+          FILL_MIN = 0.45                  # 2026-09-23, measured properly: real photos run 50-94%, so only a clearly distant one is refused; the frame must fill at least 45% of the photo's width
           CUT_OFF_REASON = ("Please re-take this photo a little further back: the frame runs off the edge of the "
                             "picture, so its ends are missing. Bring the whole frame inside the picture with a "
                             "little space all round, keeping the phone straight and at the frame's height.")
@@ -438,6 +439,14 @@ jobs:
                              "than it is wide). Stand or lay the frame the right way up, hold the phone straight "
                              "in front of it, and take it again.")
           SIDE_WARN = 0.03                 # a thin strip beyond an end longer than 3% of the width = an arm
+          SIZE_OFF = 0.15                  # the frame's measured size may differ from the typed numbers by 15%
+          SIZE_REASON = ("Robot check: the cut-out does not match the numbers typed for this frame -- the try-on would "
+                         "draw it the wrong size on a customer. Not published, needs a look at the photo and at the "
+                         "lens and bridge boxes.")
+          LAST_VIEW_GLASS = [None]         # did the last angled cut find and clear the glass (True/False)
+          LAST_SOURCE = [None]             # the plain-photo crop matching the last cut (bytes), for FIX IT
+          LENS_EDGE = 0.80                 # the thin bright line along the lens edge on a half-rim or rimless frame
+          LENS_TINT = 0.17                 # how visible the demo is on a half-rim or rimless frame (0 = invisible; the shop settled on 17% on 25 Sep)
           GLASS_LEFT = 0.02                # more than 2% of a lens still solid = the glass did not clear
           GLASS_REASON = ("Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the "
                           "customer would see it over their eye. Not published, needs a look.")
@@ -1348,7 +1357,7 @@ jobs:
               out = alpha.copy()
               ring_all = np.zeros_like(alpha, dtype=bool)
               for r in regions:
-                  inner = ndimage.binary_erosion(r, iterations=2)
+                  inner = ndimage.binary_erosion(r, iterations=3)   # 3 px: about 1.5 px on a phone, like a real lens edge (25 Sep)
                   ring = r & ~inner
                   out[inner] = 0.0
                   out[ring] = 1.0                 # solid for now, so the arm rules can see the opening
@@ -2008,7 +2017,12 @@ jobs:
                       if r > 3 * max(H, W):
                           return None
               worst = (1.0, None, None)
-              angs = list(range(0, 360, 10))
+              # 2026-09-23: skip the bridge direction. A ray fired from the lens centre
+              # toward the nose can slip through the gap under the bridge and measure
+              # almost nothing, which read as "left rim only 8%" on the cat-eye and held
+              # a good frame off the website. The bridge is not rim, and its thickness
+              # varies by design.
+              angs = [a_ for a_ in range(0, 360, 10) if not (a_ <= 25 or a_ >= 335)]
               tl = [thick(li, a_) for a_ in angs]
               tr = [thick(ri, 180 - a_) for a_ in angs]      # mirrored direction
               for k, a_ in enumerate(angs):
@@ -2603,7 +2617,7 @@ jobs:
               return out, ("SAM: +%d px of glass" % added if added else "SAM: nothing to add")
 
 
-          def photo_lens_openings(img, alpha, band_px):
+          def photo_lens_openings(img, alpha, band_px, angled=False):
               """
               LENS STEP (2026-09-21). The AI often keeps part of the glass as frame:
               the wall or table seen through demo glass, an arm behind the lens, a
@@ -2644,7 +2658,10 @@ jobs:
               big_a, thin_a, deep = 3000 * s * s, 2000 * s * s, 30 * s
               rims = [i for i in range(1, n) if st[i][2] > 0.6 * W and not border(i)]
               how = "rim line"
-              if rims:
+              # ANGLED VIEWS (2026-09-26): at 45 degrees the bridge is not in the middle
+              # of the frame, so the split between the lenses is taken from the two
+              # biggest openings themselves; the rim line is only a fallback there.
+              if rims and not angled:
                   rim = max(rims, key=lambda i: st[i][4])
                   mid = st[rim][0] + st[rim][2] / 2.0
               else:
@@ -2655,15 +2672,28 @@ jobs:
                   cands = sorted([i for i in range(1, n) if st[i][4] >= big_a and not border(i)
                                   and dist[lab == i].max() >= deep], key=lambda i: -st[i][4])[:2]
                   if len(cands) < 2:
-                      return None, "no rim line and no two lens openings found"
-                  a_, b_ = sorted(cands, key=lambda i: st[i][0])
-                  if st[a_][0] + st[a_][2] > st[b_][0]:
-                      return None, "the two biggest openings overlap sideways"
-                  ca = st[a_][1] + st[a_][3] / 2.0; cb = st[b_][1] + st[b_][3] / 2.0
-                  if abs(ca - cb) > 0.25 * max(st[a_][3], st[b_][3]):
-                      return None, "the two biggest openings are not level"
-                  mid = (st[a_][0] + st[a_][2] + st[b_][0]) / 2.0
-                  how = "two openings"
+                      if angled and rims:
+                          rim = max(rims, key=lambda i: st[i][4]); mid = st[rim][0] + st[rim][2] / 2.0
+                          cands = None
+                      else:
+                          return None, "no rim line and no two lens openings found"
+                  if cands is not None:
+                      a_, b_ = sorted(cands, key=lambda i: st[i][0])
+                      why_not = ""
+                      if st[a_][0] + st[a_][2] > st[b_][0]:
+                          why_not = "the two biggest openings overlap sideways"
+                      else:
+                          ca = st[a_][1] + st[a_][3] / 2.0; cb = st[b_][1] + st[b_][3] / 2.0
+                          if abs(ca - cb) > 0.25 * max(st[a_][3], st[b_][3]):
+                              why_not = "the two biggest openings are not level"
+                      if why_not:
+                          if angled and rims:               # an angled view falls back to the rim line
+                              rim = max(rims, key=lambda i: st[i][4]); mid = st[rim][0] + st[rim][2] / 2.0
+                          else:
+                              return None, why_not
+                      else:
+                          mid = (st[a_][0] + st[a_][2] + st[b_][0]) / 2.0
+                          how = "two openings"
               def ok(i):
                   return i != rim and not border(i) and not (st[i][0] < mid < st[i][0] + st[i][2])
               sides = {"L": [], "R": []}
@@ -2785,7 +2815,7 @@ jobs:
               # one is more than 7% bigger, it is trimmed to the MIRROR image of the
               # other (a few pixels of tolerance): rim it took is given back. When in
               # doubt a sliver of glass stays -- never rim.
-              if max(areas) > 0 and min(areas) < 0.93 * max(areas) and ones_.get("L") is not None and ones_.get("R") is not None:
+              if not angled and max(areas) > 0 and min(areas) < 0.93 * max(areas) and ones_.get("L") is not None and ones_.get("R") is not None:
                   big_k, small_k = ("L", "R") if areas[0] > areas[1] else ("R", "L")
                   mx = np.clip(np.round(2 * mid - np.arange(W)).astype(int), 0, W - 1)
                   tp = max(2, int(round(3 * s)))          # 3 px: rim always given back
@@ -2798,9 +2828,9 @@ jobs:
                   how += ", %s lens trimmed to match the other (%d -> %d px)" % (
                       "left" if big_k == "L" else "right", before, int(trimmed.sum()))
               box_area = float(H * W)
-              if min(areas) < 0.85 * max(areas):
+              if not angled and min(areas) < 0.85 * max(areas):
                   return None, "the two lenses are not a pair even after trimming (%d vs %d px)" % tuple(areas)
-              if min(areas) < 0.06 * box_area or max(areas) > 0.45 * box_area:
+              if min(areas) < (0.03 if angled else 0.06) * box_area or max(areas) > 0.45 * box_area:
                   return None, "lens size out of range (%.0f%%, %.0f%% of the frame box)" % (
                       100.0 * areas[0] / box_area, 100.0 * areas[1] / box_area)
               lens = cv2.erode(lens, np.ones((5, 5), np.uint8)).astype(bool)   # 2 px off the rim's inner edge
@@ -2819,7 +2849,7 @@ jobs:
 
 
           def cut(photo_bytes, front=True, rim_kind="", half_rim_hint=None, colour_bytes=None,
-                  front_crop=False, lens_fix=False):
+                  front_crop=False, lens_fix=False, size=None, angled=False):
               """One photo in, one transparent PNG (and its numbers) out.
               rim_kind comes from the rim type typed in admin (see rim_kind_of).
               rim_kind == "" is the OLD method (the one that cut Sizzler well on
@@ -2897,7 +2927,8 @@ jobs:
               # HALF-RIM: metal on top only, the demo lens on a thread below. No closed
               # hole, so trace the lens edge from the photograph instead; its ring is
               # made solid for the moment so every rule below sees a proper opening.
-              half_ring = None; half_regions = []
+              half_ring = None; half_regions = []; tint_mask = None; edge_mask = None
+              LAST_SOURCE[0] = None
               if front and rim_kind == "full":
                   # FULL RIM (typed in admin): never the half-rim path. If the
                   # model kept the glass solid, the traced outline is used only to
@@ -2926,11 +2957,13 @@ jobs:
                               a = firm_rim(a)                      # new method only
               lens_ran = False
               lens_mask = None
-              if front and lens_fix:
+              LAST_VIEW_GLASS[0] = None
+              if (front and lens_fix) or angled:
                   # step 5z (LENS STEP): lens openings found from the photo's own
                   # edges and cleared. Only frames in LENS_FIX_IDS, or a test-lens run.
+                  # 2026-09-26: also on a 45-degree view, in angled mode.
                   try:
-                      lz, lnote = photo_lens_openings(img, a, band_px)
+                      lz, lnote = photo_lens_openings(img, a, band_px, angled=angled)
                   except Exception as ex:
                       lz, lnote = None, "error: %s" % str(ex)[:120]
                   if lz is not None:
@@ -2938,9 +2971,11 @@ jobs:
                       lens_mask = lz
                       was = int(((a > 0.5) & lz).sum())
                       a = np.where(lz, np.float32(0.0), a).astype(np.float32)
-                      log("    lens step: %s; %d pixels of glass cleared" % (lnote, was))
+                      log("    %slens step: %s; %d pixels of glass cleared" % ("angled " if angled else "", lnote, was))
+                      LAST_VIEW_GLASS[0] = True
                   else:
-                      log("    lens step skipped, nothing changed: %s" % lnote)
+                      log("    %slens step skipped, nothing changed: %s" % ("angled " if angled else "", lnote))
+                      LAST_VIEW_GLASS[0] = False
               holes, _ = lens_holes(a)
               if not holes.any():
                   # the model kept the lenses solid (common for clear glass):
@@ -3018,8 +3053,30 @@ jobs:
                       a, finfo = shape_full_rim_front(img, a, regs)
                       log("    full-rim front: %s" % (finfo,))
               if half_ring is not None:
-                  # the demo lens edge: a faint thin line, as a real one shows
-                  a = np.where(half_ring & (a > 0.5), np.float32(0.45), a).astype(np.float32)
+                  # the demo lens edge: a thin line, as a real one shows -- painted bright
+                  # into the finished pixels at the very end (25 Sep), because at a faint
+                  # sheet grey it could not be seen on a face
+                  edge_mask = half_ring & (a > 0.5)
+                  a = np.where(edge_mask, np.float32(LENS_EDGE), a).astype(np.float32)
+                  log("    lens edge line drawn (half-rim / rimless): %d px at %d%%" % (int(edge_mask.sum()), int(LENS_EDGE * 100)))
+
+              # A LITTLE TINT ON THE DEMO, HALF-RIM AND RIMLESS ONLY (2026-09-24, shop).
+              # With nothing below the lens, a fully transparent demo leaves only a bar
+              # floating on the customer's face and the lens shape cannot be seen. A
+              # real half-rim shows a faint sheen, so the robot leaves one: the glass
+              # stays see-through, just not invisible. Full-rim frames are untouched --
+              # there the rim shows the shape by itself.
+              if (half_ring is not None or "rimless" in str(rim_kind).lower() or half_rim_hint) and half_regions:
+                  try:
+                      _tint = np.zeros(a.shape, bool)
+                      for _rg in half_regions:
+                          _tint |= _rg
+                      _tint &= (a < 0.2)                       # only where the demo is clear
+                      if _tint.any():
+                          tint_mask = _tint                    # painted onto the finished pixels at the very end
+                          log("    a little tint left on the demo (half-rim / rimless): %d px" % int(_tint.sum()))
+                  except Exception as _ex:
+                      log("    the demo tint could not be added: %s" % str(_ex)[:70])
 
               # the margin comes off again
               H, W = a.shape
@@ -3027,6 +3084,40 @@ jobs:
               img = img.crop((px, py, W - px, H - py))
               if lens_mask is not None and lens_mask.shape != a.shape:
                   lens_mask = lens_mask[py:H - py, px:W - px]    # the glass check measures the same picture
+              if tint_mask is not None and tint_mask.shape != a.shape:
+                  tint_mask = tint_mask[py:H - py, px:W - px]
+              if edge_mask is not None and edge_mask.shape != a.shape:
+                  edge_mask = edge_mask[py:H - py, px:W - px]
+
+              # LEVELLING (2026-09-23, Rauf: every frame on the shelf must look level,
+              # the way an optical company's pictures do). They fix the camera on a
+              # stand and then straighten each picture; we cannot fix the camera, so
+              # the robot straightens the cut-out instead: it turns it until the line
+              # between the two lens centres is level. The shelf lines up, and the
+              # try-on stops drawing a tilted frame on a customer's face.
+              if front:
+                  try:
+                      _m0 = measurements(a)
+                      _e0 = _m0.get("lenses") or []
+                      if len(_e0) >= 2:
+                          _dx = float(_e0[1]["centreX"]) - float(_e0[0]["centreX"])
+                          _dy = float(_e0[1]["centreY"]) - float(_e0[0]["centreY"])
+                          _tilt = math.degrees(math.atan2(_dy, _dx)) if _dx else 0.0
+                          if 0.25 <= abs(_tilt) <= 12.0:
+                              _rgb = np.asarray(img.convert("RGB")).astype(np.float32)
+                              _rot = lambda arr, fill: np.asarray(Image.fromarray(arr).rotate(
+                                  _tilt, resample=Image.BICUBIC, expand=True, fillcolor=fill))
+                              a = _rot((a * 255).astype(np.uint8), 0).astype(np.float32) / 255.0
+                              img = Image.fromarray(_rot(_rgb.astype(np.uint8), (255, 255, 255)))
+                              if lens_mask is not None:
+                                  lens_mask = _rot(lens_mask.astype(np.uint8) * 255, 0) > 127
+                              if tint_mask is not None:
+                                  tint_mask = _rot(tint_mask.astype(np.uint8) * 255, 0) > 127
+                              if edge_mask is not None:
+                                  edge_mask = _rot(edge_mask.astype(np.uint8) * 255, 0) > 127
+                              log("    levelled: the frame was %.1f degrees off, turned straight" % _tilt)
+                  except Exception as _ex:
+                      log("    levelling could not run: %s" % str(_ex)[:80])
 
               if half_regions:
                   half_regions = [rg[py:H - py, px:W - px] for rg in half_regions]
@@ -3037,7 +3128,35 @@ jobs:
               if (off_x or off_y) and not rim_kind:
                   for e in nums.get("lenses") or []:              # positions as in the whole photo
                       e["centreX"] = float(e["centreX"] + off_x); e["centreY"] = float(e["centreY"] + off_y)
-              if front and LENS_MODE[0] and lens_mask is not None:
+              if front and not nums.get("reject"):
+                  # THE SIZE THE CUSTOMER WILL SEE (2026-09-23). The try-on works the
+                  # frame's width out from the lens centres in this cut-out and the
+                  # lens + bridge the shop typed. If the cut is wrong, the frame is
+                  # drawn the wrong size on a face and nothing else here would notice.
+                  try:
+                      _e = nums.get("lenses") or []
+                      _sz = size or {}
+                      _lens_mm = float(_sz.get("lens") or 0); _bridge_mm = float(_sz.get("bridge") or 0)
+                      if len(_e) >= 2 and _lens_mm > 20 and _bridge_mm > 8:
+                          _gap = abs(float(_e[1]["centreX"]) - float(_e[0]["centreX"]))
+                          _ys2, _xs2 = np.where(a > 0.5)
+                          _front_px = float(_xs2.max() - _xs2.min() + 1)
+                          if _gap > 10:
+                              _mm_px = (_lens_mm + _bridge_mm) / _gap
+                              _front_mm = _front_px * _mm_px
+                              # 2026-09-23: 11 mm was too little. Measured on the shop's
+                              # own frames the cut-outs come out about 8-10 mm wider, so
+                              # both end pieces are nearer 19 mm together.
+                              _expect = _lens_mm * 2 + _bridge_mm + 19
+                              _off = abs(_front_mm - _expect) / max(1.0, _expect)
+                              log("    size check: frame works out at %.0f mm (typed %.0f + %.0f -> about %.0f mm expected)"
+                                  % (_front_mm, _lens_mm, _bridge_mm, _expect))
+                              if _off > SIZE_OFF:
+                                  nums["reject"] = SIZE_REASON
+                                  log("    SIZE CHECK: %.0f%% away from the typed numbers -> kept off the website" % (_off * 100))
+                  except Exception as _ex:
+                      log("    size check could not run: %s" % str(_ex)[:80])
+              if front and lens_mask is not None:
                   # THE DEMO MUST BE TRANSPARENT (2026-09-23, Rauf's rule). Steps after
                   # the lens step can close part of an opening again, and the try-on
                   # then reads the lens in the wrong place (Novel sat 8mm low because
@@ -3057,7 +3176,7 @@ jobs:
                       log("    GLASS CHECK: %.1f%% of the lens is still solid -> kept off the website" % (left * 100))
                   else:
                       log("    glass check: the demo is clear (%.1f%% left)" % (left * 100))
-              if front and LENS_MODE[0] and lens_mask is None and not nums.get("reject"):
+              if front and lens_mask is None and not nums.get("reject") and not half_rim_hint and half_ring is None:
                   # the lens step could not run: then the finished frame must still
                   # enclose two openings, or the demo lenses are solid (the "999"
                   # aviator went on the face with its lenses opaque)
@@ -3072,7 +3191,7 @@ jobs:
                           % len([b for b in _big if b >= _need]))
                   else:
                       log("    glass check: two openings found in the finished cut")
-              if front and LENS_MODE[0]:
+              if front:
                   # SIDEWAYS PHOTO (2026-09-22, the "I spec" frame came out standing on
                   # end, one lens above the other: the try-on then reads the distance
                   # between lens centres as tiny and draws the frame huge on the face).
@@ -3088,7 +3207,7 @@ jobs:
                           # from the frame). Measured against the photo itself, without
                           # the sheet margin the robot adds. A thin metal rim in a small
                           # picture is only a few pixels wide and cannot be cut cleanly.
-                          _pw = max(1, a.shape[1] - 2 * px)
+                          _pw = max(1, a.shape[1])      # the picture as it is here: the sheet margin is already off
                           _fill = _w / float(_pw)
                           if _fill > 0.99:
                               # 2026-09-23 (the "999" aviator read 137%): the frame runs
@@ -3109,7 +3228,10 @@ jobs:
                           nums["photoFrac"] = round(_fill, 4)
                           nums["photoCx"] = round(((_xs.min() + _xs.max()) / 2.0 - px) / float(_pw), 4)
                           nums["photoCy"] = round(((_ys.min() + _ys.max()) / 2.0 - py) / float(max(1, a.shape[0] - 2 * py)), 4)
-              if front and LENS_MODE[0] and not nums.get("reject"):
+              if front and not nums.get("reject") and half_ring is None and not half_rim_hint:
+                  # (half-rim and rimless frames have no rim below the lens by design, so
+                  #  comparing rim thickness around the lens means nothing there -- 25 Sep,
+                  #  Eyeconic was held off for a "6% bottom rim" it never had)
                   try:
                       rb = rim_balance(a)
                   except Exception as ex:
@@ -3120,6 +3242,7 @@ jobs:
                       # encloses two: a rim has been cut right through
                       nums["reject"] = ("Robot check: the rim came out broken (a lens is open to the outside). "
                                         "Not published -- needs a look, the photo is not the problem.")
+                      nums["rimBad"] = True     # so the second try can see it even if a later check changes the reason
                       log("    RIM CHECK: the rim is broken through -> kept off the website")
                   if rb is not None and rb[1] is not None:
                       where_ = {0: "bridge side", 90: "top", 180: "outer side", 270: "bottom"}   # as seen on the left lens
@@ -3128,6 +3251,7 @@ jobs:
                           nums["reject"] = ("Robot check: the rim came out thinner on the %s lens (%s, %d%% of the "
                                             "other side). Not published -- needs a look, the photo is not the problem."
                                             % (rb[2], where_[dname], int(rb[0] * 100)))
+                          nums["rimBad"] = True
                           log("    RIM CHECK: %s rim only %d%% of the other side near the %s -> kept off the website"
                               % (rb[2], int(rb[0] * 100), where_[dname]))
                       else:
@@ -3150,6 +3274,21 @@ jobs:
               if colour_img is None or colour_img.size != img.size:
                   colour_img = img
               rgba = np.dstack([unmix_edge(colour_img, a), (a * 255).round().astype(np.uint8)])
+              if tint_mask is not None and tint_mask.shape == a.shape:
+                  # THE DEMO TINT, painted last (2026-09-25): the colour of the finished
+                  # picture comes from the plain photo and then has the sheet un-mixed
+                  # out of its faint pixels, which turned the tint into a wash of sheet
+                  # grey nobody could see on a face. Now the tint is a fixed pale
+                  # blue-white at LENS_TINT, set directly on the output.
+                  rgba = rgba.copy()
+                  _m = tint_mask & (a <= LENS_TINT + 0.01)
+                  rgba[_m, 0] = 232; rgba[_m, 1] = 236; rgba[_m, 2] = 244
+                  rgba[_m, 3] = int(round(LENS_TINT * 255))
+              if edge_mask is not None and edge_mask.shape == a.shape and edge_mask.any():
+                  # the lens edge line, bright and thin, like the edge of a real demo lens
+                  rgba = rgba.copy() if not rgba.flags.writeable else rgba
+                  rgba[edge_mask, 0] = 242; rgba[edge_mask, 1] = 245; rgba[edge_mask, 2] = 250
+                  rgba[edge_mask, 3] = int(round(LENS_EDGE * 255))
               ys, xs = np.where(a > 0.02)
               if ys.size:
                   pad = 4
@@ -3162,6 +3301,17 @@ jobs:
                       nums["frontWidthPx"] = int(x1 - x0); nums["frontHeightPx"] = int(y1 - y0)
               buf = io.BytesIO()
               Image.fromarray(rgba, "RGBA").save(buf, "PNG", optimize=True)
+              # THE SOURCE PICTURE (2026-09-26, FIX IT): the same crop of the plain
+              # photo, same size and turn as the cut-out, so staff can rub an eaten rim
+              # back with the true pixels. Kept as a JPEG beside every cut-out.
+              try:
+                  _src = np.asarray(colour_img.convert("RGB"))
+                  if ys.size:
+                      _src = _src[y0:y1, x0:x1]
+                  _sb = io.BytesIO(); Image.fromarray(_src, "RGB").save(_sb, "JPEG", quality=90)
+                  LAST_SOURCE[0] = _sb.getvalue()          # never inside nums: nums is saved as JSON
+              except Exception as _ex:
+                  log("    source picture could not be kept: %s" % str(_ex)[:60])
               return buf.getvalue(), nums
 
 
@@ -3298,7 +3448,57 @@ jobs:
               for v in (p.get("rawSideUrl"), p.get("sidePhoto"), ang.get("side")):
                   if isinstance(v, str) and v.startswith("http"):
                       return v
+              for g in (p.get("gallery") or []):
+                  if isinstance(g, dict) and g.get("view") == "side" and str(g.get("url", "")).startswith("http"):
+                      return g["url"]
               return None
+
+
+          def angle_right_photo(p):
+              """The other 45-degree view, taken for real (admin tile 3)."""
+              ang = p.get("anglePhotos") if isinstance(p.get("anglePhotos"), dict) else {}
+              for v in (p.get("rawAngleRUrl"), ang.get("angleR"), ang.get("angle-right")):
+                  if isinstance(v, str) and v.startswith("http"):
+                      return v
+              for g in (p.get("gallery") or []):
+                  if isinstance(g, dict) and g.get("view") == "angle-right" and str(g.get("url", "")).startswith("http"):
+                      return g["url"]
+              return None
+
+
+          VIEWS_VERSION = 2
+          def cut_views(p, cname, cpreset, force=False):
+              """THE THREE OTHER VIEWS ON WHITE (2026-09-26, shop): 45 left, 45 right
+              and the 90-degree side are cut out like the front. On a 45-degree view
+              the glass is cleared in angled mode; a view whose glass could not be
+              found is still stored but NOT marked clean, so the shop keeps showing
+              its photo. The side view shows no lens face, so it is clean when cut.
+              Returns how many views were cut."""
+              pid = str(p.get("id"))
+              ok = dict(p.get("tryOnViewsOk") or {}) if isinstance(p.get("tryOnViewsOk"), dict) else {}
+              n = 0
+              fresh = force or int(p.get("tryOnViewsV") or 0) < VIEWS_VERSION
+              for view, src, field, angled, label in (
+                      ("angle",  angle_photo(p),       "tryOnAngleUrl",  True,  "45 degree left"),
+                      ("angleR", angle_right_photo(p), "tryOnAngleRUrl", True,  "45 degree right"),
+                      ("side",   side_photo(p),        "tryOnSideUrl",   False, "90 degree side")):
+                  if not src or out_of_time():
+                      continue
+                  if p.get(field) and not fresh:
+                      continue
+                  try:
+                      png2, _ = cut(download(no_enhancement(src)), front=False, angled=angled)
+                      p[field] = cloudinary_upload(png2, "tryon-" + field + "-" + pid, cname, cpreset)
+                      clean = True if not angled else bool(LAST_VIEW_GLASS[0])
+                      ok[view] = clean
+                      n += 1
+                      log("    %s cut too%s" % (label, "" if clean else " (glass not found -- the shop keeps the photo for this view)"))
+                  except Exception as e:
+                      ok[view] = False
+                      log("    %s photo skipped: %s" % (label, str(e)[:110]))
+              p["tryOnViewsOk"] = ok
+              p["tryOnViewsV"] = VIEWS_VERSION
+              return n
 
 
           def waiting(p):
@@ -3402,10 +3602,48 @@ jobs:
               out["widthChange"] = (n.shape[1] - o.shape[1]) / float(max(1, o.shape[1]))
               out["heightChange"] = (n.shape[0] - o.shape[0]) / float(max(1, o.shape[0]))
               import cv2
+              from scipy import ndimage
               n2 = cv2.resize(n, (o.shape[1], o.shape[0]), interpolation=cv2.INTER_NEAREST)
               solid_o, solid_n = o > 127, n2 > 127
-              diff = int((solid_o ^ solid_n).sum())
-              out["pixelChange"] = diff / float(max(1, int(solid_o.sum())))
+              # 2026-09-23: judge the OUTLINE apart from the GLASS. Clearing more of a
+              # demo lens is an improvement (MobileSAM did exactly that on Visibilla and
+              # it read as "29.5% moved"); a change to the frame's own shape or rim is
+              # the thing that must never pass unseen.
+              fill_o = ndimage.binary_fill_holes(solid_o)
+              fill_n = ndimage.binary_fill_holes(solid_n)
+              out["outlineChange"] = int((fill_o ^ fill_n).sum()) / float(max(1, int(fill_o.sum())))
+              glass_o, glass_n = fill_o & ~solid_o, fill_n & ~solid_n
+              out["glassCleared"] = (int(glass_n.sum()) - int(glass_o.sum())) / float(max(1, int(fill_o.sum())))
+              out["pixelChange"] = int((solid_o ^ solid_n).sum()) / float(max(1, int(solid_o.sum())))
+              # RIM LOSS: material that disappeared close to the frame's outer edge. Glass
+              # cleared inside a lens lies deep in; a rim eaten from the inside lies within
+              # about a rim's thickness of the outside, and the outline does not move, so
+              # nothing else here would see it.
+              # HOW WIDE IS THE RIM in each cut-out: for a pixel just inside a lens
+              # edge, the distance to the outside IS the rim's thickness there. Compare
+              # the typical value in both. Glass cleared deeper inside a lens barely
+              # changes it; a rim eaten from the inside drops it at once, with the
+              # outline unmoved and nothing else able to see it.
+              def rim_width(fill, solid):
+                  glass = fill & ~solid
+                  if not glass.any() or not solid.any():
+                      return 0.0, 0.0
+                  d = ndimage.distance_transform_edt(fill)
+                  ring = ndimage.binary_dilation(glass, iterations=2) & solid
+                  if not ring.any():
+                      return 0.0, 0.0
+                  v = d[ring]
+                  # leave out the ring around any leftover patch deep inside a lens: it
+                  # sits far from the outside and would hide a thin spot on the rim
+                  v = v[v <= np.median(v) * 1.5]
+                  if not v.size:
+                      return 0.0, 0.0
+                  # the thinnest tenth matters: a rim eaten on ONE side leaves the
+                  # middle value untouched, exactly as the robot's own rim check found
+                  return float(np.median(v)), float(np.percentile(v, 10))
+              (rw_o, thin_o), (rw_n, thin_n) = rim_width(fill_o, solid_o), rim_width(fill_n, solid_n)
+              out["rimWidth"] = (rw_o, rw_n)
+              out["rimThinner"] = 0.0 if thin_o <= 0 or thin_n <= 0 else max(0.0, (thin_o - thin_n) / thin_o)
               return out
 
 
@@ -3430,16 +3668,30 @@ jobs:
                       src = front_photo(p)
                       rim_txt = str(p.get("rim") or p.get("rimType") or "").lower()
                       rk = rim_kind_of(rim_txt) if (is_metal(p) or str(pid) in NEW_METHOD_IDS) else ""
-                      png, nums = cut(download(src), front=True, rim_kind=rk,
-                                      half_rim_hint=any(k in rim_txt for k in ("half", "supra", "semi", "rimless")),
-                                      colour_bytes=None, front_crop=False, lens_fix=lens_ok(p))
+                      _hint = any(k in rim_txt for k in ("half", "supra", "semi", "rimless"))
+                      png, nums = cut(download(src), front=True, rim_kind=rk, half_rim_hint=_hint,
+                                      colour_bytes=None, front_crop=False, lens_fix=lens_ok(p), size=p.get("size"))
+                      # the same second try the live cutting does, so guard shows what
+                      # the shop would really get (2026-09-23)
+                      if rk and nums.get("rimBad"):
+                          log("    the thin-metal way damaged the rim -- trying the plain way once")
+                          png2, nums2 = cut(download(src), front=True, rim_kind="", half_rim_hint=_hint,
+                                            colour_bytes=None, front_crop=False, lens_fix=lens_ok(p), size=p.get("size"))
+                          if not nums2.get("reject"):
+                              png, nums = png2, nums2
+                              log("    the plain way came out clean -- using that")
+                          else:
+                              log("    the plain way was no better: " + str(nums2.get("reject"))[:70])
                       d = guard_compare(download(base["url"]), png)
-                      moved = max(abs(d["widthChange"]), abs(d["heightChange"]), d["pixelChange"])
+                      # glass GAINED is an improvement; glass LOST means a lens went solid again
+                      moved = max(abs(d["widthChange"]), abs(d["heightChange"]), d["outlineChange"],
+                                  max(0.0, -d["glassCleared"]), d.get("rimThinner", 0.0))
                       worst = max(worst, moved)
                       mark = "SAME" if moved <= 0.01 else ("CHANGED" if moved <= 0.05 else "BADLY CHANGED")
-                      log("    %-22s %-13s width %+.1f%%  height %+.1f%%  pixels moved %.1f%%  (%s -> %s)"
-                          % (nm, mark, d["widthChange"] * 100, d["heightChange"] * 100,
-                             d["pixelChange"] * 100, d["oldSize"], d["newSize"]))
+                      glass = d["glassCleared"] * 100
+                      log("    %-22s %-13s outline %+.1f%%  width %+.1f%%  height %+.1f%%  glass %s%.1f%%  rim %.0f->%.0f px  (%s -> %s)"
+                          % (nm, mark, d["outlineChange"] * 100, d["widthChange"] * 100, d["heightChange"] * 100,
+                             "+" if glass >= 0 else "", glass, d.get("rimWidth", (0, 0))[0], d.get("rimWidth", (0, 0))[1], d["oldSize"], d["newSize"]))
                       if moved > 0.01:
                           try:
                               url = cloudinary_upload(png, "guard-%s" % pid, cname, cpreset)
@@ -3466,6 +3718,43 @@ jobs:
                   save_product(p); n += 1
                   log("    approved cut-out remembered for %s (%s)" % (pid, (p.get("name") or "")[:24]))
               log("::notice::GUARD: %d reference frame(s) saved. From now on  guard  checks every robot change against them." % n)
+
+
+          def views_for_hand_published(products):
+              """VIEWS FOR FRAMES THAT WENT LIVE BY HAND (2026-09-26): a frame published
+              with FIX IT or CLEAN GLASS, or saved with a ready-made PNG, never passes
+              through the robot's own front cut, so its 45 and side views were never
+              cut. Only frames saved or hand-fixed from 26 Sep on are done here
+              automatically; older frames wait for the shop's views:<id> command.
+              Runs on every normal wake-up, including when nothing is waiting."""
+              try:
+                  cname_v = cpreset_v = None
+                  for p in products:
+                      if out_of_time():
+                          break
+                      if not (p.get("tryOnReady") and p.get("tryOnUrl")) or p.get("deleted"):
+                          continue
+                      if int(p.get("tryOnViewsV") or 0) >= VIEWS_VERSION:
+                          continue
+                      # (a) staff changed this frame's 45 photos in the edit panel: that is
+                      #     the go-ahead for this frame; (b) new frames and frames published
+                      #     through FIX IT. A CLEAN GLASS on an older frame does not count --
+                      #     those wait for views:<id>.
+                      if not p.get("tryOnViewsWant"):
+                          if not p.get("tryOnLocked"):
+                              continue
+                          if max(str(p.get("added") or ""), str(p.get("tryOnFixedAt") or "")) < "2026-09-26":
+                              continue
+                      if not (angle_photo(p) or angle_right_photo(p) or side_photo(p)):
+                          continue
+                      if cname_v is None:
+                          cname_v, cpreset_v = cloudinary_probe(products)
+                      log("--- %s : %s (views for a hand-published frame)" % (p.get("id"), (p.get("name") or "")[:40]))
+                      cut_views(p, cname_v, cpreset_v)
+                      p.pop("tryOnViewsWant", None)
+                      save_product(p)
+              except Exception as _ex:
+                  log("    views for hand-published frames stopped: %s" % str(_ex)[:100])
 
 
           def main():
@@ -3544,7 +3833,8 @@ jobs:
                       if str(p.get("id")) not in want:
                           continue
                       for k in ("tryOnUrl", "tryOnAngleUrl", "tryOnSideUrl", "tryOnNumbers",
-                                "tryOnTest", "tryOnPrev", "tryOnWarning"):
+                                "tryOnTest", "tryOnPrev", "tryOnWarning",
+                                "tryOnAngleRUrl", "tryOnViewsV", "tryOnViewsOk", "tryOnViewsWant"):
                           p.pop(k, None)
                       p["tryOnUrl"] = ""
                       p["tryOnReady"] = False
@@ -3553,6 +3843,34 @@ jobs:
                                         "-- re-shoot: arms straight back, stickers off, nothing behind the lenses")
                       save_product(p)
                       log("    cleared %s (%s): try-on taken down, waiting for a new photo" % (p.get("id"), (p.get("name") or "")[:30]))
+                  return 0
+              if recut.lower().startswith("views:"):
+                  # VIEWS (2026-09-26): cut the 45 left, 45 right and 90 side views of
+                  # frames already on the shop, on white. The front cut-out is not
+                  # touched. Try one frame first: views:<id>. Then views:all.
+                  want = [x.strip() for x in recut.split(":", 1)[1].split(",") if x.strip()]
+                  cname, cpreset = cloudinary_probe(products)
+                  done_n = 0
+                  for p in products:
+                      pid = str(p.get("id"))
+                      if "all" not in want and pid not in want:
+                          continue
+                      if not p.get("tryOnUrl") or p.get("deleted"):
+                          continue
+                      if "all" in want and int(p.get("tryOnViewsV") or 0) >= VIEWS_VERSION:
+                          continue                                   # done in an earlier run
+                      if out_of_time():
+                          log("Time is up; run views:all again to finish the rest.")
+                          break
+                      log("--- %s : %s" % (pid, (p.get("name") or "")[:40]))
+                      n = cut_views(p, cname, cpreset, force=True)
+                      save_product(p)
+                      done_n += 1
+                      vo = p.get("tryOnViewsOk") or {}
+                      log("    views on white: %s" % (", ".join("%s %s" % (k, "clean" if v else "photo kept") for k, v in vo.items()) or "no angle photos"))
+                      for f in ("tryOnAngleUrl", "tryOnAngleRUrl", "tryOnSideUrl"):
+                          if p.get(f): log("      %s: %s" % (f, p[f]))
+                  log("  Views done for %d frame(s)." % done_n)
                   return 0
               if recut.lower().startswith("recolour:"):
                   # RE-COLOUR (2026-09-21, Rauf's go): every plastic / sheet / TR frame
@@ -3668,6 +3986,9 @@ jobs:
                       for k2, f2 in (("angle", "tryOnAngleUrl"), ("side", "tryOnSideUrl")):
                           if prev.get(k2):
                               p[f2] = prev[k2]
+                      # old views may not be clean: the shop shows their photos again
+                      # until views:<id> cuts them anew (2026-09-26)
+                      p["tryOnViewsV"] = 0; p["tryOnViewsOk"] = {}; p.pop("tryOnAngleRUrl", None)
                       save_product(p)
                       log("    restored %s (%s) -> %s" % (p.get("id"), (p.get("name") or "")[:30], prev["url"]))
                   return 0
@@ -3725,6 +4046,7 @@ jobs:
                       log("Trial re-cut of %s (%s)." % (pick.get("id"), (pick.get("name") or "")[:40]))
               log("Catalogue: %d frames. Waiting for a cut-out: %d." % (len(products), len(todo)))
               if not todo:
+                  views_for_hand_published(products)
                   log("Nothing to do.")
                   return 0
 
@@ -3778,15 +4100,29 @@ jobs:
                       rk_use = "" if metal_test else rk
                       hint_use = any(k in rim_txt for k in ("half", "supra", "semi", "rimless")) if metal_test else old_hint
                       png, nums = cut(photo_b, front=True, rim_kind=rk_use, half_rim_hint=hint_use,
-                                      colour_bytes=colour_b, front_crop=fc, lens_fix=lf)
+                                      colour_bytes=colour_b, front_crop=fc, lens_fix=lf, size=p.get("size"))
+                      # SECOND TRY FOR A THIN METAL RIM (2026-09-23). The thin-metal path
+                      # shaved 3 px off the 4 px rim of the "9.9.9" aviator and the rim
+                      # check caught it. Rather than lose the frame, cut it once more the
+                      # plain way and keep that if it passes. Frames that already cut
+                      # well never reach this.
+                      if rk_use and nums.get("rimBad"):
+                          log("    the thin-metal way damaged the rim -- trying the plain way once")
+                          png2, nums2 = cut(photo_b, front=True, rim_kind="", half_rim_hint=hint_use,
+                                            colour_bytes=colour_b, front_crop=fc, lens_fix=lf, size=p.get("size"))
+                          if not nums2.get("reject"):
+                              png, nums = png2, nums2
+                              log("    the plain way came out clean -- using that")
+                          else:
+                              log("    the plain way was no better: " + str(nums2.get("reject"))[:70])
                       if LENS_TEST[0]:
                           png0, _ = cut(photo_b, front=True, rim_kind=rk, half_rim_hint=old_hint,
-                                        colour_bytes=colour_b, front_crop=fc, lens_fix=False)
+                                        colour_bytes=colour_b, front_crop=fc, lens_fix=False, size=p.get("size"))
                           if metal_test:
                               pics, names_ = [png0, png], ["today (live)", "one rule (VG-1005 way)"]
                               rk_m = rim_kind_of(rim_txt) or "full"
                               png_m, _ = cut(photo_b, front=True, rim_kind=rk_m, half_rim_hint=None,
-                                             colour_bytes=colour_b, front_crop=fc, lens_fix=True)
+                                             colour_bytes=colour_b, front_crop=fc, lens_fix=True, size=p.get("size"))
                               pics.append(png_m); names_.append("thin-metal way + lens step")
                               compare_many(pics, names_, pid, p.get("name"), cname, cpreset)
                           else:
@@ -3816,11 +4152,28 @@ jobs:
                           p["tryOnReady"] = False
                           p["tryOnFails"] = MAX_TRIES
                           p["tryOnFail"] = why
+                          # FIX IT (2026-09-26): the cut is kept as a draft, with its source
+                          # picture, so staff can open it, clean or put back, look once and
+                          # publish -- instead of only being able to re-shoot.
+                          try:
+                              _durl = cloudinary_upload(png, "draft-" + str(pid), cname, cpreset)
+                              _surl = cloudinary_upload(LAST_SOURCE[0], "source-" + str(pid), cname, cpreset) if LAST_SOURCE[0] else ""
+                              p["tryOnDraft"] = {"url": _durl, "source": _surl, "why": why,
+                                                 "at": datetime.datetime.utcnow().isoformat() + "Z"}
+                              log("    draft kept for FIX IT: " + _durl)
+                          except Exception as _ex:
+                              log("    draft could not be kept: %s" % str(_ex)[:70])
                           save_product(p)
                           rejected.append("%s: %s" % (p.get("name") or pid, why))
                           log("::warning::%s REJECTED, kept off the website: %s" % (pid, why))
                           continue
                       url = cloudinary_upload(png, "tryon-" + str(pid), cname, cpreset)
+                      try:
+                          if LAST_SOURCE[0]:
+                              p["tryOnSource"] = cloudinary_upload(LAST_SOURCE[0], "source-" + str(pid), cname, cpreset)
+                      except Exception as _ex:
+                          log("    source picture could not be kept: %s" % str(_ex)[:60])
+                      p.pop("tryOnDraft", None)
                       p["tryOnUrl"] = url
                       p["tryOnReady"] = True
                       reading = nums.pop("reading", {}) or {}
@@ -3837,16 +4190,7 @@ jobs:
                           if filled:
                               log("    read from the photo: " + ", ".join(filled))
 
-                      for src, field, label in ((angle_photo(p), "tryOnAngleUrl", "45 degree"),
-                                                (side_photo(p), "tryOnSideUrl", "90 degree side")):
-                          if src and not p.get(field) and not out_of_time():
-                              try:
-                                  png2, _ = cut(download(src), front=False)
-                                  p[field] = cloudinary_upload(
-                                      png2, "tryon-" + field + "-" + str(pid), cname, cpreset)
-                                  log("    %s cut too" % label)
-                              except Exception as e:
-                                  log("    %s photo skipped: %s" % (label, str(e)[:110]))
+                      cut_views(p, cname, cpreset)
 
                       p.pop("tryOnFail", None)
                       p["tryOnFails"] = 0
@@ -3875,6 +4219,26 @@ jobs:
                            "\n\nThese frames are NOT on the website. Please take a proper "
                            "photo again and save it in admin.")
 
+              views_for_hand_published(products)
+
+              # WHY FRAMES WERE HELD BACK (2026-09-23). Counting the causes shows which
+              # one to fix next, instead of guessing: "6 held back: 4 cut off, 2 glass".
+              if rejected:
+                  kinds = {}
+                  for r in rejected:
+                      low = r.lower()
+                      if "sideways" in low:            k = "photo sideways"
+                      elif "runs off the edge" in low: k = "frame cut off at the edge"
+                      elif "a little closer" in low:   k = "photo taken too far away"
+                      elif "arms show above" in low:   k = "arms above the frame"
+                      elif "arm shows beside" in low:  k = "arm beside the frame"
+                      elif "glass did not clear" in low: k = "glass did not clear"
+                      elif "rim came out" in low:      k = "rim damaged"
+                      elif "does not match the numbers" in low: k = "size does not match the typed numbers"
+                      else:                            k = "other"
+                      kinds[k] = kinds.get(k, 0) + 1
+                  log("::notice::Why they were held back: " +
+                      ", ".join("%d %s" % (v, k) for k, v in sorted(kinds.items(), key=lambda x: -x[1])))
               health({"ok": True, "cut": done, "failed": failed,
                       "rejectedNow": len(rejected),
                       "waiting": max(0, len(todo) - done)})
