@@ -1,10 +1,13 @@
-Run 968  Sat Sep 26 13:52:56 UTC 2026
-Trigger: schedule
+Run 969  Sat Sep 26 13:55:21 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): Robot check: the rim came out thinner on the right lens (bottom, 50% of the other side). Not published -- needs a look, the photo is not the problem.  [I spec]
-::notice::Frames: 21. Waiting: 0. Rejected: 1.
+::notice::Frames: 21. Waiting: 1. Rejected: 1.  Trial re-cut asked for: views:
 
 --- what the robot did ---
+Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
+Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
+  Views done for 0 frame(s).
