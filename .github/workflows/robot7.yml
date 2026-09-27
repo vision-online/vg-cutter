@@ -2340,6 +2340,34 @@ jobs:
               return out, (px, py)
 
 
+          def only_lens_shaped(before, after):
+              """Put back every removed piece that is not lens-shaped. A lens seen at
+              45 degrees is still at least a quarter of the frame's height and no more
+              than about three times as wide as tall; a slot along a temple is long and
+              thin. Returns the corrected alpha and how many glass pixels stayed removed."""
+              from scipy import ndimage
+              b = before > 0.5; a2 = after > 0.5
+              removed = b & ~a2
+              if not removed.any():
+                  return after, 0
+              ys, xs = np.where(b)
+              frame_h = (ys.max() - ys.min() + 1) if ys.size else 1
+              lab, n = ndimage.label(removed)
+              out = after.copy(); kept = 0
+              for i, sl in enumerate(ndimage.find_objects(lab), start=1):
+                  if sl is None:
+                      continue
+                  h = sl[0].stop - sl[0].start; w = sl[1].stop - sl[1].start
+                  piece = lab[sl] == i
+                  area = int(piece.sum())
+                  lens_like = h >= 0.25 * frame_h and w <= 3.0 * h and area >= 0.35 * h * w
+                  if lens_like:
+                      kept += area
+                  else:
+                      out[sl][piece] = before[sl][piece]              # frame, not glass: back it goes
+              return out, kept
+
+
           def clear_glass_by_colour(img, alpha, band_px):
               """
               The glass shows the sheet through it, so inside the frame a pixel
@@ -2976,6 +3004,7 @@ jobs:
                   else:
                       log("    %slens step skipped, nothing changed: %s" % ("angled " if angled else "", lnote))
                       LAST_VIEW_GLASS[0] = False
+              a_before_glass = a.copy()
               holes, _ = lens_holes(a)
               if not holes.any():
                   # the model kept the lenses solid (common for clear glass):
@@ -2983,6 +3012,16 @@ jobs:
                   a, _ = clear_glass_by_colour(img, a, band_px)     # step 5a
               a = fill_lens_hulls(a, band_px)                       # step 5b: temple/hinge through the glass
               a = clear_inner_lens(a)                               # step 5c: tinted glass, leftovers
+              if not front:
+                  # ANGLED AND SIDE VIEWS (2026-09-26, shop): at 45 degrees the near temple
+                  # is close to the camera, thick enough to count as "inside the frame",
+                  # and its shiny inner face reflects the white box -- so the glass steps
+                  # took it for glass and cut a slot along the arm. On a view, a removed
+                  # piece must be LENS-SHAPED (tall and roundish); a long thin strip is
+                  # frame and goes back.
+                  a, kept_glass = only_lens_shaped(a_before_glass, a)
+                  if angled and kept_glass and not LAST_VIEW_GLASS[0]:
+                      LAST_VIEW_GLASS[0] = True                     # the glass was cleared by colour, lens-shaped
               if front:
                   # step 6a: the shop shoots with the arms OPEN, so arms rising above the
                   # front are removed here (v2, 2026-09-18: the first version also cut
@@ -3478,17 +3517,25 @@ jobs:
               ok = dict(p.get("tryOnViewsOk") or {}) if isinstance(p.get("tryOnViewsOk"), dict) else {}
               n = 0
               fresh = force or int(p.get("tryOnViewsV") or 0) < VIEWS_VERSION
+              locks = p.get("tryOnViewLocks") if isinstance(p.get("tryOnViewLocks"), dict) else {}
               for view, src, field, angled, label in (
                       ("angle",  angle_photo(p),       "tryOnAngleUrl",  True,  "45 degree left"),
                       ("angleR", angle_right_photo(p), "tryOnAngleRUrl", True,  "45 degree right"),
                       ("side",   side_photo(p),        "tryOnSideUrl",   False, "90 degree side")):
                   if not src or out_of_time():
                       continue
+                  if locks.get(view) and p.get(field):
+                      log("    %s fixed by hand in admin -- left as it is" % label)
+                      continue
                   if p.get(field) and not fresh:
                       continue
                   try:
                       png2, _ = cut(download(no_enhancement(src)), front=False, angled=angled)
                       p[field] = cloudinary_upload(png2, "tryon-" + field + "-" + pid, cname, cpreset)
+                      # the original beside the cut-out, so PUT BACK works on this view in admin (2026-09-27)
+                      if LAST_SOURCE[0]:
+                          try: p[field.replace("Url", "Source")] = cloudinary_upload(LAST_SOURCE[0], "source-" + field + "-" + pid, cname, cpreset)
+                          except Exception as _ex: log("    %s original could not be kept: %s" % (label, str(_ex)[:60]))
                       clean = True if not angled else bool(LAST_VIEW_GLASS[0])
                       ok[view] = clean
                       n += 1
@@ -4178,6 +4225,9 @@ jobs:
                       p.pop("tryOnDraft", None)
                       p["tryOnUrl"] = url
                       p["tryOnReady"] = True
+                      # READY TO CHECK (2026-09-27, shop): a fresh cut is not put live by
+                      # the robot any more -- a person looks at it in admin and approves it
+                      p["awaitingCheck"] = True
                       reading = nums.pop("reading", {}) or {}
                       warning = nums.pop("warning", None)
                       if warning:
