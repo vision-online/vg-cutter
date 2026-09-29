@@ -1,89 +1,11 @@
-Run 1047  Tue Sep 29 22:58:00 UTC 2026
-Trigger: schedule
+Run 1052  Tue Sep 29 23:02:20 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::Frames: 13. Waiting: 9. Rejected: 0.
+  4 frame(s): Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.  [VG-1007 Frames, VG-1008 Frames, VG-1009 Frames, VG-1014 Frames]
+  1 frame(s): Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height,   [VG-1006 Frames]
+::notice::Frames: 13. Waiting: 0. Rejected: 5.
 
 --- what the robot did ---
---- pmun6hrtf83 : VG-1009 Frames
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 68476 + 68222 px (found by rim line, SAM: nothing to add); 128965 pixels of glass cleared
-    glass check: the demo is clear (0.0% left)
-    the frame fills 60% of the photo's width
-    RIM CHECK: the rim is broken through -> kept off the website
-    arms above the frame: 0.0% (below 2.5%, no note)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790721912/syc1z6viuhtnq0szfvlj.png
-  pmun6hrtf83 REJECTED, kept off the website: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.
---- pmun6lpsg17 : VG-1010 Frames9727
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 72289 + 71101 px (found by rim line, SAM: +1389 px of glass); 139799 pixels of glass cleared
-    levelled: the frame was 0.4 degrees off, turned straight
-    size check: frame works out at 142 mm (typed 54 + 20 -> about 147 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 64% of the photo's width
-    RIM CHECK: both rims match (thinnest spot 91% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    read from the photo: shape?
-    angled lens step skipped, nothing changed: lens size out of range (5%, 3% of the frame box)
-    45 degree left cut too
-    angled lens step: lenses 25148 + 46010 px (found by two openings, SAM: nothing to add); 67449 pixels of glass cleared
-    45 degree right cut too
-    90 degree side cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790721954/zitdgx4ccpbeitaghzks.png
---- pmun6n7dt97 : VG-1011 Frames
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 81746 + 81150 px (found by rim line, SAM: +4752 px of glass); 161940 pixels of glass cleared
-    size check: frame works out at 137 mm (typed 52 + 18 -> about 141 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 65% of the photo's width
-    RIM CHECK: both rims match (thinnest spot 77% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    read from the photo: shape?
-    angled lens step skipped, nothing changed: the two biggest openings overlap sideways
-    45 degree left cut too
-    angled lens step skipped, nothing changed: the two biggest openings overlap sideways
-    45 degree right cut too
-    90 degree side cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790722139/wl7ttytbks48va88d1ht.png
---- pmun6ongh11 : VG-1012 Frames
-    rim type: not set (0 clean lens holes)
-half-rim: 36 enclosed pieces, 4 candidates, rejected {'size': 31, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
-    lens edge line drawn (half-rim / rimless): 2613 px at 80%
-    a little tint left on the demo (half-rim / rimless): 100788 px
-    size check: frame works out at 129 mm (typed 49 + 18 -> about 135 mm expected)
-    the frame fills 59% of the photo's width
-    read from the photo: colour2?
-    angled lens step skipped, nothing changed: the two biggest openings are not level
-    45 degree left cut too
-    angled lens step skipped, nothing changed: lens size out of range (2%, 11% of the frame box)
-    45 degree right cut too
-    90 degree side cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790722323/z7atue8v0dplshdgzrla.png
---- pmun6ph385 : VG-1013 Frames
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 77719 + 77106 px (found by rim line, SAM: +7319 px of glass); 157304 pixels of glass cleared
-    size check: frame works out at 142 mm (typed 53 + 19 -> about 144 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 64% of the photo's width
-    RIM CHECK: both rims match (thinnest spot 89% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    read from the photo: colour2?
-    angled lens step skipped, nothing changed: the two biggest openings are not level
-    45 degree left cut too
-    angled lens step skipped, nothing changed: lens size out of range (10%, 3% of the frame box)
-    45 degree right cut too
-    90 degree side cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790722502/rmdkbf9n0lpj32i95lkl.png
---- pmun6qw7381 : VG-1014 Frames
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 78482 + 76434 px (found by rim line, SAM: nothing to add); 133254 pixels of glass cleared
-    glass check: the demo is clear (0.0% left)
-    the frame fills 61% of the photo's width
-    RIM CHECK: the rim is broken through -> kept off the website
-    arms above the frame: 0.0% (below 2.5%, no note)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790722675/shzcabuguapwrdhc53os.png
-  pmun6qw7381 REJECTED, kept off the website: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.
-  Why they were held back: 4 rim damaged, 1 arm beside the frame
-  Finished. Cut 4, failed 0, rejected 5, still waiting 5.  Rejected: VG-1006 Frames: Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height, and take it again.; VG-1007 Frames: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.; VG-1008 Frames: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.; VG-1009 Frames: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.; VG-1014 Frames: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.
