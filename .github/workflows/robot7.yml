@@ -303,23 +303,53 @@ jobs:
               return h
 
 
+          def db_get_json(url, timeout=60, tries=4):
+              """A database read that survives a broken connection (2026-09-29). The
+              robot stopped for hours on 'IncompleteRead': the download broke halfway,
+              there was no second try, and every run failed the same way. Now a broken
+              or cut-short answer is tried again (after 3, 6, 12 s); a real refusal
+              from the database (a 4xx, e.g. a wrong key) still stops at once."""
+              last = None
+              for i in range(tries):
+                  try:
+                      r = requests.get(url, headers=sb_headers(), timeout=timeout)
+                      if 400 <= r.status_code < 500:
+                          raise RuntimeError("database answered %d: %s" % (r.status_code, r.text[:200]))
+                      if not r.ok:
+                          raise IOError("database answered %d" % r.status_code)
+                      return r.json() or []
+                  except RuntimeError:
+                      raise
+                  except Exception as e:                        # broken connection, cut-short or unreadable answer, 5xx
+                      last = e
+                      if i < tries - 1:
+                          wait = 3 * (2 ** i)
+                          log("    database read broke (%s) -- trying again in %d s" % (str(e)[:80], wait))
+                          time.sleep(wait)
+              raise RuntimeError("database read failed %d times: %s" % (tries, str(last)[:160]))
+
+
           def fetch_products():
               """Every real frame. Settings rows have ids starting __ and are
               skipped here in Python: in the database's LIKE language an underscore
-              is a wildcard, so a 'not like __*' filter would hide every frame."""
-              url = (SUPABASE_URL + "/rest/v1/products?select=id,data&order=id.asc&limit=3000")
-              r = requests.get(url, headers=sb_headers(), timeout=60)
-              if not r.ok:
-                  raise RuntimeError("database answered %d: %s" % (r.status_code, r.text[:200]))
-              rows = r.json() or []
-              out = []
-              for row in rows:
-                  rid = str(row.get("id") or "")
-                  if rid.startswith("__"):
-                      continue
-                  data = row.get("data") if isinstance(row.get("data"), dict) else {}
-                  data["id"] = rid
-                  out.append(data)
+              is a wildcard, so a 'not like __*' filter would hide every frame.
+              Read in pages of 200 (2026-09-29): small answers break less often, and
+              a 500-frame catalogue is never one huge download."""
+              PAGE = 200
+              out, offset = [], 0
+              while True:
+                  url = (SUPABASE_URL + "/rest/v1/products?select=id,data&order=id.asc&limit=%d&offset=%d" % (PAGE, offset))
+                  rows = db_get_json(url, timeout=60)
+                  for row in rows:
+                      rid = str(row.get("id") or "")
+                      if rid.startswith("__"):
+                          continue
+                      data = row.get("data") if isinstance(row.get("data"), dict) else {}
+                      data["id"] = rid
+                      out.append(data)
+                  if len(rows) < PAGE:
+                      break
+                  offset += PAGE
               return out
 
 
