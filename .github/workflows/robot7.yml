@@ -55,6 +55,7 @@ jobs:
           import datetime
           import json
           import os
+          import time
           import urllib.error
           import urllib.request
 
@@ -81,18 +82,32 @@ jobs:
               if prefer:
                   req.add_header("Prefer", prefer)
               data = json.dumps(body).encode() if body is not None else None
-              try:
-                  with urllib.request.urlopen(req, data, timeout=45) as r:
-                      text = r.read().decode() or "[]"
-              except urllib.error.HTTPError as e:
-                  raise RuntimeError("database answered %d: %s" % (e.code, e.read().decode()[:200]))
-              try:
-                  return json.loads(text)
-              except Exception:
-                  return []
+              # A BROKEN DOWNLOAD IS TRIED AGAIN (2026-09-29): the quick look read
+              # everything in one go with no second try ("IncompleteRead"), and a
+              # cut-short answer was quietly taken as "no frames at all". Now a
+              # broken or unreadable answer is retried after 3, 6, 12 s; a real
+              # refusal (4xx, e.g. a wrong key) still stops at once.
+              last = None
+              for i in range(4):
+                  try:
+                      with urllib.request.urlopen(req, data, timeout=45) as r:
+                          text = r.read().decode() or "[]"
+                      return json.loads(text)
+                  except urllib.error.HTTPError as e:
+                      if 400 <= e.code < 500:
+                          raise RuntimeError("database answered %d: %s" % (e.code, e.read().decode()[:200]))
+                      last = e
+                  except Exception as e:
+                      last = e
+                  if i < 3:
+                      print("database read broke (%s) -- trying again in %d s" % (str(last)[:80], 3 * 2 ** i))
+                      time.sleep(3 * 2 ** i)
+              raise RuntimeError("database read failed 4 times: %s" % str(last)[:160])
 
 
           def waiting(p):
+              if p.get("draft") or p.get("deleted"):
+                  return False          # a DRAFT (details not typed yet) is never cut -- same rule as the robot itself
               if p.get("tryOnLocked"):
                   return False
               if p.get("tryOnOk") is False:
@@ -117,7 +132,13 @@ jobs:
                   print("::notice::Database %s, key role: %s" % (SUPABASE_URL, key_role()))
               count = 0
               try:
-                  rows = call("/rest/v1/products?select=id,data&limit=3000")
+                  rows, off = [], 0                                   # pages of 200: small answers break less often
+                  while True:
+                      page = call("/rest/v1/products?select=id,data&order=id.asc&limit=200&offset=%d" % off)
+                      rows += page
+                      if len(page) < 200:
+                          break
+                      off += 200
                   frames = [r.get("data") or {} for r in rows if not str(r.get("id") or "").startswith("__")]
                   if recut.lower() == "all":
                       # cut every frame again with the current method (after a cutter
