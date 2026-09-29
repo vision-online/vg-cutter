@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   cut:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
@@ -3548,6 +3548,13 @@ jobs:
               n = 0
               fresh = force or int(p.get("tryOnViewsV") or 0) < VIEWS_VERSION
               locks = p.get("tryOnViewLocks") if isinstance(p.get("tryOnViewLocks"), dict) else {}
+              # NOTHING REACHES CUSTOMERS UNSEEN (2026-09-29, shop): a view cut for a
+              # frame that is ALREADY LIVE is held back ("pendingViews") until staff
+              # approve it in TO CHECK; the frame stays live with what was approved.
+              # A new frame is checked as a whole (awaitingCheck), so nothing extra.
+              live_now = bool(p.get("tryOnReady")) and not p.get("awaitingCheck")
+              pending = set(p.get("pendingViews") or []) if isinstance(p.get("pendingViews"), list) else set()
+              problems = dict(p.get("viewProblems") or {}) if isinstance(p.get("viewProblems"), dict) else {}
               for view, src, field, angled, label in (
                       ("angle",  angle_photo(p),       "tryOnAngleUrl",  True,  "45 degree left"),
                       ("angleR", angle_right_photo(p), "tryOnAngleRUrl", True,  "45 degree right"),
@@ -3569,11 +3576,18 @@ jobs:
                       clean = True if not angled else bool(LAST_VIEW_GLASS[0])
                       ok[view] = clean
                       n += 1
+                      problems.pop(view, None)
+                      if live_now:
+                          pending.add(view)
+                          log("    %s held back until it is approved in TO CHECK" % label)
                       log("    %s cut too%s" % (label, "" if clean else " (glass not found -- the shop keeps the photo for this view)"))
                   except Exception as e:
                       ok[view] = False
+                      problems[view] = str(e)[:140]                 # shown in TO CHECK instead of the view silently missing
                       log("    %s photo skipped: %s" % (label, str(e)[:110]))
               p["tryOnViewsOk"] = ok
+              p["pendingViews"] = sorted(pending)
+              p["viewProblems"] = problems
               p["tryOnViewsV"] = VIEWS_VERSION
               return n
 
@@ -3913,7 +3927,8 @@ jobs:
                           continue
                       for k in ("tryOnUrl", "tryOnAngleUrl", "tryOnSideUrl", "tryOnNumbers",
                                 "tryOnTest", "tryOnPrev", "tryOnWarning",
-                                "tryOnAngleRUrl", "tryOnViewsV", "tryOnViewsOk", "tryOnViewsWant"):
+                                "tryOnAngleRUrl", "tryOnViewsV", "tryOnViewsOk", "tryOnViewsWant",
+                                "pendingViews", "viewProblems", "tryOnAngleSource", "tryOnAngleRSource", "tryOnSideSource"):
                           p.pop(k, None)
                       p["tryOnUrl"] = ""
                       p["tryOnReady"] = False
