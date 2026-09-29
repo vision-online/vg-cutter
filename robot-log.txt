@@ -1,9 +1,9 @@
-Run 1037  Tue Sep 29 06:50:04 UTC 2026
-Trigger: schedule
+Run 1038  Tue Sep 29 10:30:30 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::error::STOP: could not read the database: IncompleteRead(19078 bytes read)
+::notice::Frames: 4. Waiting: 0. Rejected: 0.
 
 --- what the robot did ---
