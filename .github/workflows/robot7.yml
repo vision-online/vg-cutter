@@ -2177,16 +2177,26 @@ jobs:
                   lab_, n = ndimage.label(holes)
                   if n < 2:
                       return None
+                  fys, fxs = np.where(a)
+                  fh = float(fys.max() - fys.min() + 1); fw = float(fxs.max() - fxs.min() + 1)
                   sizes = ndimage.sum(holes, lab_, range(1, n + 1))
-                  order = [int(i) + 1 for i in np.argsort(sizes)[::-1][:2]]
-                  if sizes[order[1] - 1] < 0.12 * sizes[order[0] - 1]:
-                      return None                                   # the far lens is not really visible
                   boxes = []
-                  for i in order:
+                  for i in [int(i) + 1 for i in np.argsort(sizes)[::-1][:6]]:
                       ys, xs = np.where(lab_ == i)
+                      h = int(ys.max() - ys.min() + 1); w = int(xs.max() - xs.min() + 1)
+                      # A LENS, NOT A SPECK (1 Oct): an opening only counts as a lens when it is
+                      # at least a quarter of the frame's height and not a sliver
+                      if h < 0.25 * fh or len(xs) < 0.015 * fh * fw or w < 0.06 * fw:
+                          continue
                       boxes.append({"cx": float(xs.mean()), "cy": float(ys.mean()), "x0": int(xs.min()), "x1": int(xs.max()),
-                                    "y0": int(ys.min()), "y1": int(ys.max()), "h": int(ys.max() - ys.min() + 1), "w": int(xs.max() - xs.min() + 1),
-                                    "area": int(len(xs))})
+                                    "y0": int(ys.min()), "y1": int(ys.max()), "h": h, "w": w, "area": int(len(xs))})
+                  if len(boxes) < 2:
+                      return None
+                  boxes = boxes[:2]
+                  if boxes[1]["area"] < 0.12 * boxes[0]["area"]:
+                      return None                                   # the far lens is not really visible
+                  if abs(boxes[0]["cy"] - boxes[1]["cy"]) > 0.35 * fh:
+                      return None                                   # not two lenses side by side
                   near, far = boxes[0], boxes[1]                   # the bigger opening is the lens nearer the camera
                   left, right = (near, far) if near["cx"] < far["cx"] else (far, near)
                   bridge_x = (left["x1"] + right["x0"]) / 2.0
@@ -3848,9 +3858,11 @@ jobs:
                       png2, _ = cut(download(no_enhancement(src)), front=False, angled=angled)
                       p[field] = cloudinary_upload(png2, "tryon-" + field + "-" + pid, cname, cpreset)
                       # 45-degree fit points for the try-on (1 Oct): bridge and lens openings in this cut-out
-                      _fit = angle_anchors(png2)
+                      _fit = angle_anchors(png2) if angled else None
                       p[field.replace("Url", "Fit")] = _fit
-                      if _fit:
+                      if not angled:
+                          pass
+                      elif _fit:
                           log("    %s fit points: bridge at (%d,%d), lens height %d px, near lens on the %s" % (label, _fit["bridge"][0], _fit["bridge"][1], _fit["lensHeightPx"], _fit["nearSide"]))
                       else:
                           log("    %s fit points: the two lens openings were not found -- the try-on will use the picture's box" % label)
@@ -4176,7 +4188,7 @@ jobs:
                       if "all" not in want and str(p.get("id")) not in want and str(p.get("sku") or "") not in want:
                           continue
                       changed = False
-                      for field, label in (("tryOnAngleUrl", "45 left"), ("tryOnAngleRUrl", "45 right"), ("tryOnSideUrl", "side")):
+                      for field, label in (("tryOnAngleUrl", "45 left"), ("tryOnAngleRUrl", "45 right")):
                           url = p.get(field)
                           if not url:
                               continue
