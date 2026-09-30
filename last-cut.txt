@@ -1,22 +1,6 @@
-Run 1180  Wed Sep 30 19:26:14 UTC 2026
+Run 1181  Wed Sep 30 19:33:50 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
---- VG-1001 Frames: 45 left fit points bridge at (219,177), lens height 247 px
---- VG-1001 Frames: 45 right fit points bridge at (807,181), lens height 269 px
---- VG-1002 Frames: 45 left fit points bridge at (782,138), lens height 134 px
---- VG-1002 Frames: 45 right fit points not found (the try-on will use the picture's box)
---- VG-1003 Frames: 45 left fit points not found (the try-on will use the picture's box)
---- VG-1003 Frames: 45 right fit points not found (the try-on will use the picture's box)
---- VG-1005 Frames: 45 left fit points not found (the try-on will use the picture's box)
---- VG-1005 Frames: 45 right fit points bridge at (739,144), lens height 206 px
---- VG-1010 Frames9727: 45 left fit points bridge at (848,185), lens height 165 px
---- VG-1010 Frames9727: 45 right fit points bridge at (233,155), lens height 241 px
---- VG-1011 Frames: 45 left fit points not found (the try-on will use the picture's box)
---- VG-1011 Frames: 45 right fit points bridge at (220,172), lens height 265 px
---- VG-1012 Frames: 45 left fit points not found (the try-on will use the picture's box)
---- VG-1012 Frames: 45 right fit points not found (the try-on will use the picture's box)
---- VG-1013 Frames: 45 left fit points bridge at (316,174), lens height 164 px
---- VG-1013 Frames: 45 right fit points bridge at (793,190), lens height 171 px
---- VG-1014 Frames: 45 left fit points not found (the try-on will use the picture's box)
---- VG-1014 Frames: 45 right fit points not found (the try-on will use the picture's box)
-Fit points recorded for 9 frame(s).
+Trial re-cut: no frame matched 'VG-1007'.
+Catalogue: 13 frames. Waiting for a cut-out: 0.
+Nothing to do.
