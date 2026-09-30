@@ -1,11 +1,11 @@
-Run 1097  Wed Sep 30 06:39:28 UTC 2026
+Run 1098  Wed Sep 30 06:49:38 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-  4 frame(s): Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.  [VG-1007 Frames, VG-1008 Frames, VG-1009 Frames, VG-1014 Frames]
+  3 frame(s): Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.  [VG-1007 Frames, VG-1008 Frames, VG-1009 Frames]
   1 frame(s): Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height,   [VG-1006 Frames]
-::notice::Frames: 13. Waiting: 0. Rejected: 5.
+::notice::Frames: 13. Waiting: 0. Rejected: 4.
 
 --- what the robot did ---
