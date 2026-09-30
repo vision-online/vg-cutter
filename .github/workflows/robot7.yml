@@ -2583,6 +2583,98 @@ jobs:
               return keep
 
 
+          def _grow_to_rim_edge(a, rgb, lens_mask, max_out=12, dark=20, verbose=False):
+              """
+              THIN LOWER RIM (1 Oct 2026, real VG-1007 cut, run 1196): on the nose side of both
+              lower rims the cut ended 4-8 px inside the rim. The photo shows it plainly: a
+              clear rim is a DARK band (about 100-130) between a bright inner highlight and the
+              wall (about 150-170). Along every ray from a lens centre through the lower half of
+              the ring, walk outward from the end of the kept rim while the photo is clearly
+              darker than the wall seen just beyond (at least `dark` levels darker), at most
+              max_out px; the length is smoothed over neighbouring rays, and the pixels up to it
+              are kept. Stops at the first wall-like pixel, so it never walks onto the wall or
+              the (brighter) floor. Only adds pixels. Returns a boolean mask.
+              """
+              import cv2
+              from scipy import ndimage
+              A = a > 0.5
+              H, W = A.shape
+              add = np.zeros((H, W), bool)
+              L = lens_mask.astype(bool)
+              lab, n = ndimage.label(L)
+              if n < 1 or rgb.shape[:2] != A.shape:
+                  return add
+              sizes = ndimage.sum(L, lab, range(1, n + 1))
+              ids = [int(i) + 1 for i in np.argsort(sizes)[::-1][:2] if sizes[i] > 0.2 * sizes.max()]
+              g = cv2.GaussianBlur(cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY).astype(np.float32), (0, 0), 0.8)
+              tot = 0
+              for i in ids:
+                  ys, xs = np.where(lab == i)
+                  cy, cx = ys.mean(), xs.mean()
+                  angs = list(range(15, 166, 2))
+                  ext = {}
+                  rays = {}
+                  for ang in angs:
+                      dy, dx = np.sin(np.radians(ang)), np.cos(np.radians(ang))
+                      r = 0.0
+                      while True:
+                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                          if y < 0 or x < 0 or y >= H or x >= W: y = None; break
+                          if lab[y, x] != i: break
+                          r += 1.0
+                      if y is None: continue
+                      for _s in range(8):
+                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                          if y < 0 or x < 0 or y >= H or x >= W or A[y, x]: break
+                          r += 1.0
+                      s = 0
+                      while True:
+                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                          if y < 0 or x < 0 or y >= H or x >= W or not A[y, x]: break
+                          s += 1; r += 1.0
+                      if s <= 1: continue
+                      r_out = r
+                      def lum(k):
+                          y, x = int(round(cy + dy * (r_out + k))), int(round(cx + dx * (r_out + k)))
+                          return float(g[y, x]) if 0 <= y < H and 0 <= x < W else None
+                      far_v = [lum(k) for k in range(max_out + 4, max_out + 20)]
+                      far_v = [v for v in far_v if v is not None]
+                      if len(far_v) < 8: continue
+                      wall = float(np.median(far_v))
+                      e = 0
+                      for k in range(0, max_out + 1):
+                          v = lum(k)
+                          if v is None: break
+                          if v < wall - dark: e = k + 1
+                          elif k - e >= 1: break            # one bright pixel inside the band is forgiven, two end it
+                      ext[ang] = e; rays[ang] = (dy, dx, r_out)
+                  if not ext: continue
+                  keys = sorted(ext)
+                  sm = {}
+                  for j, a_ in enumerate(keys):
+                      w = [ext[keys[t]] for t in range(max(0, j - 3), min(len(keys), j + 4))]
+                      sm[a_] = int(round(float(np.median(w))))
+                  # the strip between the end of the kept rim and the end of the extension, for each
+                  # pair of neighbouring rays (a filled quadrilateral: no gaps, nothing beyond e)
+                  for j in range(len(keys) - 1):
+                      a1, a2_ = keys[j], keys[j + 1]
+                      if a2_ - a1 != 2 or sm[a1] < 2 or sm[a2_] < 2: continue
+                      d1y, d1x, r1 = rays[a1]; d2y, d2x, r2 = rays[a2_]
+                      e1, e2 = sm[a1], sm[a2_]
+                      pts = np.array([[cx + d1x * (r1 - 1), cy + d1y * (r1 - 1)],
+                                      [cx + d1x * (r1 + e1 + 0.5), cy + d1y * (r1 + e1 + 0.5)],
+                                      [cx + d2x * (r2 + e2 + 0.5), cy + d2y * (r2 + e2 + 0.5)],
+                                      [cx + d2x * (r2 - 1), cy + d2y * (r2 - 1)]])
+                      m_ = np.zeros((H, W), np.uint8)
+                      cv2.fillPoly(m_, [np.round(pts).astype(np.int32)], 1)
+                      add |= m_ > 0
+                  tot += sum(1 for a_ in keys if sm[a_] >= 2)
+              if add.any():
+                  add &= ~A & ~L
+              if verbose: print("rays extended: %d, pixels added: %d" % (tot, int(add.sum())))
+              return add
+
+
           def close_full_rim_ring(a, colour_rgb, min_alpha=0.42, lens_mask=None):
               """
               Close the ring on a full-rim frame. FIRST from the lens shape (when the lens
@@ -2611,7 +2703,13 @@ jobs:
                   if seal.any():
                       add |= seal
                       notes.append("ring: %d px of hairline cracks in the rim sealed" % int(seal.sum()))
-                  plate = _recover_end_plates(np.maximum(a2, seal.astype(a2.dtype)), colour_rgb, lens_mask)
+                  grow = np.zeros(a2.shape, bool)
+                  if lens_mask is not None and lens_mask.shape == a2.shape:
+                      grow = _grow_to_rim_edge(np.maximum(a2, seal.astype(a2.dtype)), colour_rgb, lens_mask)
+                  if grow.any():
+                      add |= grow
+                      notes.append("ring: %d px added along the outer edge of the lower rim (the cut ended inside the rim)" % int(grow.sum()))
+                  plate = _recover_end_plates(np.maximum(a2, (seal | grow).astype(a2.dtype)), colour_rgb, lens_mask)
                   if plate.any():
                       add |= plate
                       notes.append("ring: %d px of the pale metal plate on the outer end pieces brought back" % int(plate.sum()))
@@ -5111,7 +5209,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01f (close the ring: lens-shape rebuild, thinned rims, hairline cracks sealed, outer end-piece plates kept; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01g (close the ring: lens-shape rebuild, thinned rims, cracks sealed, lower rim grown to its outer edge, end-piece plates kept; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
