@@ -2327,11 +2327,15 @@ jobs:
               step already knows each lens opening exactly (found from the rim line in the
               photo). On a full-rim frame the rim runs all the way round that opening, so
               where the cut lost the rim -- a transparent lower rim looks like background
-              to the AI -- it is rebuilt as a band right against the lens edge, as thick
-              as the rim measured on the same lens where it survived, from the photo's
-              own pixels. No edge tracing, so a bright floor line under the frame cannot
-              pull the rim down. A transparent rim comes back see-through but clearly
-              there (at least 72% solid), never painted.
+              to the AI -- it is rebuilt as a band right against the lens edge, from the
+              photo's own pixels. No edge tracing, so a bright floor line under the frame
+              cannot pull the rim down. A transparent rim comes back see-through but
+              clearly there (at least 72% solid), never painted.
+              Second run on VG-1007 (1 Oct): the rim was not only OPEN in places but also
+              THINNED (left bottom 31% of the right). A frame is symmetric, so every
+              direction is compared with the same direction on the other lens (mirrored);
+              where this side is much thinner, it is brought back up to the other side's
+              width -- only by adding the photo's pixels, never by removing anything.
               Returns (new alpha, band mask or None, notes).
               """
               import cv2
@@ -2345,116 +2349,172 @@ jobs:
                   return a, None, ["ring: no lens shape"]
               sizes = ndimage.sum(L, lab_, range(1, n + 1))
               order = [int(i) + 1 for i in np.argsort(sizes)[::-1][:2] if sizes[i] > 0.2 * sizes.max()]
-              A = a > 0.5
               H, W = a.shape
               src = colour_rgb.astype(np.float32)
               band = np.zeros((H, W), bool)
-              for k in order:
-                  lens = lab_ == k
-                  ys, xs = np.where(lens)
-                  cy, cx = ys.mean(), xs.mean()
-                  name = "left" if cx < W / 2.0 else "right"
-                  dist_out = cv2.distanceTransform((~lens).astype(np.uint8), cv2.DIST_L2, 5)
-                  # rim thickness on this lens where it survived: rays from the lens centre;
-                  # thickness is read as the distance from the lens edge at the rim's far
-                  # side, so a ray that crosses the rim at a slant does not over-measure
-                  th_low, th_all = [], []
-                  th_at = {}
-                  lost = 0
-                  lost_angles = []
-                  offs = []
-                  for ang in range(0, 360, 5):
-                      dy, dx = np.sin(np.radians(ang)), np.cos(np.radians(ang))   # image y points down
-                      r = 0.0
-                      while True:
-                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
-                          if y < 0 or x < 0 or y >= H or x >= W:
-                              y = None; break
-                          if not lens[y, x]:
-                              break
-                          r += 1.0
-                      if y is None:
+              def one_pass(A, band, first):
+                  notes = []
+                  # ---- 1. measure every lens: 72 directions, the rim's width in each ----
+                  info = []
+                  for k in order:
+                      lens = lab_ == k
+                      ys, xs = np.where(lens)
+                      cy, cx = ys.mean(), xs.mean()
+                      dist_out = cv2.distanceTransform((~lens).astype(np.uint8), cv2.DIST_L2, 5)
+                      th_at, lost, offs = {}, [], []
+                      for ang in range(0, 360, 5):
+                          dy, dx = np.sin(np.radians(ang)), np.cos(np.radians(ang))   # image y points down
+                          r = 0.0
+                          while True:
+                              y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                              if y < 0 or x < 0 or y >= H or x >= W:
+                                  y = None; break
+                              if not lens[y, x]:
+                                  break
+                              r += 1.0
+                          if y is None:
+                              continue
+                          # a hairline of background between the lens edge and the rim is not a loss
+                          r_edge = r
+                          for _skip in range(8):
+                              y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                              if y < 0 or x < 0 or y >= H or x >= W or A[y, x]:
+                                  break
+                              r += 1.0
+                          gap_px = r - r_edge
+                          solid = 0
+                          while True:
+                              y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                              if y < 0 or x < 0 or y >= H or x >= W or not A[y, x]:
+                                  break
+                              solid += 1; r += 1.0
+                          if solid <= 1:
+                              lost.append(ang)
+                              continue
+                          # width read as the distance from the lens edge at the rim's far side,
+                          # so a ray crossing the rim at a slant does not over-measure
+                          yl, xl = int(round(cy + dy * (r - 1))), int(round(cx + dx * (r - 1)))
+                          th_at[ang] = max(2.0, float(dist_out[min(H - 1, max(0, yl)), min(W - 1, max(0, xl))]) - gap_px)
+                          offs.append(gap_px)
+                      info.append(dict(lens=lens, cy=cy, cx=cx, dist=dist_out, th=th_at, lost=lost, offs=offs,
+                                       name="left" if cx < W / 2.0 else "right"))
+                  # ---- 2. compare with the mirrored direction on the other lens ----
+                  pair = {}
+                  if len(info) == 2:
+                      l_, r_ = sorted(info, key=lambda d: d["cx"])
+                      pair[id(l_)] = r_; pair[id(r_)] = l_
+                  for d in info:
+                      name = d["name"]
+                      other = pair.get(id(d))
+                      # the bridge side is not rim (its width varies by design): leave it out
+                      bridge_ang = 0 if (other is not None and other["cx"] > d["cx"]) else 180
+                      def near_bridge(g):
+                          return min(abs(g - bridge_ang), 360 - abs(g - bridge_ang)) <= 12
+                      thin = []
+                      if other is not None:
+                          for g, tv in d["th"].items():
+                              m = (180 - g) % 360
+                              if near_bridge(g) or m not in other["th"]:
+                                  continue
+                              if tv < 0.6 * other["th"][m]:
+                                  thin.append(g)
+                      # a tapering tip where the rim was cut (e.g. at the end of a missing
+                      # stretch, on BOTH lenses alike, so the other lens shows the same tip):
+                      # thinner than half of what its own neighbours on both sides measure
+                      thn = d["th"]
+                      for g in sorted(thn):
+                          if near_bridge(g) or g in thin:
+                              continue
+                          prev_n = [thn[(g - 5 * j) % 360] for j in (1, 2, 3) if (g - 5 * j) % 360 in thn]
+                          next_n = [thn[(g + 5 * j) % 360] for j in (1, 2, 3) if (g + 5 * j) % 360 in thn]
+                          if len(prev_n) >= 2 and len(next_n) >= 2:
+                              ref_ = min(float(np.median(prev_n)), float(np.median(next_n)))
+                              if thn[g] < 0.55 * ref_:
+                                  thin.append(g)
+                      fix = sorted(set(d["lost"]) | set(thin))
+                      # (directions with NO rim are always rebuilt, also near the bridge; only the
+                  #  "thinner than the other lens" comparison skips the bridge side)
+                      if not fix:
+                          notes.append("ring: %s lens -- rim whole all round the lens, nothing to rebuild" % name)
                           continue
-                      # a hairline of background between the lens edge and the rim is not a loss
-                      r_edge = r
-                      for _skip in range(8):
-                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
-                          if y < 0 or x < 0 or y >= H or x >= W or A[y, x]:
-                              break
-                          r += 1.0
-                      gap_px = r - r_edge
-                      solid = 0
-                      while True:
-                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
-                          if y < 0 or x < 0 or y >= H or x >= W or not A[y, x]:
-                              break
-                          solid += 1; r += 1.0
-                      if solid <= 1:
-                          lost += 1
-                          lost_angles.append(ang)
+                      good = {g: v for g, v in d["th"].items() if g not in thin}
+                      if len(fix) > 36:
+                          notes.append("ring: %s lens -- rim missing or thin in %d of 72 directions, too much to rebuild safely, left as is" % (name, len(fix)))
                           continue
-                      yl, xl = int(round(cy + dy * (r - 1))), int(round(cx + dx * (r - 1)))
-                      solid = max(2.0, float(dist_out[min(H - 1, max(0, yl)), min(W - 1, max(0, xl))]) - gap_px)
-                      th_at[ang] = solid
-                      th_all.append(solid)
-                      offs.append(gap_px)
-                      if dy > 0.2:
-                          th_low.append(solid)
-                  if lost == 0:
-                      notes.append("ring: %s lens -- rim whole all round the lens, nothing to rebuild" % name)
-                      continue
-                  if lost > 36:
-                      notes.append("ring: %s lens -- rim missing in %d of 72 directions, too much to rebuild safely, left as is" % (name, lost))
-                      continue
-                  if len(th_all) < 12:
-                      notes.append("ring: %s lens -- too little rim left to measure, left as is" % name)
-                      continue
-                  med_all = float(np.median(th_all))
-                  T = float(np.median(th_low)) if len(th_low) >= 4 else med_all
-                  T = float(np.clip(T, 0.5 * med_all, 1.2 * med_all))
-                  OFF = float(np.median(offs)) if offs else 0.0     # the rim starts this far out from the lens edge
-                  # thickness across each lost stretch: blended from the rim just before and
-                  # just after it, so the rebuilt piece meets both ends at their own width
-                  known = sorted(th_at)
-                  Tbin = np.full(72, T, np.float32)
-                  ext = [k - 360 for k in known] + known + [k + 360 for k in known]
-                  for g in lost_angles:
-                      # the width on each side: the middle value of the four nearest intact
-                      # rays, so one nibbled ray or one end-piece ray cannot set it
-                      before = [k for k in ext if k < g][-4:]
-                      after_ = [k for k in ext if k > g][:4]
-                      prev_, next_ = before[-1], after_[0]
-                      tp = float(np.median([th_at[k % 360] for k in before]))
-                      tn = float(np.median([th_at[k % 360] for k in after_]))
-                      w_ = (g - prev_) / float(max(1, next_ - prev_))
-                      Tbin[g // 5] = float(np.clip((1 - w_) * tp + w_ * tn, 0.5 * med_all, 1.2 * med_all))
-                  yy0, xx0 = np.mgrid[0:H, 0:W]
-                  pa0 = (np.degrees(np.arctan2(yy0 - cy, xx0 - cx)) + 360.0) % 360.0
-                  Tpix = Tbin[(np.round(pa0 / 5.0).astype(int)) % 72]
-                  ring = (dist_out > OFF) & (dist_out <= OFF + Tpix + 0.5)
-                  # only in the directions where the rim was actually lost (a 5-degree
-                  # step either side), never a hairline all round the lens
-                  yy_, xx_ = np.mgrid[0:H, 0:W]
-                  pa = (np.degrees(np.arctan2(yy_ - cy, xx_ - cx)) + 360.0) % 360.0
-                  sector = np.zeros((H, W), bool)
-                  for g in lost_angles:
-                      dg = np.abs(((pa - g) + 180.0) % 360.0 - 180.0)
-                      sector |= dg <= 5.0
-                  miss = ring & ~A & sector
-                  if miss.sum() < 20:
-                      continue
-                  band |= miss
-                  notes.append("ring: %s lens -- rim rebuilt round the lens shape, %d of 72 directions were open (rim %.0f-%.0f px thick, matched to the rim at each end)"
-                               % (name, lost, min(Tbin[g // 5] for g in lost_angles), max(Tbin[g // 5] for g in lost_angles)))
+                      if len(good) < 12:
+                          notes.append("ring: %s lens -- too little rim left to measure, left as is" % name)
+                          continue
+                      med_all = float(np.median(list(good.values())))
+                      # the width each direction should have: the same direction on the other
+                      # lens when that one is whole; otherwise blended from this lens's own rim
+                      # on both sides of the damage (middle value of the four nearest rays)
+                      known = sorted(good)
+                      ext = [k - 360 for k in known] + known + [k + 360 for k in known]
+                      Tbin = np.zeros(72, np.float32)
+                      for g in fix:
+                          m = (180 - g) % 360
+                          t_mirror = None
+                          if other is not None and m in other["th"] and m not in other["lost"]:
+                              t_mirror = float(np.clip(other["th"][m], 0.5 * med_all, 1.6 * med_all))
+                          before = [k for k in ext if k < g][-4:]
+                          after_ = [k for k in ext if k > g][:4]
+                          prev_, next_ = before[-1], after_[0]
+                          tp = float(np.median([good[k % 360] for k in before]))
+                          tn = float(np.median([good[k % 360] for k in after_]))
+                          w_ = (g - prev_) / float(max(1, next_ - prev_))
+                          t_own = float(np.clip((1 - w_) * tp + w_ * tn, 0.5 * med_all, 1.2 * med_all))
+                          # the fuller of the two: a rebuilt piece a little thick still closes the
+                          # ring and is only the photo's own pixels; a piece too thin leaves a gap
+                          Tbin[g // 5] = max(t_own, t_mirror) if t_mirror is not None else t_own
+                      OFF = float(np.median(d["offs"])) if d["offs"] else 0.0   # the rim starts this far out from the lens edge
+                      yy0, xx0 = np.mgrid[0:H, 0:W]
+                      pa = (np.degrees(np.arctan2(yy0 - d["cy"], xx0 - d["cx"])) + 360.0) % 360.0
+                      Tpix = Tbin[(np.round(pa / 5.0).astype(int)) % 72]
+                      sector = np.zeros((H, W), bool)
+                      for g in fix:
+                          dg = np.abs(((pa - g) + 180.0) % 360.0 - 180.0)
+                          sector |= dg <= 7.5          # rays are 5 degrees apart: overlap, so no sliver is left between two
+                      ring = (d["dist"] > OFF) & (d["dist"] <= OFF + Tpix + 0.5) & sector
+                      miss = ring & ~A
+                      if miss.sum() < 20:
+                          continue
+                      # seal hairline slivers where the rebuilt piece meets the surviving rim
+                      # (a 1-2 px seam there would still leave the lens "open to the outside")
+                      near = np.zeros((H, W), bool)
+                      for g in fix:
+                          dg = np.abs(((pa - g) + 180.0) % 360.0 - 180.0)
+                          near |= dg <= 25.0
+                      near &= (d["dist"] > OFF) & (d["dist"] <= OFF + Tpix + 6)
+                      se_ = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+                      sealed = cv2.morphologyEx((A | band | miss).astype(np.uint8), cv2.MORPH_CLOSE, se_) > 0
+                      miss |= sealed & ~A & near
+                      band |= miss
+                      notes.append("ring: %s lens -- rim rebuilt round the lens shape: %d directions open, %d thinner than the other lens "
+                                   "(rim %.0f-%.0f px thick there)" % (name, len(set(d["lost"]) & set(fix)), len(thin),
+                                                                       min(Tbin[g // 5] for g in fix), max(Tbin[g // 5] for g in fix)))
+
+                  return band, notes
+              # TWO PASSES (1 Oct): the first rebuilds what is missing or thin against the
+              # other lens; where BOTH lenses lost the rim in the same place there was no
+              # good side to compare with, so the second pass measures again on the repaired
+              # rim and brings any side that is still thinner up to the other.
+              band, n1 = one_pass(a > 0.5, band, True)
+              notes += n1
+              if band.any():
+                  band, n2 = one_pass((a > 0.5) | band, band, False)
+                  notes += [x for x in n2 if "rebuilt" in x]
               if not band.any():
                   return a, None, notes
+              A = a > 0.5
               # see-through where the rim is clear, solid where the photo shows rim colour
               free = (~band) & (~A)
               den = cv2.blur(free.astype(np.float32), (41, 41))[:, :, None] + 1e-6
               bg = cv2.blur(src * free[:, :, None], (41, 41)) / den
               diff = np.abs(src - bg).max(2)
               a_band = np.maximum(rim_alpha, np.clip((diff - 8) / (34 - 8), 0, 1))
-              soft = np.clip(cv2.GaussianBlur(band.astype(np.float32), (0, 0), 0.8) * 1.6, 0, 1)
+              # soften only the OUTER edge of the rebuilt piece: where it meets the surviving
+              # rim it stays fully strong, so no hairline seam shows between the two
+              soft = np.clip(cv2.GaussianBlur((band | A).astype(np.float32), (0, 0), 0.8) * 1.6, 0, 1)
               out = np.maximum(a, (np.where(band, a_band, 0) * soft).astype(a.dtype))
               return out, band, notes
 
@@ -4970,7 +5030,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01d (close the ring: lens-shape rebuild first, then traced repair; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01e (close the ring: lens-shape rebuild incl. thinned rims, two passes; traced repair; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
