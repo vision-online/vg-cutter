@@ -1,83 +1,11 @@
-Run 1173  Wed Sep 30 18:51:25 UTC 2026
+Run 1174  Wed Sep 30 18:53:09 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-Reset: 4 frame(s) forgiven and back in the queue.
-::notice::Frames: 13. Waiting: 4. Rejected: 0.
+  3 frame(s): Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.  [VG-1007 Frames, VG-1008 Frames, VG-1009 Frames]
+  1 frame(s): Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height,   [VG-1006 Frames]
+::notice::Frames: 13. Waiting: 0. Rejected: 4.
 
 --- what the robot did ---
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Trial re-cut: no frame matched 'reset'.
-Catalogue: 13 frames. Waiting for a cut-out: 4.
-Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
---- pmumk4ozy38 : VG-1006 Frames
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet at 1024 px
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:378: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
-  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
-    rim type: not set (1 clean lens holes)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_5m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_11m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_11m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_384 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_384. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_512 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_512. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/build_sam.py:91: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-  state_dict = torch.load(f)
-    MobileSAM ready
-    lens step: lenses 46949 + 48064 px (found by rim line, right lens trimmed to match the other (63160 -> 48064 px), SAM: nothing to add); 90011 pixels of glass cleared
-    glass check: the demo is clear (0.0% left)
-    the frame fills 55% of the photo's width
-    ring: left lens -- closed, 303 px of rim brought back (rim 33 px thick)
-    ring: right lens -- closed, 181 px of rim brought back (rim 33 px thick)
-    rim check after closing the ring: still broken
-    RIM CHECK: the rim is broken through -> kept off the website
-    arms beside the frame: 3.5% of its width -> REJECTED, re-shoot (nothing was cut)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790794118/jqbrksrofut4sdjwedcy.png
-  pmumk4ozy38 REJECTED, kept off the website: Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height, and take it again.
---- pmun6bio082 : VG-1007 Frames
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:378: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
-  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 76948 + 76189 px (found by rim line, SAM: nothing to add); 148218 pixels of glass cleared
-    glass check: the demo is clear (0.0% left)
-    the frame fills 64% of the photo's width
-    ring: left lens -- closed, 235 px of rim brought back (rim 11 px thick)
-    ring: right lens -- gap of 68 px is not a lens gap, left as is
-    rim check after closing the ring: still broken
-    RIM CHECK: the rim is broken through -> kept off the website
-    arms above the frame: 0.0% (below 2.5%, no note)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790794171/j4kegmcv0wv2pyvre5vm.png
-  pmun6bio082 REJECTED, kept off the website: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.
---- pmun6fvo319 : VG-1008 Frames
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 72658 + 70479 px (found by rim line, SAM: nothing to add); 138417 pixels of glass cleared
-    glass check: the demo is clear (0.0% left)
-    the frame fills 62% of the photo's width
-    ring: left lens -- gap of 67 px is not a lens gap, left as is
-    ring: right lens -- gap of 78 px is not a lens gap, left as is
-    RIM CHECK: the rim is broken through -> kept off the website
-    arms above the frame: 0.0% (below 2.5%, no note)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790794223/gwhwehu4cljfvj9fpyxc.png
-  pmun6fvo319 REJECTED, kept off the website: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.
---- pmun6hrtf83 : VG-1009 Frames
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 68476 + 68222 px (found by rim line, SAM: nothing to add); 128965 pixels of glass cleared
-    glass check: the demo is clear (0.0% left)
-    the frame fills 60% of the photo's width
-    ring: left lens -- traced line does not look like a rim (1.1x the gap), left as is
-    ring: right lens -- closed, 129 px of rim brought back (rim 13 px thick)
-    rim check after closing the ring: still broken
-    RIM CHECK: the rim is broken through -> kept off the website
-    arms above the frame: 0.0% (below 2.5%, no note)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790794280/zgi3g01ldttfbdmqua42.png
-  pmun6hrtf83 REJECTED, kept off the website: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.
-  Why they were held back: 3 rim damaged, 1 arm beside the frame
-  Finished. Cut 0, failed 0, rejected 4, still waiting 4.  Rejected: VG-1006 Frames: Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height, and take it again.; VG-1007 Frames: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.; VG-1008 Frames: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.; VG-1009 Frames: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.
