@@ -2157,6 +2157,17 @@ jobs:
               ring_a = np.where(band, a_band, 0) * np.clip(soft * 1.6, 0, 1)
               return np.maximum(a, ring_a.astype(a.dtype)), notes, band
 
+          def frame_matches(p, want):
+              """FRAME CODES IN THE RUN BOX (1 Oct): admin keeps a frame's code at the
+              start of its NAME ("VG-1007 Frames"), not in a field of its own, so the
+              box accepts the code, the full name, the id or the sku, any case."""
+              w = str(want or "").strip().lower()
+              if not w:
+                  return False
+              name = str(p.get("name") or "").strip().lower()
+              code = name.split()[0] if name else ""
+              return w in (str(p.get("id") or "").lower(), str(p.get("sku") or "").lower(), name, code)
+
           def angle_anchors(png_bytes):
               """
               45-DEGREE FIT POINTS (2026-10-01): for a 45 or side cut-out, where the
@@ -4102,7 +4113,7 @@ jobs:
               n = 0
               for p in products:
                   pid = str(p.get("id"))
-                  if ("all" not in want and pid not in want) or not p.get("tryOnUrl"):
+                  if ("all" not in want and not any(frame_matches(p, w) for w in want)) or not p.get("tryOnUrl"):
                       continue
                   p["guardBase"] = {"url": p["tryOnUrl"], "at": datetime.datetime.utcnow().isoformat() + "Z"}
                   save_product(p); n += 1
@@ -4185,7 +4196,7 @@ jobs:
                   for p in products:
                       if str(p.get("id", "")).startswith("__") or p.get("draft") or p.get("deleted"):
                           continue
-                      if "all" not in want and str(p.get("id")) not in want and str(p.get("sku") or "") not in want:
+                      if "all" not in want and not any(frame_matches(p, w) for w in want):
                           continue
                       changed = False
                       for field, label in (("tryOnAngleUrl", "45 left"), ("tryOnAngleRUrl", "45 right")):
@@ -4217,7 +4228,7 @@ jobs:
                       t = p.get("tryOnTest")
                       if not t or not t.get("url"):
                           continue
-                      if "all" not in want and str(p.get("id")) not in want:
+                      if "all" not in want and not any(frame_matches(p, w) for w in want):
                           continue
                       if ADOPT_LENS_ONLY[0] and (not t.get("lens") or not lens_ok(p)):
                           continue
@@ -4248,7 +4259,7 @@ jobs:
                   # tryOnFails to 0 and the robot cuts it fresh).
                   want = [x.strip() for x in recut.split(":", 1)[1].split(",") if x.strip()]
                   for p in products:
-                      if str(p.get("id")) not in want:
+                      if not any(frame_matches(p, w) for w in want):
                           continue
                       for k in ("tryOnUrl", "tryOnAngleUrl", "tryOnSideUrl", "tryOnNumbers",
                                 "tryOnTest", "tryOnPrev", "tryOnWarning",
@@ -4272,7 +4283,7 @@ jobs:
                   done_n = 0
                   for p in products:
                       pid = str(p.get("id"))
-                      if "all" not in want and pid not in want:
+                      if "all" not in want and not any(frame_matches(p, w) for w in want):
                           continue
                       if not p.get("tryOnUrl") or p.get("deleted") or p.get("draft"):
                           continue
@@ -4303,7 +4314,7 @@ jobs:
                   n_ok = n_skip = 0
                   for p in products:
                       pid = str(p.get("id"))
-                      if "all" not in want and pid not in want:
+                      if "all" not in want and not any(frame_matches(p, w) for w in want):
                           continue
                       if is_metal(p) or not p.get("tryOnUrl") or not front_photo(p) or p.get("tryOnLocked"):
                           continue
@@ -4397,7 +4408,7 @@ jobs:
                       prev = p.get("tryOnPrev")
                       if not prev or not prev.get("url"):
                           continue
-                      if "all" not in want and str(p.get("id")) not in want:
+                      if "all" not in want and not any(frame_matches(p, w) for w in want):
                           continue
                       p["tryOnUrl"] = prev["url"]; p["tryOnReady"] = True
                       if prev.get("numbers"):
@@ -4456,7 +4467,7 @@ jobs:
                   if recut.lower() == "first":
                       pick = next((p for p in products if front_photo(p) and not p.get("tryOnLocked") and not p.get("draft")), None)
                   else:
-                      pick = next((p for p in products if str(p.get("id")) == recut or str(p.get("sku")) == recut), None)
+                      pick = next((p for p in products if frame_matches(p, recut)), None)
                   if pick is None:
                       log("Trial re-cut: no frame matched '%s'." % recut)
                   elif pick not in todo:
