@@ -2519,6 +2519,70 @@ jobs:
               return out, band, notes
 
 
+          def _seal_cracks(a, lens_mask=None, k=3):
+              """
+              HAIRLINE CRACKS (1 Oct 2026, from the REAL VG-1007 cut-out of run 1193): the
+              rebuilt rim and the surviving rim met with 1-2 px cracks. The rim check fires a
+              ray through the rim and stops at the first crack that reaches the outside, so a
+              rim 18 px thick read as 2-3 px and the frame was rejected (68%). Closing those
+              cracks (only ever ADDING pixels, never inside a lens opening) took the same
+              real cut to 81%. Returns a boolean mask of the pixels to add.
+              """
+              import cv2
+              A = (a > 0.5).astype(np.uint8)
+              closed = cv2.morphologyEx(A, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))) > 0
+              add = closed & (a <= 0.5)
+              if lens_mask is not None:
+                  add &= ~lens_mask
+              return add
+
+
+          def _recover_end_plates(a, rgb, lens_mask):
+              """
+              END-PIECE PLATES (1 Oct 2026, Rauf: "hinges outside area, rim is cut"): the pale
+              metal plate on the outer side of each end piece is almost the colour of the wall,
+              so the cut dropped it on both sides of VG-1007. Here it is brought back: pixels
+              that differ clearly from the wall, only in the outer 9% at each end of the frame,
+              only in the upper 72% of its height (where end pieces are), only touching the
+              part already kept, never inside or next to a lens opening. Only ADDS pixels.
+              Returns a boolean mask of the pixels to add.
+              """
+              import cv2
+              A = a > 0.5
+              H, W = A.shape
+              none = np.zeros((H, W), bool)
+              if lens_mask is None or rgb.shape[:2] != A.shape:
+                  return none
+              ys, xs = np.where(A)
+              if len(xs) < 500:
+                  return none
+              x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
+              fw, fh = float(x1 - x0), float(y1 - y0)
+              far = ~(cv2.dilate(A.astype(np.uint8), np.ones((41, 41), np.uint8)) > 0)
+              if far.sum() < 2000:
+                  return none
+              src = rgb.astype(np.float32)
+              den = cv2.blur(far.astype(np.float32), (121, 121))[:, :, None] + 1e-6
+              bg = cv2.blur(src * far[:, :, None], (121, 121)) / den
+              diff = np.abs(src - bg).max(2)
+              strip = np.zeros_like(A); strip[:, :x0 + int(0.09 * fw)] = True; strip[:, x1 - int(0.09 * fw):] = True
+              rows = np.zeros_like(A); rows[max(0, y0 - 6):int(y0 + 0.72 * fh), :] = True
+              reach = cv2.dilate(A.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (35, 35))) > 0
+              lens_near = cv2.dilate(lens_mask.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0
+              cand = (diff > 28) & ~A & strip & rows & reach & ~lens_near
+              cand = cv2.morphologyEx(cand.astype(np.uint8), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8)) > 0
+              cand = cv2.morphologyEx(cand.astype(np.uint8), cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))) > 0
+              cand &= ~A & ~lens_near
+              touch = cv2.dilate(A.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+              n, lab, st, _ = cv2.connectedComponentsWithStats(cand.astype(np.uint8))
+              keep = np.zeros((H, W), bool)
+              for i in range(1, n):
+                  comp = lab == i
+                  if st[i, 4] >= 60 and (comp & touch).any():
+                      keep |= comp
+              return keep
+
+
           def close_full_rim_ring(a, colour_rgb, min_alpha=0.42, lens_mask=None):
               """
               Close the ring on a full-rim frame. FIRST from the lens shape (when the lens
@@ -2537,8 +2601,25 @@ jobs:
               a2, n1, band1 = _close_ring_trace(a, colour_rgb, min_alpha)
               notes += [x for x in n1 if not (band0 is not None and x in ("ring: no break-off points",))]
               if band0 is None:
-                  return a2, notes, band1
-              band = band0 if band1 is None else (band0 | band1)
+                  band = band1
+              else:
+                  band = band0 if band1 is None else (band0 | band1)
+              # finishing touches on the repaired frame (only ever add pixels)
+              try:
+                  add = np.zeros(a2.shape, bool)
+                  seal = _seal_cracks(a2, lens_mask)
+                  if seal.any():
+                      add |= seal
+                      notes.append("ring: %d px of hairline cracks in the rim sealed" % int(seal.sum()))
+                  plate = _recover_end_plates(np.maximum(a2, seal.astype(a2.dtype)), colour_rgb, lens_mask)
+                  if plate.any():
+                      add |= plate
+                      notes.append("ring: %d px of the pale metal plate on the outer end pieces brought back" % int(plate.sum()))
+                  if add.any():
+                      a2 = np.maximum(a2, (add * 0.9).astype(a2.dtype))
+                      band = add if band is None else (band | add)
+              except Exception as ex:
+                  notes.append("ring: finishing touches could not run (%s)" % str(ex)[:60])
               return a2, notes, band
 
           def rim_bottom_loss(alpha):
@@ -5030,7 +5111,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01e (close the ring: lens-shape rebuild incl. thinned rims, two passes; traced repair; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01f (close the ring: lens-shape rebuild, thinned rims, hairline cracks sealed, outer end-piece plates kept; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
