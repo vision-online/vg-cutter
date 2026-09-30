@@ -1,5 +1,5 @@
-Run 1140  Wed Sep 30 13:53:19 UTC 2026
-Trigger: workflow_dispatch
+Run 1141  Wed Sep 30 14:00:29 UTC 2026
+Trigger: schedule
 
 --- what the robot found ---
 Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)
