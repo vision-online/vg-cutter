@@ -2718,6 +2718,13 @@ jobs:
                       band = add if band is None else (band | add)
               except Exception as ex:
                   notes.append("ring: finishing touches could not run (%s)" % str(ex)[:60])
+              # WHAT IS CHECKED MUST BE WHAT IS SAVED (1 Oct, review of build 01g): a rim repaired
+              # along a clear rim could be saved at alpha 0.35-0.42 while the approval check counted
+              # it as fully solid -- the gate said "closed" and the saved PNG had an open lens. Every
+              # repaired pixel is now saved at 0.55 or more (still see-through, clearly there), so
+              # the ring is closed at the same threshold (0.5) the check and the try-on use.
+              if band is not None:
+                  a2 = np.maximum(a2, (np.asarray(band).astype(bool) * np.float32(0.55)).astype(a2.dtype))
               return a2, notes, band
 
           def rim_bottom_loss(alpha):
@@ -4098,10 +4105,13 @@ jobs:
                           if a2 is not a:
                               a = a2
                               nums["ringClosed"] = True
-                              _chk = np.maximum(a, _band.astype(a.dtype)) if _band is not None else a
-                              rb = rim_balance(_chk)
-                              log("    rim check after closing the ring: %s" % ("still broken" if rb is None else
-                                  ("thinnest spot now %d%% of the other side" % int(rb[0] * 100))))
+                              # the gate judges the picture that is really SAVED (alpha > 0.5); the number with
+                              # the repaired pixels counted as solid is only logged, to show any difference
+                              rb = rim_balance(a)
+                              _rb_solid = rim_balance(np.maximum(a, _band.astype(a.dtype))) if _band is not None else rb
+                              _f = lambda r_: "BROKEN" if r_ is None else "%d%%" % int(r_[0] * 100)
+                              log("    rim check after closing the ring: saved picture %s | repaired pixels counted as solid %s%s" % (
+                                  _f(rb), _f(_rb_solid), "" if _f(rb) == _f(_rb_solid) else "   <-- DIFFERENT: the decision uses the saved picture"))
                       except Exception as ex:
                           log("    close the ring could not run: %s" % str(ex)[:100])
                   if rb is None and lens_ran:
@@ -5209,7 +5219,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01g (close the ring: lens-shape rebuild, thinned rims, cracks sealed, lower rim grown to its outer edge, end-piece plates kept; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01h (close the ring: same as 01g, but the approval check now judges the SAVED picture and logs both numbers; repaired rim saved at 55%+; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
