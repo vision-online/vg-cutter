@@ -2157,6 +2157,49 @@ jobs:
               ring_a = np.where(band, a_band, 0) * np.clip(soft * 1.6, 0, 1)
               return np.maximum(a, ring_a.astype(a.dtype)), notes, band
 
+          def angle_anchors(png_bytes):
+              """
+              45-DEGREE FIT POINTS (2026-10-01): for a 45 or side cut-out, where the
+              frame's bridge and its two lens openings are, in the cut-out's own
+              pixels, so the try-on can sit the frame on a turned face: bridge on the
+              nose bridge, lens height matched. Returns None when the two openings
+              cannot be found (the try-on then falls back to the picture's box).
+              """
+              try:
+                  from scipy import ndimage
+                  im = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
+                  a = np.asarray(im)[:, :, 3] > 127
+                  H, W = a.shape
+                  if a.sum() < 400:
+                      return None
+                  outside = ndimage.binary_propagation(_border(~a), mask=~a)
+                  holes = ~a & ~outside
+                  lab_, n = ndimage.label(holes)
+                  if n < 2:
+                      return None
+                  sizes = ndimage.sum(holes, lab_, range(1, n + 1))
+                  order = [int(i) + 1 for i in np.argsort(sizes)[::-1][:2]]
+                  if sizes[order[1] - 1] < 0.12 * sizes[order[0] - 1]:
+                      return None                                   # the far lens is not really visible
+                  boxes = []
+                  for i in order:
+                      ys, xs = np.where(lab_ == i)
+                      boxes.append({"cx": float(xs.mean()), "cy": float(ys.mean()), "x0": int(xs.min()), "x1": int(xs.max()),
+                                    "y0": int(ys.min()), "y1": int(ys.max()), "h": int(ys.max() - ys.min() + 1), "w": int(xs.max() - xs.min() + 1),
+                                    "area": int(len(xs))})
+                  near, far = boxes[0], boxes[1]                   # the bigger opening is the lens nearer the camera
+                  left, right = (near, far) if near["cx"] < far["cx"] else (far, near)
+                  bridge_x = (left["x1"] + right["x0"]) / 2.0
+                  bridge_y = (left["cy"] + right["cy"]) / 2.0
+                  ys, xs = np.where(a)
+                  return {"w": W, "h": H, "frame": [int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())],
+                          "bridge": [round(bridge_x, 1), round(bridge_y, 1)],
+                          "near": {k: near[k] for k in ("cx", "cy", "w", "h")}, "far": {k: far[k] for k in ("cx", "cy", "w", "h")},
+                          "nearSide": "left" if near is left else "right",
+                          "lensHeightPx": int(near["h"]), "lensLine": round((near["cy"] + far["cy"]) / 2.0, 1)}
+              except Exception:
+                  return None
+
           def rim_bottom_loss(alpha):
               """
               SECOND TRIGGER for close-the-ring (2026-09-30): the left/right comparison
@@ -3804,6 +3847,13 @@ jobs:
                   try:
                       png2, _ = cut(download(no_enhancement(src)), front=False, angled=angled)
                       p[field] = cloudinary_upload(png2, "tryon-" + field + "-" + pid, cname, cpreset)
+                      # 45-degree fit points for the try-on (1 Oct): bridge and lens openings in this cut-out
+                      _fit = angle_anchors(png2)
+                      p[field.replace("Url", "Fit")] = _fit
+                      if _fit:
+                          log("    %s fit points: bridge at (%d,%d), lens height %d px, near lens on the %s" % (label, _fit["bridge"][0], _fit["bridge"][1], _fit["lensHeightPx"], _fit["nearSide"]))
+                      else:
+                          log("    %s fit points: the two lens openings were not found -- the try-on will use the picture's box" % label)
                       # the original beside the cut-out, so PUT BACK works on this view in admin (2026-09-27)
                       if LAST_SOURCE[0]:
                           try: p[field.replace("Url", "Source")] = cloudinary_upload(LAST_SOURCE[0], "source-" + field + "-" + pid, cname, cpreset)
@@ -4113,6 +4163,34 @@ jobs:
               if recut.lower() == "guard":
                   cname, cpreset = cloudinary_probe(products)
                   run_guard(products, cname, cpreset)
+                  return 0
+              if recut.lower().startswith("fit:"):
+                  # FIT POINTS WITHOUT RE-CUTTING (1 Oct): fit:all or fit:<ids> reads the
+                  # 45 and side cut-outs a frame already has and records their bridge and
+                  # lens openings. Nothing is cut, nothing goes to TO CHECK.
+                  want = [x.strip() for x in recut.split(":", 1)[1].split(",") if x.strip()]
+                  done = 0
+                  for p in products:
+                      if str(p.get("id", "")).startswith("__") or p.get("draft") or p.get("deleted"):
+                          continue
+                      if "all" not in want and str(p.get("id")) not in want and str(p.get("sku") or "") not in want:
+                          continue
+                      changed = False
+                      for field, label in (("tryOnAngleUrl", "45 left"), ("tryOnAngleRUrl", "45 right"), ("tryOnSideUrl", "side")):
+                          url = p.get(field)
+                          if not url:
+                              continue
+                          try:
+                              fit = angle_anchors(download(url))
+                          except Exception as ex:
+                              log("--- %s: %s could not be read: %s" % (p.get("name") or p.get("id"), label, str(ex)[:60])); continue
+                          p[field.replace("Url", "Fit")] = fit
+                          changed = True
+                          log("--- %s: %s fit points %s" % (p.get("name") or p.get("id"), label,
+                              ("bridge at (%d,%d), lens height %d px" % (fit["bridge"][0], fit["bridge"][1], fit["lensHeightPx"])) if fit else "not found (the try-on will use the picture's box)"))
+                      if changed:
+                          save_product(p); done += 1
+                  log("Fit points recorded for %d frame(s)." % done)
                   return 0
               if recut.lower().startswith("adopt-lens:"):
                   # like adopt:, but ONLY test cuts made by test-lens: (older test cuts,
