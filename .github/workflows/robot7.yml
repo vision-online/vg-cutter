@@ -2583,96 +2583,141 @@ jobs:
               return keep
 
 
-          def _grow_to_rim_edge(a, rgb, lens_mask, max_out=12, dark=20, verbose=False):
-              """
-              THIN LOWER RIM (1 Oct 2026, real VG-1007 cut, run 1196): on the nose side of both
-              lower rims the cut ended 4-8 px inside the rim. The photo shows it plainly: a
-              clear rim is a DARK band (about 100-130) between a bright inner highlight and the
-              wall (about 150-170). Along every ray from a lens centre through the lower half of
-              the ring, walk outward from the end of the kept rim while the photo is clearly
-              darker than the wall seen just beyond (at least `dark` levels darker), at most
-              max_out px; the length is smoothed over neighbouring rays, and the pixels up to it
-              are kept. Stops at the first wall-like pixel, so it never walks onto the wall or
-              the (brighter) floor. Only adds pixels. Returns a boolean mask.
-              """
+          def _rim_fit_setup(a, rgb, lens_mask):
+              """Shared set-up for the rim outer-edge steps: kept mask, lens ids, and how much darker/brighter each photo pixel is than the wall."""
               import cv2
               from scipy import ndimage
-              A = a > 0.5
-              H, W = A.shape
-              add = np.zeros((H, W), bool)
-              L = lens_mask.astype(bool)
+              A = a > 0.5; H, W = A.shape; L = lens_mask.astype(bool)
               lab, n = ndimage.label(L)
               if n < 1 or rgb.shape[:2] != A.shape:
-                  return add
+                  return None
               sizes = ndimage.sum(L, lab, range(1, n + 1))
               ids = [int(i) + 1 for i in np.argsort(sizes)[::-1][:2] if sizes[i] > 0.2 * sizes.max()]
               g = cv2.GaussianBlur(cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY).astype(np.float32), (0, 0), 0.8)
-              tot = 0
+              far = ~(cv2.dilate(A.astype(np.uint8), np.ones((61, 61), np.uint8)) > 0)
+              if far.sum() < 2000:
+                  return None
+              wall = cv2.blur(g * far, (161, 161)) / (cv2.blur(far.astype(np.float32), (161, 161)) + 1e-6)
+              return A, H, W, L, lab, ids, g - wall
+
+
+          def _rim_fit_rays(A, H, W, lab, ids, d_all, dark, max_out):
+              """For the lower half of each lens: along rays from the lens centre, where the kept rim starts/ends and where its DARK band ends."""
+              def px(cy, cx, dy, dx, r):
+                  y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                  return (y, x) if 0 <= y < H and 0 <= x < W else None
+              res = []
               for i in ids:
-                  ys, xs = np.where(lab == i)
-                  cy, cx = ys.mean(), xs.mean()
-                  angs = list(range(15, 166, 2))
-                  ext = {}
-                  rays = {}
-                  for ang in angs:
-                      dy, dx = np.sin(np.radians(ang)), np.cos(np.radians(ang))
-                      r = 0.0
+                  ys, xs = np.where(lab == i); cy, cx = ys.mean(), xs.mean(); info = {}
+                  for ang in range(15, 166, 2):
+                      dy, dx = np.sin(np.radians(ang)), np.cos(np.radians(ang)); r = 0.0
                       while True:
-                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
-                          if y < 0 or x < 0 or y >= H or x >= W: y = None; break
-                          if lab[y, x] != i: break
+                          p = px(cy, cx, dy, dx, r)
+                          if p is None or lab[p] != i:
+                              break
                           r += 1.0
-                      if y is None: continue
+                      if p is None:
+                          continue
                       for _s in range(8):
-                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
-                          if y < 0 or x < 0 or y >= H or x >= W or A[y, x]: break
+                          p = px(cy, cx, dy, dx, r)
+                          if p is None or A[p]:
+                              break
                           r += 1.0
-                      s = 0
+                      rs = r; n_run = 0
                       while True:
-                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
-                          if y < 0 or x < 0 or y >= H or x >= W or not A[y, x]: break
-                          s += 1; r += 1.0
-                      if s <= 1: continue
-                      r_out = r
-                      def lum(k):
-                          y, x = int(round(cy + dy * (r_out + k))), int(round(cx + dx * (r_out + k)))
-                          return float(g[y, x]) if 0 <= y < H and 0 <= x < W else None
-                      far_v = [lum(k) for k in range(max_out + 4, max_out + 20)]
-                      far_v = [v for v in far_v if v is not None]
-                      if len(far_v) < 8: continue
-                      wall = float(np.median(far_v))
-                      e = 0
-                      for k in range(0, max_out + 1):
-                          v = lum(k)
-                          if v is None: break
-                          if v < wall - dark: e = k + 1
-                          elif k - e >= 1: break            # one bright pixel inside the band is forgiven, two end it
-                      ext[ang] = e; rays[ang] = (dy, dx, r_out)
-                  if not ext: continue
-                  keys = sorted(ext)
-                  sm = {}
-                  for j, a_ in enumerate(keys):
-                      w = [ext[keys[t]] for t in range(max(0, j - 3), min(len(keys), j + 4))]
-                      sm[a_] = int(round(float(np.median(w))))
-                  # the strip between the end of the kept rim and the end of the extension, for each
-                  # pair of neighbouring rays (a filled quadrilateral: no gaps, nothing beyond e)
+                          p = px(cy, cx, dy, dx, r)
+                          if p is None or not A[p]:
+                              break
+                          n_run += 1; r += 1.0
+                      if n_run <= 1:
+                          continue
+                      dv = []
+                      for k in range(n_run + max_out + 1):
+                          q = px(cy, cx, dy, dx, rs + k)
+                          dv.append(float(d_all[q]) if q is not None else 0.0)
+                      dark_idx = [k for k in range(n_run) if dv[k] < -dark]
+                      if not dark_idx:
+                          continue
+                      e_dark = max(dark_idx); trim_len = (n_run - 1) - e_dark
+                      ext = 0
+                      if trim_len <= 1:
+                          for k in range(0, max_out + 1):
+                              if dv[n_run + k] < -dark:
+                                  ext = k + 1
+                              elif k - ext >= 1:
+                                  break
+                      info[ang] = dict(dy=dy, dx=dx, rs=rs, n=n_run, e=e_dark, trim=trim_len, ext=ext)
+                  res.append((cy, cx, info))
+              return res
+
+
+          def _rim_fit_quad(cy, cx, p1, p2, r1a, r1b, r2a, r2b, H, W):
+              import cv2
+              pts = np.array([[cx + p1['dx'] * r1a, cy + p1['dy'] * r1a], [cx + p1['dx'] * r1b, cy + p1['dy'] * r1b],
+                              [cx + p2['dx'] * r2b, cy + p2['dy'] * r2b], [cx + p2['dx'] * r2a, cy + p2['dy'] * r2a]])
+              m = np.zeros((H, W), np.uint8); cv2.fillPoly(m, [np.round(pts).astype(np.int32)], 1)
+              return m > 0
+
+
+          def _grow_to_rim_edge(a, rgb, lens_mask, dark=20, max_out=12, px_dark=12, verbose=False):
+              """
+              LOWER RIM, MISSING PART (1 Oct 2026, real VG-1007 / VG-1008 cuts). A clear rim is a DARK band
+              (clearly darker than the wall) next to a bright inner highlight. Where the cut stops inside that
+              band, grow outward -- but only over the PHOTO PIXELS that are themselves darker than the wall
+              (before, whole strips were added, which left blocky pale patches of wall and floor outside the
+              rim). At most max_out px; a ray with no dark band is left alone. Only adds pixels.
+              """
+              import cv2
+              S = _rim_fit_setup(a, rgb, lens_mask)
+              if S is None:
+                  return np.zeros(a.shape, bool)
+              A, H, W, L, lab, ids, d_all = S
+              add = np.zeros((H, W), bool)
+              for cy, cx, info in _rim_fit_rays(A, H, W, lab, ids, d_all, dark, max_out):
+                  keys = sorted(info)
+                  if not keys:
+                      continue
+                  ext = {k: info[k]['ext'] for k in keys}
+                  sm = {k: int(round(float(np.median([ext[keys[t]] for t in range(max(0, j - 3), min(len(keys), j + 4))])))) for j, k in enumerate(keys)}
                   for j in range(len(keys) - 1):
-                      a1, a2_ = keys[j], keys[j + 1]
-                      if a2_ - a1 != 2 or sm[a1] < 2 or sm[a2_] < 2: continue
-                      d1y, d1x, r1 = rays[a1]; d2y, d2x, r2 = rays[a2_]
-                      e1, e2 = sm[a1], sm[a2_]
-                      pts = np.array([[cx + d1x * (r1 - 1), cy + d1y * (r1 - 1)],
-                                      [cx + d1x * (r1 + e1 + 0.5), cy + d1y * (r1 + e1 + 0.5)],
-                                      [cx + d2x * (r2 + e2 + 0.5), cy + d2y * (r2 + e2 + 0.5)],
-                                      [cx + d2x * (r2 - 1), cy + d2y * (r2 - 1)]])
-                      m_ = np.zeros((H, W), np.uint8)
-                      cv2.fillPoly(m_, [np.round(pts).astype(np.int32)], 1)
-                      add |= m_ > 0
-                  tot += sum(1 for a_ in keys if sm[a_] >= 2)
-              if add.any():
-                  add &= ~A & ~L
-              if verbose: print("rays extended: %d, pixels added: %d" % (tot, int(add.sum())))
+                      k1, k2 = keys[j], keys[j + 1]
+                      if k2 - k1 != 2 or (sm[k1] < 1 and sm[k2] < 1):
+                          continue
+                      i1, i2 = info[k1], info[k2]
+                      add |= _rim_fit_quad(cy, cx, i1, i2, i1['rs'] + i1['n'] - 1, i1['rs'] + i1['n'] + sm[k1] + .5,
+                                           i2['rs'] + i2['n'] - 1, i2['rs'] + i2['n'] + sm[k2] + .5, H, W)
+              add = add & ~A & ~L & (d_all < -px_dark)
+              add = cv2.morphologyEx(add.astype(np.uint8), cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))) > 0
+              add &= ~A & ~L
+              if verbose:
+                  print("rim growth: %d px" % int(add.sum()))
               return add
+
+
+          def _trim_pale_outside(a, rgb, lens_mask, dark=14, max_trim=14, px_pale=-6):
+              """
+              EXTRA PALE BITS OUTSIDE THE RIM (1 Oct 2026, Rauf, VG-1008: "both"): the cut keeps bits of the
+              bright floor and the pale wall beyond the rim's dark outer edge. Along the same rays as the growth
+              step: where kept pixels lie BEYOND the dark band's outer end, and each such pixel is itself not
+              darker than the wall, it is removed (at most max_trim px per ray, never the inner 8 px of rim, a
+              ray with no dark band is left alone). This is COSMETIC finishing: it runs after the approval
+              decision and is undone if it would open the ring. Returns a boolean mask of pixels to remove.
+              """
+              S = _rim_fit_setup(a, rgb, lens_mask)
+              if S is None:
+                  return np.zeros(a.shape, bool)
+              A, H, W, L, lab, ids, d_all = S
+              rem = np.zeros((H, W), bool)
+              for cy, cx, info in _rim_fit_rays(A, H, W, lab, ids, d_all, dark, 0):
+                  ok = {k for k in info if 1 < info[k]['trim'] <= max_trim and info[k]['e'] + 2 >= 8}
+                  for k1 in sorted(info):
+                      k2 = k1 + 2
+                      if k2 not in info or k1 not in ok or k2 not in ok:
+                          continue
+                      i1, i2 = info[k1], info[k2]
+                      rem |= _rim_fit_quad(cy, cx, i1, i2, i1['rs'] + i1['e'] + 1.5, i1['rs'] + i1['n'] + .5,
+                                           i2['rs'] + i2['e'] + 1.5, i2['rs'] + i2['n'] + .5, H, W)
+              return rem & A & ~L & (d_all > px_pale)
 
 
           def close_full_rim_ring(a, colour_rgb, min_alpha=0.42, lens_mask=None):
@@ -3246,7 +3291,7 @@ jobs:
               return np.clip((alpha - 0.25) / 0.5, 0.0, 1.0).astype(np.float32)
 
 
-          def strip_sheet_ring(img, alpha):
+          def strip_sheet_ring(img, alpha, lens_mask=None, local=False):
               """
               Right next to the rim the sheet is slightly darkened by the frame's
               shadow, so the model keeps a thin ring of it as if it were frame. A
@@ -3255,6 +3300,38 @@ jobs:
               when the rim itself is near the sheet colour.
               """
               import cv2
+              if local:
+                  # LOCAL WALL COLOUR (1 Oct 2026, real VG-1007 photo). The rule below judges "sheet-coloured" against ONE
+                  # colour taken far from the frame (here the grey of the upper background, 130/142/134), but the wall
+                  # next to the lower rim is brighter and the rim's own dark band is close to that one colour -- so it
+                  # erased the lower rim's dark band (measured on a good cut: 8,400 px of rim, 6,400 of them in the
+                  # lower rim). Here every pixel is judged against the wall colour AT THAT PLACE (a smooth model from
+                  # pixels far from the frame), with a fixed small distance, never within 12 px of a lens opening (the
+                  # inner edge of the rim), and three passes at most. Same 3x3 edge smoothing afterwards.
+                  rgbf = np.asarray(img).astype(np.float32)
+                  A0 = alpha > 0.5
+                  if not A0.any():
+                      return alpha
+                  far = ~(cv2.dilate(A0.astype(np.uint8), np.ones((61, 61), np.uint8)) > 0)
+                  if far.sum() < 2000:
+                      return alpha
+                  wallc = cv2.blur(rgbf * far[:, :, None], (161, 161)) / (cv2.blur(far.astype(np.float32), (161, 161))[:, :, None] + 1e-6)
+                  dist_l = cv2.GaussianBlur(np.sqrt(((rgbf - wallc) ** 2).sum(axis=2)).astype(np.float32), (3, 3), 0)
+                  protect = np.zeros(alpha.shape, bool)
+                  if lens_mask is not None and lens_mask.shape == alpha.shape:
+                      protect = cv2.dilate(lens_mask.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))) > 0
+                  out = alpha.copy()
+                  for _ in range(3):
+                      solid = (out > 0.5).astype(np.uint8)
+                      near_edge = cv2.distanceTransform(solid, cv2.DIST_L2, 5) <= 3
+                      ring = (out > 0) & near_edge & (dist_l < 40.0) & ~protect
+                      if not ring.any():
+                          break
+                      out[ring] = 0.0
+                  edge = (out > 0) & (out < 1)
+                  edge = cv2.dilate(edge.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
+                  smooth = cv2.GaussianBlur(out, (3, 3), 0)
+                  return np.where(edge, smooth, out).astype(np.float32)
               rgb = np.asarray(img).astype(np.float64)
               sheet = sheet_colour(np.asarray(img))
               dist = np.sqrt(((rgb - sheet) ** 2).sum(axis=2))
@@ -3861,7 +3938,12 @@ jobs:
                   a = clean_ghosts(a)                                            # step 6b5: no floating soft outlines
                   a = clear_behind_glass(a)                         # step 6c: nothing seen through the lenses
                   a = trim_ends(a)                                  # step 6d: half a millimetre off each end
-              a = strip_sheet_ring(img, a)                          # step 7: the sheet's shadow ring next to the rim
+              if LENS_MODE[0]:
+                  _n_before = int((a > 0.5).sum())
+                  a = strip_sheet_ring(img, a, lens_mask=lens_mask, local=True)   # step 7 (lens mode): judged against the wall colour at each place
+                  log("    sheet-ring peel (local wall colour): %d px taken off the edge" % (_n_before - int((a > 0.5).sum())))
+              else:
+                  a = strip_sheet_ring(img, a)                      # step 7: the sheet's shadow ring next to the rim (old frames: unchanged)
               if front and rim_kind == "full":
                   a = clear_sheet_at_ends(img, a)                   # step 7b: sheet wedge between end piece and rim
               if front and rim_kind:
@@ -4112,6 +4194,22 @@ jobs:
                               _f = lambda r_: "BROKEN" if r_ is None else "%d%%" % int(r_[0] * 100)
                               log("    rim check after closing the ring: saved picture %s | repaired pixels counted as solid %s%s" % (
                                   _f(rb), _f(_rb_solid), "" if _f(rb) == _f(_rb_solid) else "   <-- DIFFERENT: the decision uses the saved picture"))
+                              # COSMETIC FINISH (after the decision numbers above are taken): take away the pale bits of wall and
+                              # floor that the cut kept beyond the rim's dark outer edge. Undone if it would open the ring.
+                              try:
+                                  _lm_t = lens_mask if (lens_mask is not None and lens_mask.shape == a.shape) else None
+                                  if _lm_t is not None and rb is not None:
+                                      _rem = _trim_pale_outside(a, np.asarray(_ci.convert("RGB")), _lm_t)
+                                      if int(_rem.sum()) > 0:
+                                          _a_t = a.copy(); _a_t[_rem] = 0
+                                          _rb_t = rim_balance(_a_t)
+                                          if _rb_t is not None:
+                                              a = _a_t
+                                              log("    trimmed %d px of pale wall/floor beyond the rim's dark outer edge (ring still closed; balance after the trim %d%%, shown only, not used for the decision)" % (int(_rem.sum()), int(_rb_t[0] * 100)))
+                                          else:
+                                              log("    trim of pale bits skipped: it would have opened the ring")
+                              except Exception as _ex:
+                                  log("    trim of pale bits could not run (%s)" % str(_ex)[:60])
                       except Exception as ex:
                           log("    close the ring could not run: %s" % str(ex)[:100])
                   if rb is None and lens_ran:
@@ -5219,7 +5317,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01h (close the ring: same as 01g, but the approval check now judges the SAVED picture and logs both numbers; repaired rim saved at 55%+; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01j (as 01i, plus the sheet-ring peel judges against the LOCAL wall colour in lens mode, so it no longer erases a clear lower rim; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
