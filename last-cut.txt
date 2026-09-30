@@ -1,4 +1,4 @@
-Run 1183  Wed Sep 30 19:43:32 UTC 2026
+Run 1187  Wed Sep 30 20:14:39 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Trial re-cut of pmun6bio082 (VG-1007 Frames).
@@ -27,12 +27,13 @@ Model loaded: ZhengPeng7/BiRefNet at 1024 px
     lens step: lenses 76948 + 76189 px (found by rim line, SAM: nothing to add); 148218 pixels of glass cleared
     glass check: the demo is clear (0.0% left)
     the frame fills 64% of the photo's width
-    ring: left lens -- closed, 235 px of rim brought back (rim 11 px thick)
-    ring: right lens -- gap of 68 px is not a lens gap, left as is
-    rim check after closing the ring: still broken
-    RIM CHECK: the rim is broken through -> kept off the website
+    ring: left lens -- rim rebuilt round the lens shape, 11 of 72 directions were open (rim 13-28 px thick, matched to the rim at each end)
+    ring: right lens -- rim rebuilt round the lens shape, 8 of 72 directions were open (rim 11-25 px thick, matched to the rim at each end)
+    ring: no gap found whose closing makes a lens a closed ring
+    rim check after closing the ring: thinnest spot now 31% of the other side
+    RIM CHECK: left rim only 31% of the other side near the bottom -> kept off the website
     arms above the frame: 0.0% (below 2.5%, no note)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790797406/k37pyync5qaloayugkc7.png
-  pmun6bio082 REJECTED, kept off the website: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790799271/nygo0jdhqhcsybfuwwri.png
+  pmun6bio082 REJECTED, kept off the website: Robot check: the rim came out thinner on the left lens (bottom, 31% of the other side). Not published -- needs a look, the photo is not the problem.
   Why they were held back: 1 rim damaged
-  Finished. Cut 0, failed 0, rejected 1, still waiting 1.  Rejected: VG-1007 Frames: Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.
+  Finished. Cut 0, failed 0, rejected 1, still waiting 1.  Rejected: VG-1007 Frames: Robot check: the rim came out thinner on the left lens (bottom, 31% of the other side). Not published -- needs a look, the photo is not the problem.
