@@ -2041,7 +2041,7 @@ jobs:
               return out
 
 
-          def close_full_rim_ring(a, colour_rgb, min_alpha=0.42):
+          def _close_ring_trace(a, colour_rgb, min_alpha=0.42):
               """
               CLOSE THE RING (2026-09-30, Rauf's Ocelot frame): a full-rim frame has a
               closed rim around each lens by definition. When the cut lost part of it
@@ -2073,85 +2073,185 @@ jobs:
               if ys.size < 500:
                   return a, ["ring: rim too small"], None
               fw = float(xs.max() - xs.min() + 1); fh = float(ys.max() - ys.min() + 1); cx = (xs.min() + xs.max()) / 2.0
-              sk = skeletonize(rim)
+              # work only on the frame's area (plus a margin): much faster on a big photo
+              my = int(0.35 * fh) + 10; mx = 20
+              Y0, Y1 = max(0, int(ys.min()) - 10), min(H, int(ys.max()) + my)
+              X0, X1 = max(0, int(xs.min()) - mx), min(W, int(xs.max()) + mx)
+              R_ = rim[Y0:Y1, X0:X1]; h_, w_ = R_.shape
+              from scipy import ndimage as _ndi
+              mid_c = cx - X0                                   # the middle of the frame, in the crop
+              def lens_holes_of(mask):
+                  outside = _ndi.binary_propagation(_border(~mask), mask=~mask)
+                  holes = ~mask & ~outside
+                  lab_h, nh = _ndi.label(holes)
+                  out_ = np.zeros_like(holes)
+                  if nh == 0:
+                      return out_
+                  sz = _ndi.sum(holes, lab_h, range(1, nh + 1))
+                  for i, v in enumerate(sz):
+                      if v >= 0.04 * fw * fh:
+                          out_ |= (lab_h == i + 1)
+                  return out_
+              def enclosed_lenses(mask, with_area=False):
+                  hs = lens_holes_of(mask)
+                  _l, n_ = _ndi.label(hs)
+                  return (n_, float(hs.sum())) if with_area else n_
+              # the rim's thickness where it is intact
+              dt = cv2.distanceTransform(R_.astype(np.uint8), cv2.DIST_L2, 5)
+              RW = float(np.clip(2 * np.percentile(dt[dt > 0], 92) if (dt > 0).any() else 12.0, 6, 40))
+              # REAL RIM ENDS, NOT SPURS (1 Oct): trim the skeleton's short side-branches
+              # (shorter than 1.5 rim widths), then the remaining ends are where the rim
+              # really stops. They sit a little back along the rim; the trace below
+              # starts there and follows the rim out into the gap.
+              sk = skeletonize(R_).astype(np.uint8)
               k = np.array([[1, 1, 1], [1, 10, 1], [1, 1, 1]])
-              nb = cv2.filter2D(sk.astype(np.uint8), -1, k)
-              ends = np.argwhere(nb == 11)
+              N = int(1.5 * RW)
+              # branches leaving each skeleton point: count 0->1 changes around its 8
+              # neighbours (a staircase corner has 2 like any line point; an end 1; a
+              # real fork 3 or more)
+              pad = np.pad(sk, 1)
+              ring = [pad[0:-2, 1:-1], pad[0:-2, 2:], pad[1:-1, 2:], pad[2:, 2:], pad[2:, 1:-1], pad[2:, 0:-2], pad[1:-1, 0:-2], pad[0:-2, 0:-2]]
+              trans = np.zeros(sk.shape, np.int32)
+              for i in range(8):
+                  trans += ((ring[i] == 0) & (ring[(i + 1) % 8] == 1)).astype(np.int32)
+              nbr = np.where(sk > 0, trans, 0)
+              nbr = np.where((sk > 0) & (cv2.filter2D(sk, -1, k) == 11), 1, nbr)   # a single neighbour is always an end
+              # the cut end of a thick rim thins into a little "V" of two prongs: points
+              # closer together than 1.5 rim widths are one end (the middle of the V)
+              raw = [(int(p[0]), int(p[1])) for p in np.argwhere(nbr == 1)]
+              ends = []
+              used = [False] * len(raw)
+              for i in range(len(raw)):
+                  if used[i]:
+                      continue
+                  grp = [raw[i]]; used[i] = True
+                  for j in range(i + 1, len(raw)):
+                      if not used[j] and np.hypot(raw[i][0] - raw[j][0], raw[i][1] - raw[j][1]) <= N:
+                          grp.append(raw[j]); used[j] = True
+                  gy = int(round(np.mean([q[0] for q in grp]))); gx = int(round(np.mean([q[1] for q in grp])))
+                  # keep the point ON the rim (the middle of a V can fall just outside it)
+                  if not R_[gy, gx]:
+                      gy, gx = min(grp, key=lambda q: (q[0] - gy) ** 2 + (q[1] - gx) ** 2)
+                  ends.append((gy, gx))
               if len(ends) < 2:
                   return a, ["ring: no break-off points"], None
-              def lowest(cond):
-                  c = [e for e in ends if cond(e)]
-                  c.sort(key=lambda e: -e[0])
-                  return c[0] if c else None
-              inner = 0.28 * fw
-              lenses = [("left", lowest(lambda e: e[1] < cx - inner), lowest(lambda e: cx - inner <= e[1] < cx)),
-                        ("right", lowest(lambda e: cx <= e[1] < cx + inner), lowest(lambda e: e[1] >= cx + inner))]
-              # the rim's thickness where it is intact, measured next to the break-off points
-              dt = cv2.distanceTransform(rim.astype(np.uint8), cv2.DIST_L2, 5)
-              widths = []
-              for _, p, q in lenses:
-                  for e in (p, q):
-                      if e is None:
-                          continue
-                      y, x = int(e[0]), int(e[1])
-                      patch = dt[max(0, y - 60):y, max(0, x - 25):x + 25]
-                      if (patch > 0).any():
-                          widths.append(2 * np.percentile(patch[patch > 0], 90))
-              RW = float(np.clip(np.median(widths) if widths else 12.0, 6, 40))
-              # edges of the original photo: the clear rim's thin outer/inner lines
-              src = colour_rgb.astype(np.float32)
-              g = cv2.cvtColor(colour_rgb, cv2.COLOR_RGB2GRAY).astype(np.float32)
-              labimg = cv2.cvtColor(colour_rgb, cv2.COLOR_RGB2LAB).astype(np.float32)
+              # WHICH GAPS TO CLOSE (1 Oct, after VG-1007): not "is the gap long enough"
+              # but "does joining these two rim ends turn a lens back into a closed ring".
+              src = colour_rgb[Y0:Y1, X0:X1].astype(np.float32)
+              g = cv2.cvtColor(colour_rgb[Y0:Y1, X0:X1], cv2.COLOR_RGB2GRAY).astype(np.float32)
+              labimg = cv2.cvtColor(colour_rgb[Y0:Y1, X0:X1], cv2.COLOR_RGB2LAB).astype(np.float32)
               def grad(ch):
                   return np.hypot(cv2.Sobel(ch, cv2.CV_32F, 1, 0, ksize=3), cv2.Sobel(ch, cv2.CV_32F, 0, 1, ksize=3))
               E = np.maximum(grad(g), 0.6 * np.maximum(grad(labimg[:, :, 1]), grad(labimg[:, :, 2])))
               E = cv2.GaussianBlur(E, (0, 0), 1.0)
               E = np.clip(E / max(1e-6, np.percentile(E, 99.5)), 0, 1)
-              band = np.zeros((H, W), np.uint8)
-              for name, p, q in lenses:
-                  if p is None or q is None:
-                      notes.append("ring: %s lens -- break-off points not found, left as is" % name); continue
-                  (y0, x0), (y1, x1) = (int(p[0]), int(p[1])), (int(q[0]), int(q[1]))
-                  chord = float(np.hypot(y1 - y0, x1 - x0))
-                  if chord < 0.12 * fw or chord > 0.62 * fw:
-                      notes.append("ring: %s lens -- gap of %d px is not a lens gap, left as is" % (name, chord)); continue
-                  top = max(0, min(y0, y1) - 8); bot = min(H, int(max(y0, y1) + 0.55 * fh)); left = max(0, min(x0, x1) - 12); right = min(W, max(x0, x1) + 12)
-                  cost = 1.0 / (0.03 + E)
-                  cost[rim] = 1e6; cost[:top, :] = 1e6; cost[bot:, :] = 1e6; cost[:, :left] = 1e6; cost[:, right:] = 1e6
-                  try:
-                      path, _c = route_through_array(cost, (y0, x0), (y1, x1), fully_connected=True, geometric=True)
-                  except Exception as ex:
-                      notes.append("ring: %s lens -- trace failed (%s)" % (name, str(ex)[:40])); continue
-                  P = np.asarray(path, dtype=np.float64)
-                  arc = float(np.sum(np.hypot(np.diff(P[:, 0]), np.diff(P[:, 1]))))
-                  if arc > 2.2 * chord or P[:, 0].max() <= max(y0, y1) + 2:
-                      notes.append("ring: %s lens -- traced line does not look like a rim (%.1fx the gap), left as is" % (name, arc / max(1, chord))); continue
-                  # smooth it into the curve a real rim has, ends fixed
-                  d = np.r_[0, np.cumsum(np.hypot(np.diff(P[:, 0]), np.diff(P[:, 1])))]
-                  tt = np.linspace(0, d[-1], max(8, int(d[-1])))
-                  yy = np.interp(tt, d, P[:, 0]); xx = np.interp(tt, d, P[:, 1])
-                  win = min(41, (len(tt) // 2) * 2 - 1)
+              band_c = np.zeros((h_, w_), np.uint8)
+              work = R_.copy()
+              base_n = enclosed_lenses(work)
+              closed = 0
+              def piece_from(P, RWp):
+                  dd = np.r_[0, np.cumsum(np.hypot(np.diff(P[:, 0]), np.diff(P[:, 1])))]
+                  tt = np.linspace(0, dd[-1], max(8, int(dd[-1])))
+                  yy = np.interp(tt, dd, P[:, 0]); xx = np.interp(tt, dd, P[:, 1])
+                  win = min(31, (len(tt) // 2) * 2 - 1)
                   if win >= 5:
-                      yy = savgol_filter(yy, win, 2); xx = savgol_filter(xx, win, 2)
-                  yy[0], xx[0], yy[-1], xx[-1] = y0, x0, y1, x1
+                      yy2 = savgol_filter(yy, win, 2); xx2 = savgol_filter(xx, win, 2)
+                      yy2[0], xx2[0], yy2[-1], xx2[-1] = yy[0], xx[0], yy[-1], xx[-1]; yy, xx = yy2, xx2
                   Pi = np.round(np.c_[yy, xx]).astype(np.int32)
-                  line = np.zeros((H, W), np.uint8)
+                  line = np.zeros((h_, w_), np.uint8)
                   for i in range(len(Pi) - 1):
                       cv2.line(line, (int(Pi[i, 1]), int(Pi[i, 0])), (int(Pi[i + 1, 1]), int(Pi[i + 1, 0])), 255, 1)
-                  se = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (int(2 * RW) | 1, int(2 * RW) | 1))
-                  thick = cv2.dilate(line, se)
-                  poly = np.vstack([Pi[:, ::-1], Pi[[-1, 0], ::-1]]).astype(np.int32)
-                  inside = np.zeros((H, W), np.uint8); cv2.fillPoly(inside, [poly], 255)
-                  inside = cv2.dilate(inside, np.ones((5, 5), np.uint8))
-                  band |= cv2.bitwise_and(thick, inside)
-                  notes.append("ring: %s lens -- closed, %d px of rim brought back (rim %.0f px thick)" % (name, int(d[-1]), RW))
+                  se = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (int(RWp) | 1, int(RWp) | 1))
+                  return cv2.dilate(line, se) > 0, float(dd[-1])
+              for _round in range(4):
+                  if base_n >= 2:
+                      break
+                  pairs = []
+                  for i in range(len(ends)):
+                      for j in range(i + 1, len(ends)):
+                          d = float(np.hypot(ends[i][0] - ends[j][0], ends[i][1] - ends[j][1]))
+                          if 4 <= d <= 0.7 * fw:
+                              pairs.append((d, ends[i], ends[j]))
+                  pairs.sort(key=lambda z: z[0])
+                  # THE WHOLE LENS, NOT A SLICE (1 Oct): of all joins that close something,
+                  # take the one that encloses the LARGEST opening (a line cut across the
+                  # glass only encloses a slice of it); among near-equal ones, the shortest
+                  before_h = lens_holes_of(work)
+                  cands = []
+                  for d, p, q in pairs[:200]:
+                      test = work.astype(np.uint8).copy()
+                      cv2.line(test, (p[1], p[0]), (q[1], q[0]), 1, 3)
+                      after_h = lens_holes_of(test > 0)
+                      new_ = after_h & ~before_h
+                      if not new_.any():
+                          continue
+                      nx = np.where(new_.any(axis=0))[0]
+                      # a lens lies on ONE side of the bridge: anything crossing the middle is not a lens
+                      if nx.min() < mid_c - 0.03 * fw and nx.max() > mid_c + 0.03 * fw:
+                          continue
+                      cands.append((float(new_.sum()), d, p, q))
+                  if not cands:
+                      break
+                  best_area = max(c_[0] for c_ in cands)
+                  found = min([c_ for c_ in cands if c_[0] >= 0.95 * best_area], key=lambda c_: c_[1])
+                  _gain, d, (y0, x0), (y1, x1) = found
+                  # rim thickness measured next to THIS gap, not over the whole frame
+                  loc = []
+                  for (ey, ex) in ((y0, x0), (y1, x1)):
+                      win_ = dt[max(0, ey - 3 * N):ey + 3 * N + 1, max(0, ex - 3 * N):ex + 3 * N + 1]
+                      skw = sk[max(0, ey - 3 * N):ey + 3 * N + 1, max(0, ex - 3 * N):ex + 3 * N + 1] > 0
+                      if (skw & (win_ > 0)).any():
+                          loc.append(2 * float(np.median(win_[skw & (win_ > 0)])))
+                  RWg = float(np.clip(np.median(loc) if loc else RW, 6, 40))
+                  side = "left" if (x0 + x1) / 2.0 + X0 < cx else "right"
+                  # trace along the photo's faint rim; the rim itself is cheap near the two
+                  # ends (the trace starts inside it) and forbidden elsewhere
+                  m = int(max(20, 0.6 * d))
+                  # follow the MIDDLE of the rim: a clear rim shows two edge lines, and a
+                  # blur about a third of the rim's width puts the strongest response
+                  # between them
+                  Ec = cv2.GaussianBlur(E, (0, 0), max(1.0, RWg / 3.0))
+                  Ec = np.clip(Ec / max(1e-6, np.percentile(Ec, 99.5)), 0, 1)
+                  cost = 1.0 / (0.03 + Ec)
+                  near = np.zeros((h_, w_), np.uint8)
+                  cv2.circle(near, (x0, y0), N + int(RW), 1, -1); cv2.circle(near, (x1, y1), N + int(RW), 1, -1)
+                  cost[work & (near == 0)] = 1e6
+                  cost[:max(0, min(y0, y1) - m), :] = 1e6; cost[min(h_, max(y0, y1) + m + int(0.2 * fh)):, :] = 1e6
+                  cost[:, :max(0, min(x0, x1) - m)] = 1e6; cost[:, min(w_, max(x0, x1) + m):] = 1e6
+                  attempt = []
+                  try:
+                      path, _c = route_through_array(cost, (y0, x0), (y1, x1), fully_connected=True, geometric=True)
+                      P = np.asarray(path, dtype=np.float64)
+                      arc = float(np.sum(np.hypot(np.diff(P[:, 0]), np.diff(P[:, 1]))))
+                      if arc <= 2.2 * d + 40:
+                          attempt.append(("traced", P))
+                  except Exception:
+                      pass
+                  if d <= 4 * RWg:
+                      # a straight join only for a SHORT gap; a long one must follow the real rim
+                      n_ = max(3, int(d)); attempt.append(("straight", np.c_[np.linspace(y0, y1, n_), np.linspace(x0, x1, n_)]))
+                  done = False
+                  for how, P in attempt:
+                      piece, length = piece_from(P, RWg)
+                      trial = work | piece
+                      new_n = enclosed_lenses(trial)
+                      if new_n > base_n:
+                          work = trial; band_c |= piece; base_n = new_n; closed += 1; done = True
+                          notes.append("ring: %s lens -- closed, %d px of rim brought back (%s, rim %.0f px thick)" % (side, int(length), how, RWg))
+                          break
+                  if not done:
+                      notes.append("ring: %s lens -- the rim could not be followed in the photo, left for FIX (RIM BACK)" % side); break
+              if closed == 0 and not notes:
+                  notes.append("ring: no gap found whose closing makes a lens a closed ring")
+              band = np.zeros((H, W), np.uint8); band[Y0:Y1, X0:X1] = band_c
               band = band > 0
               if not band.any():
                   return a, notes, None
+              full = colour_rgb.astype(np.float32)
               free = (~band) & (~rim)
               den = cv2.blur(free.astype(np.float32), (41, 41))[:, :, None] + 1e-6
-              bg = cv2.blur(src * free[:, :, None], (41, 41)) / den
-              diff = np.abs(src - bg).max(2)
+              bg = cv2.blur(full * free[:, :, None], (41, 41)) / den
+              diff = np.abs(full - bg).max(2)
               a_band = np.maximum(min_alpha, np.clip((diff - 8) / (34 - 8), 0, 1))
               soft = cv2.GaussianBlur(band.astype(np.float32), (0, 0), 1.2)
               ring_a = np.where(band, a_band, 0) * np.clip(soft * 1.6, 0, 1)
@@ -2220,6 +2320,166 @@ jobs:
                           "lensHeightPx": int(near["h"]), "lensLine": round((near["cy"] + far["cy"]) / 2.0, 1)}
               except Exception:
                   return None
+
+          def _lens_shape_ring(a, colour_rgb, lens_mask, rim_alpha=0.72):
+              """
+              CLOSE THE RING FROM THE LENS SHAPE (1 Oct 2026, VG-1007 Ocelot). The lens
+              step already knows each lens opening exactly (found from the rim line in the
+              photo). On a full-rim frame the rim runs all the way round that opening, so
+              where the cut lost the rim -- a transparent lower rim looks like background
+              to the AI -- it is rebuilt as a band right against the lens edge, as thick
+              as the rim measured on the same lens where it survived, from the photo's
+              own pixels. No edge tracing, so a bright floor line under the frame cannot
+              pull the rim down. A transparent rim comes back see-through but clearly
+              there (at least 72% solid), never painted.
+              Returns (new alpha, band mask or None, notes).
+              """
+              import cv2
+              from scipy import ndimage
+              notes = []
+              L = lens_mask.astype(bool)
+              if L.shape != a.shape:
+                  return a, None, ["ring: lens shape not usable (size differs)"]
+              lab_, n = ndimage.label(L)
+              if n < 1:
+                  return a, None, ["ring: no lens shape"]
+              sizes = ndimage.sum(L, lab_, range(1, n + 1))
+              order = [int(i) + 1 for i in np.argsort(sizes)[::-1][:2] if sizes[i] > 0.2 * sizes.max()]
+              A = a > 0.5
+              H, W = a.shape
+              src = colour_rgb.astype(np.float32)
+              band = np.zeros((H, W), bool)
+              for k in order:
+                  lens = lab_ == k
+                  ys, xs = np.where(lens)
+                  cy, cx = ys.mean(), xs.mean()
+                  name = "left" if cx < W / 2.0 else "right"
+                  dist_out = cv2.distanceTransform((~lens).astype(np.uint8), cv2.DIST_L2, 5)
+                  # rim thickness on this lens where it survived: rays from the lens centre;
+                  # thickness is read as the distance from the lens edge at the rim's far
+                  # side, so a ray that crosses the rim at a slant does not over-measure
+                  th_low, th_all = [], []
+                  th_at = {}
+                  lost = 0
+                  lost_angles = []
+                  offs = []
+                  for ang in range(0, 360, 5):
+                      dy, dx = np.sin(np.radians(ang)), np.cos(np.radians(ang))   # image y points down
+                      r = 0.0
+                      while True:
+                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                          if y < 0 or x < 0 or y >= H or x >= W:
+                              y = None; break
+                          if not lens[y, x]:
+                              break
+                          r += 1.0
+                      if y is None:
+                          continue
+                      # a hairline of background between the lens edge and the rim is not a loss
+                      r_edge = r
+                      for _skip in range(8):
+                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                          if y < 0 or x < 0 or y >= H or x >= W or A[y, x]:
+                              break
+                          r += 1.0
+                      gap_px = r - r_edge
+                      solid = 0
+                      while True:
+                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                          if y < 0 or x < 0 or y >= H or x >= W or not A[y, x]:
+                              break
+                          solid += 1; r += 1.0
+                      if solid <= 1:
+                          lost += 1
+                          lost_angles.append(ang)
+                          continue
+                      yl, xl = int(round(cy + dy * (r - 1))), int(round(cx + dx * (r - 1)))
+                      solid = max(2.0, float(dist_out[min(H - 1, max(0, yl)), min(W - 1, max(0, xl))]) - gap_px)
+                      th_at[ang] = solid
+                      th_all.append(solid)
+                      offs.append(gap_px)
+                      if dy > 0.2:
+                          th_low.append(solid)
+                  if lost == 0:
+                      notes.append("ring: %s lens -- rim whole all round the lens, nothing to rebuild" % name)
+                      continue
+                  if lost > 36:
+                      notes.append("ring: %s lens -- rim missing in %d of 72 directions, too much to rebuild safely, left as is" % (name, lost))
+                      continue
+                  if len(th_all) < 12:
+                      notes.append("ring: %s lens -- too little rim left to measure, left as is" % name)
+                      continue
+                  med_all = float(np.median(th_all))
+                  T = float(np.median(th_low)) if len(th_low) >= 4 else med_all
+                  T = float(np.clip(T, 0.5 * med_all, 1.2 * med_all))
+                  OFF = float(np.median(offs)) if offs else 0.0     # the rim starts this far out from the lens edge
+                  # thickness across each lost stretch: blended from the rim just before and
+                  # just after it, so the rebuilt piece meets both ends at their own width
+                  known = sorted(th_at)
+                  Tbin = np.full(72, T, np.float32)
+                  ext = [k - 360 for k in known] + known + [k + 360 for k in known]
+                  for g in lost_angles:
+                      # the width on each side: the middle value of the four nearest intact
+                      # rays, so one nibbled ray or one end-piece ray cannot set it
+                      before = [k for k in ext if k < g][-4:]
+                      after_ = [k for k in ext if k > g][:4]
+                      prev_, next_ = before[-1], after_[0]
+                      tp = float(np.median([th_at[k % 360] for k in before]))
+                      tn = float(np.median([th_at[k % 360] for k in after_]))
+                      w_ = (g - prev_) / float(max(1, next_ - prev_))
+                      Tbin[g // 5] = float(np.clip((1 - w_) * tp + w_ * tn, 0.5 * med_all, 1.2 * med_all))
+                  yy0, xx0 = np.mgrid[0:H, 0:W]
+                  pa0 = (np.degrees(np.arctan2(yy0 - cy, xx0 - cx)) + 360.0) % 360.0
+                  Tpix = Tbin[(np.round(pa0 / 5.0).astype(int)) % 72]
+                  ring = (dist_out > OFF) & (dist_out <= OFF + Tpix + 0.5)
+                  # only in the directions where the rim was actually lost (a 5-degree
+                  # step either side), never a hairline all round the lens
+                  yy_, xx_ = np.mgrid[0:H, 0:W]
+                  pa = (np.degrees(np.arctan2(yy_ - cy, xx_ - cx)) + 360.0) % 360.0
+                  sector = np.zeros((H, W), bool)
+                  for g in lost_angles:
+                      dg = np.abs(((pa - g) + 180.0) % 360.0 - 180.0)
+                      sector |= dg <= 5.0
+                  miss = ring & ~A & sector
+                  if miss.sum() < 20:
+                      continue
+                  band |= miss
+                  notes.append("ring: %s lens -- rim rebuilt round the lens shape, %d of 72 directions were open (rim %.0f-%.0f px thick, matched to the rim at each end)"
+                               % (name, lost, min(Tbin[g // 5] for g in lost_angles), max(Tbin[g // 5] for g in lost_angles)))
+              if not band.any():
+                  return a, None, notes
+              # see-through where the rim is clear, solid where the photo shows rim colour
+              free = (~band) & (~A)
+              den = cv2.blur(free.astype(np.float32), (41, 41))[:, :, None] + 1e-6
+              bg = cv2.blur(src * free[:, :, None], (41, 41)) / den
+              diff = np.abs(src - bg).max(2)
+              a_band = np.maximum(rim_alpha, np.clip((diff - 8) / (34 - 8), 0, 1))
+              soft = np.clip(cv2.GaussianBlur(band.astype(np.float32), (0, 0), 0.8) * 1.6, 0, 1)
+              out = np.maximum(a, (np.where(band, a_band, 0) * soft).astype(a.dtype))
+              return out, band, notes
+
+
+          def close_full_rim_ring(a, colour_rgb, min_alpha=0.42, lens_mask=None):
+              """
+              Close the ring on a full-rim frame. FIRST from the lens shape (when the lens
+              step found the openings) -- exact placement, no tracing; THEN, if the rim is
+              still open anywhere, the traced repair (long gaps) and short-break bridging.
+              Returns (new alpha, notes, band) as before.
+              """
+              notes = []
+              band0 = None
+              if lens_mask is not None:
+                  try:
+                      a, band0, n0 = _lens_shape_ring(a, colour_rgb, lens_mask)
+                      notes += n0
+                  except Exception as ex:
+                      notes.append("ring: lens-shape rebuild could not run (%s)" % str(ex)[:60])
+              a2, n1, band1 = _close_ring_trace(a, colour_rgb, min_alpha)
+              notes += [x for x in n1 if not (band0 is not None and x in ("ring: no break-off points",))]
+              if band0 is None:
+                  return a2, notes, band1
+              band = band0 if band1 is None else (band0 | band1)
+              return a2, notes, band
 
           def rim_bottom_loss(alpha):
               """
@@ -3593,7 +3853,7 @@ jobs:
                       # judge the rim again.
                       try:
                           _ci = colour_img if (colour_img is not None and colour_img.size == img.size) else img
-                          a2, _notes, _band = close_full_rim_ring(a, np.asarray(_ci.convert("RGB")))
+                          a2, _notes, _band = close_full_rim_ring(a, np.asarray(_ci.convert("RGB")), lens_mask=(lens_mask if (lens_mask is not None and lens_mask.shape == a.shape) else None))
                           for _n in _notes:
                               log("    " + _n)
                           if a2 is not a:
@@ -4710,7 +4970,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-09-18j (clean edge: full-size matte, tight edge, un-mixed colour, sheet ring off; arms-above; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01d (close the ring: lens-shape rebuild first, then traced repair; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
