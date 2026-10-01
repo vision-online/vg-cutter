@@ -1,4 +1,4 @@
-Run 1312  Thu Oct  1 14:09:10 UTC 2026
+Run 1315  Thu Oct  1 14:12:12 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
@@ -57,4 +57,4 @@ Model loaded: ZhengPeng7/BiRefNet at 1024 px
     STAGE 6b ring repair before cosmetic trim          kept   26930 px | rim check BROKEN | lower LEFT: dark  2448 pale  2863 | lower RIGHT: dark  2310 pale  2567
     STAGE CHANGE 7 final (what would be saved)              removed 0 photo-dark and 0 photo-pale px (whole photo, including glass)
     STAGE 7 final (what would be saved)                kept   26930 px | rim check BROKEN | lower LEFT: dark  2448 pale  2863 | lower RIGHT: dark  2310 pale  2567
-    STAGE SHEET (VG-1006 Frames, every step top to bottom; right: close-ups of the lower left and lower right): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790863748/lfn4zclfe8ohhfwvjqog.jpg
+    STAGE SHEET (VG-1006 Frames, every step top to bottom; right: close-ups of the lower left and lower right): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790863931/ba6d8rwmsfpj5bldimke.jpg
