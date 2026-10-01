@@ -1490,6 +1490,45 @@ jobs:
                   out.append(region)
               if len(out) == 2:
                   out.sort(key=lambda r: float(np.where(r)[1].mean()))
+                  # GLASS CUT OFF BY AN ARM (1 Oct 2026, VG-1012 supra). An arm seen through the glass splits the lens into two
+                  # pieces; only the bigger was taken, so the strip between the arm and the lens's outer edge kept its glass
+                  # (the stage report showed it on the left lens; hand-cleaning it then also took away the 17% tint there).
+                  # The two lenses are mirror images, so the smaller one takes every enclosed piece that lies where the other
+                  # lens, mirrored about the middle of the nose (both inner edges are whole), has glass.
+                  try:
+                      a, b = out
+                      sa, sb = float(a.sum()), float(b.sum())
+                      if min(sa, sb) < 0.93 * max(sa, sb):
+                          big_, small_i = (a, 1) if sa > sb else (b, 0)
+                          small_ = out[small_i]
+                          ax_ = (float(np.where(a)[1].max()) + float(np.where(b)[1].min())) / 2.0
+                          mx_ = np.clip(np.round(2 * ax_ - np.arange(W)).astype(int), 0, W - 1)
+                          mirror_big = ndimage.binary_dilation(big_[:, mx_], iterations=3)
+                          grow = np.zeros_like(small_)
+                          for j in range(1, n + 1):
+                              comp = lab == j
+                              s_ = float(sizes[j - 1])
+                              if s_ < 0.0005 * gray.size or (comp & small_).sum() > 0.5 * s_:
+                                  continue
+                              if (comp & mirror_big).sum() < 0.85 * s_:
+                                  continue
+                              grow |= comp
+                          if grow.any():
+                              u = small_ | grow
+                              yy2, xx2 = np.where(u)
+                              box2 = np.zeros_like(u)
+                              box2[yy2.min():yy2.max() + 2, xx2.min():xx2.max() + 2] = True
+                              new = ndimage.binary_fill_holes(u | (ed & box2 & ~outside)) & (mirror_big | small_)
+                              new[:, :fx0] = False; new[:, fx1 + 1:] = False
+                              gained = int(new.sum() - small_.sum())
+                              if gained > 0:
+                                  out[small_i] = new
+                                  log("half-rim: %s lens took the glass cut off by an arm (+%d px)" % ("left" if small_i == 0 else "right", gained))
+                  except Exception as _ex:
+                      try:
+                          log("half-rim: joining glass cut off by an arm could not run (%s)" % str(_ex)[:60])
+                      except Exception:
+                          pass
                   # two lenses side by side, alike in size, not overlapping
                   a, b = out
                   if (a & b).any() or abs(a.sum() - b.sum()) > 0.5 * max(a.sum(), b.sum()):
@@ -4418,7 +4457,13 @@ jobs:
                   a = strip_sheet_ring(img, a, lens_mask=lens_mask, local=True)   # step 7 (lens mode): judged against the wall colour at each place
                   log("    sheet-ring peel (local wall colour): %d px taken off the edge" % (_n_before - int((a > 0.5).sum())))
               else:
+                  _a_pre_peel = a
                   a = strip_sheet_ring(img, a)                      # step 7: the sheet's shadow ring next to the rim (old frames: unchanged)
+                  if half_ring is not None:
+                      # SUPRA (1 Oct 2026, VG-1012 stage report): the lens edge of a supra IS pale -- this peel took 4,231 pale
+                      # pixels, most of them the traced lens edge, and the 80% edge line is only drawn where the edge survived,
+                      # so it came out broken. The traced edge is never peeled.
+                      a = np.where(half_ring, np.maximum(a, _a_pre_peel), a).astype(np.float32)
               _stage("5 after the sheet-ring peel", img, a)
               if front and rim_kind == "full":
                   a = clear_sheet_at_ends(img, a)                   # step 7b: sheet wedge between end piece and rim
@@ -5945,7 +5990,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01t (as 01s, plus: an aviator top bar running on over the bridge is not taken for "arms above the frame" -- only the straight bar is left out, an arm rising at an end is still caught; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01u (as 01t, plus SUPRA: the smaller lens takes the glass an arm cut off it, so the whole demo is cleared and tinted evenly; the shadow-ring peel never takes the traced lens edge, so the edge line stays whole; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
