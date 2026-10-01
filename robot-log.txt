@@ -1,8 +1,8 @@
-Run 1253  Thu Oct  1 06:06:40 UTC 2026
+Run 1254  Thu Oct  1 06:17:08 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
-Robot build 2026-10-01j (as 01i, plus the sheet-ring peel judges against the LOCAL wall colour in lens mode, so it no longer erases a clear lower rim; codes in the run box; 45-degree fit points; CHECK PHOTO)
+Robot build 2026-10-01k (as 01j; the sheet-ring peel now adapts to THIN metal rims -- protected band = 60% of the rim width, pale rims skipped -- and runs for every frame cut with the lens step, metal included; codes in the run box; 45-degree fit points; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height,   [VG-1006 Frames]
   1 frame(s): Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.  [VG-1009 Frames]
