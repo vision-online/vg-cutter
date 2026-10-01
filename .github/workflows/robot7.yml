@@ -543,6 +543,7 @@ jobs:
               rim = str(p.get("rim") or p.get("rimType") or "").lower()
               return not any(k in rim for k in ("half", "supra", "semi", "rimless"))
           LENS_TEST = [False]   # True only in a 'test-lens:' run
+          THIN_RIM_PX = [None]  # set by cut() when the thin-dark-rim rule applies to this cut (the rim's thickness in px)
           STAGES_ON = [False]   # True only in a 'stages:' run (1 Oct 2026): every step's picture is kept for the stage sheet
           STAGES = []
 
@@ -736,6 +737,21 @@ jobs:
               return np.isin(lab, big), outside
 
 
+          def _lens_ids(lab_, n_):
+              """Which openings are the LENSES: the biggest, and the second biggest when it is at least 30% of it (a pair).
+              Other openings -- the gap under an aviator's top bar, a hole between a nose pad and the rim -- are not lenses
+              (1 Oct 2026, VG-1006)."""
+              from scipy import ndimage
+              if n_ < 1:
+                  return []
+              sizes = ndimage.sum(lab_ > 0, lab_, range(1, n_ + 1))
+              order = [int(i) + 1 for i in np.argsort(sizes)[::-1]]
+              ids = [order[0]]
+              if n_ >= 2 and sizes[order[1] - 1] >= 0.3 * sizes[order[0] - 1]:
+                  ids.append(order[1])
+              return ids
+
+
           def clear_inner_lens(alpha):
               """
               Make the glass fully transparent -- including a tinted or mirrored
@@ -760,7 +776,7 @@ jobs:
                   lens_closed = cv2.morphologyEx(lens.astype(np.uint8), cv2.MORPH_CLOSE, k).astype(bool)
               else:
                   lens_closed = np.zeros(lens.shape, bool)
-                  for j in range(1, n_ + 1):
+                  for j in _lens_ids(lab_, n_):                    # only the LENSES; the gap under a top bar is left as it is
                       one = (lab_ == j).astype(np.uint8)
                       cj = cv2.morphologyEx(one, cv2.MORPH_CLOSE, k).astype(bool)
                       others = lens & (lab_ != j)
@@ -1101,6 +1117,14 @@ jobs:
               # vanish, find the openings, and shrink the hull back by the same
               # amount so the rim is never touched
               k = 4
+              # A THIN WIRE FRAME (1 Oct 2026, Rauf: "add it now"). Eroding a 6 px wire by 4 px from each side wipes it out inside
+              # this step, so what it clears on such a frame is unpredictable: on VG-1006 it took the RIGHT nose-pad arm only
+              # (the left one stayed). Following the rim's thickness instead (erosion 2) was tried and was worse: it also cut
+              # into the left hinge where the arm meets the rim. On a thin-wire frame the lens step has already cleared the
+              # glass from the photo itself, so this step is skipped there; nose-pad arms stay on both sides, as the lens step
+              # intends. Every other frame keeps this step exactly as before.
+              if THIN_RIM_PX[0]:
+                  return alpha
               solid = ndimage.binary_erosion(alpha > 0.5, iterations=k)
               not_frame = ~solid
               outside = ndimage.binary_propagation(_border(not_frame), mask=not_frame)
@@ -3577,7 +3601,13 @@ jobs:
               inside = cv2.distanceTransform(solid | lens.astype(np.uint8), cv2.DIST_L2, 5) > band_px * 1.5
               lab, n = ndimage.label(lens)
               out = alpha.copy()
-              for i in range(1, n + 1):
+              # ONLY THE LENSES, AND NEVER ACROSS TO ANOTHER OPENING (1 Oct 2026, VG-1006 aviator). The gap under the top bar is
+              # an opening too, shaped like a crescent; its hull covered the top of the right lens's rim, which was then cleared
+              # -- the right lens ran into the gap (stage 3c), the rim check dropped and the size check read 178 mm instead of
+              # about 140 (the "lens" had grown sideways into the gap). Now only the two lenses are filled, and a pixel nearer
+              # to another opening than to this lens is left alone.
+              ids = _lens_ids(lab, n)
+              for i in ids:
                   ys, xs = np.where(lab == i)
                   if xs.size < 50:
                       continue
@@ -3586,6 +3616,11 @@ jobs:
                   canvas = np.zeros(alpha.shape, np.uint8)
                   cv2.fillConvexPoly(canvas, hull, 1)
                   fill = (canvas == 1) & inside & ~outside
+                  others = lens & (lab != i)
+                  if n > 1 and others.any():
+                      d_own = ndimage.distance_transform_edt(lab != i)
+                      d_oth = ndimage.distance_transform_edt(~others)
+                      fill &= d_own <= d_oth
                   out[fill] = 0.0
               return out
 
@@ -4147,6 +4182,7 @@ jobs:
               if half_rim_hint is None:
                   half_rim_hint = rim_kind in ("half", "rimless")
               LENS_MODE[0] = bool(front and lens_fix)
+              THIN_RIM_PX[0] = None                                 # a new cut: no thin-rim reading carried over from another frame
               import cv2
               img = Image.open(io.BytesIO(photo_bytes)).convert("RGB")
               if max(img.size) > 1600:
@@ -4224,6 +4260,7 @@ jobs:
                       _b = int(max(2, min(band_px, round(0.3 * _thin))))
                       log("    thin dark rim: about %.0f px thick, edge band %d px (was %d) so the line keeps a solid core" % (_thin, _b, band_px))
                       band_tri = _b
+                      THIN_RIM_PX[0] = float(_thin)
               tri = make_trimap(m, band_tri)                        # step 3 (only the trimap uses the rim-sized band)
               a = matte(img, tri)                                   # step 4
               a = tighten_edge(a)                                   # step 4b: a 1-2 px edge, not a glow
@@ -5873,7 +5910,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01q (as 01p, plus: the inner-lens clearing rounds off each opening on its own, so it can no longer cut through a thin rim between a lens and the gap under an aviator top bar; aviator end pieces not taken for an arm; glass corners cut off by an arm joined; thin dark rims kept whole; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01s (as 01r, plus: on a thin-wire frame the behind-glass clean-up is skipped -- its 4 px erosion wiped the wire inside that step and took one nose-pad arm only; lens hull filling and inner-lens clearing only on the two lenses; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
