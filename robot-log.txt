@@ -1,5 +1,5 @@
-Run 1269  Thu Oct  1 08:05:53 UTC 2026
-Trigger: schedule
+Run 1270  Thu Oct  1 08:12:38 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-10-01m (as 01l, plus a STAGE REPORT run: type stages:<code> to see the picture after every step of one cut on one sheet, nothing saved; codes in the run box; 45-degree fit points; CHECK PHOTO)
