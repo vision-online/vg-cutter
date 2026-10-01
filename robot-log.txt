@@ -1,4 +1,4 @@
-Run 1266  Thu Oct  1 07:52:02 UTC 2026
+Run 1268  Thu Oct  1 08:02:07 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -6,10 +6,6 @@ Robot build 2026-10-01m (as 01l, plus a STAGE REPORT run: type stages:<code> to 
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height,   [VG-1006 Frames]
   1 frame(s): Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.  [VG-1009 Frames]
-::notice::Frames: 13. Waiting: 1. Rejected: 2.  Trial re-cut asked for: VG-1014,
+::notice::Frames: 13. Waiting: 0. Rejected: 2.
 
 --- what the robot did ---
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Trial re-cut: no frame matched 'VG-1014,'.
-Catalogue: 13 frames. Waiting for a cut-out: 0.
-Nothing to do.
