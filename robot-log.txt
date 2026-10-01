@@ -1,29 +1,9 @@
-Run 1345  Thu Oct  1 17:51:49 UTC 2026
+Run 1346  Thu Oct  1 17:55:40 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-10-01y (as 01x, plus SUPRA: the outline takes the demo lens own size -- grown out to the AI model edge on the outer side, the bottom and the nose corner, never into the bar, hinges or pads -- and both sides are plain lines; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::Frames: 13. Waiting: 1. Rejected: 0.  Trial re-cut asked for: VG-1012
+::notice::Frames: 13. Waiting: 0. Rejected: 0.
 
 --- what the robot did ---
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Trial re-cut of pmun6ongh11 (VG-1012 Frames).
-Catalogue: 13 frames. Waiting for a cut-out: 1.
-Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
---- pmun6ongh11 : VG-1012 Frames
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet at 1024 px
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:391: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
-  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
-    rim type: not set (0 clean lens holes)
-half-rim: 36 enclosed pieces, 4 candidates, rejected {'size': 31, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
-half-rim: left lens took the glass cut off by an arm (+10243 px)
-    lens edge line drawn (half-rim / rimless): 5362 px at 80%
-    a little tint left on the demo (half-rim / rimless): 114884 px
-    levelled: the frame was 0.6 degrees off, turned straight
-    size check: frame works out at 120 mm (typed 49 + 18 -> about 135 mm expected)
-    the frame fills 57% of the photo's width
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790877105/sgdqsdqjxqq7bvf5aczv.png
-  Finished. Cut 1, failed 0, rejected 0, still waiting 0.
