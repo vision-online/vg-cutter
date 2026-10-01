@@ -1,5 +1,5 @@
-Run 1228  Thu Oct  1 01:54:13 UTC 2026
-Trigger: schedule
+Run 1229  Thu Oct  1 01:58:42 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-10-01j (as 01i, plus the sheet-ring peel judges against the LOCAL wall colour in lens mode, so it no longer erases a clear lower rim; codes in the run box; 45-degree fit points; CHECK PHOTO)
