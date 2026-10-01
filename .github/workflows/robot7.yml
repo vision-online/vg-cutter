@@ -2720,6 +2720,245 @@ jobs:
               return rem & A & ~L & (d_all > px_pale)
 
 
+          # ------------------------------------------------------------------ THIN DARK-WIRE FRAMES (1 Oct 2026)
+          # A round black metal frame is a 4-8 px DARK LINE (with a pale highlight beside it), not a rim band. The rim repair
+          # above was made for 15-25 px clear-plastic rims: on a wire frame it measured the pale highlight and halo as rim and
+          # filled lost stretches with a wide pale band, while the dark line itself stayed in dashes (the AI cut loses a thin
+          # black line wherever it lies in shadow). For such frames the repair is different: bring back only the DARK LINE from
+          # the photo, and take away the pale fill the cut kept outside it. Evidence: a real VG metal cut, lower right ring.
+          WIRE_DARK = -45.0                     # a pixel this much darker than the wall is "the wire"
+          WIRE_MAX_W = 9.0                      # a dark line at most this wide (median over the ring) = a wire frame
+
+
+          def _wire_scan(A, H, W, lab, ids, d_all, step=1.0):
+              """Per lens, per direction: where the dark line is (offset from the lens edge, width) in the KEPT picture."""
+              res = []
+              for i in ids:
+                  ys, xs = np.where(lab == i); cy, cx = ys.mean(), xs.mean(); got = {}
+                  ang = 0.0
+                  while ang < 360.0:
+                      dy, dx = np.sin(np.radians(ang)), np.cos(np.radians(ang)); r = 0.0
+                      ok = True
+                      while True:
+                          y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                          if y < 0 or x < 0 or y >= H or x >= W: ok = False; break
+                          if lab[y, x] != i: break
+                          r += 1.0
+                      if ok:
+                          run = []; s = None; gap = 0
+                          for k in range(0, 30):
+                              y, x = int(round(cy + dy * (r + k))), int(round(cx + dx * (r + k)))
+                              if y < 0 or x < 0 or y >= H or x >= W: break
+                              isd = bool(A[y, x]) and d_all[y, x] < WIRE_DARK
+                              if isd:
+                                  if s is None: s = k
+                                  run.append(k); gap = 0
+                              elif s is not None:
+                                  gap += 1
+                                  if gap >= 2: break
+                          if s is not None and len(run) >= 2:
+                              got[round(ang, 2)] = (float(s), float(run[-1] - s + 1), r)
+                      ang += step
+                  res.append((i, cy, cx, got))
+              return res
+
+
+          def _thin_wire_check(a, rgb, lens_mask):
+              """True when the frame's rim is a thin dark wire (so the wire repair, not the plastic-rim repair, applies)."""
+              import cv2
+              S = _rim_fit_setup(a, rgb, lens_mask)
+              if S is None:
+                  return None
+              A, H, W, L, lab, ids, d_all = S
+              if len(ids) < 2:
+                  return None
+              wall_l = float(np.median(cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)[~(cv2.dilate(A.astype(np.uint8), np.ones((61, 61), np.uint8)) > 0)])) if (~(cv2.dilate(A.astype(np.uint8), np.ones((61, 61), np.uint8)) > 0)).any() else 0.0
+              if wall_l < 110.0:
+                  return None                                    # a dark background: a dark line cannot be told from it
+              scans = _wire_scan(A, H, W, lab, ids, d_all, step=4.0)
+              widths, cover = [], []
+              for i, cy, cx, got in scans:
+                  cover.append(len(got) / 90.0)
+                  widths += [v[1] for v in got.values()]
+              if not widths:
+                  return None
+              mw = float(np.median(widths)); cv_ = float(np.mean(cover))
+              if 2.0 <= mw <= WIRE_MAX_W and cv_ >= 0.45:
+                  return {"width": mw, "cover": cv_}
+              return None
+
+
+          def _wire_expect(scans):
+              """Where the dark line is expected, for EVERY direction of each lens: from the lens's own intact stretches (as an
+              absolute radius from the lens centre, which varies smoothly round a lens) or, when too little of it survived, from
+              the other lens (as an offset from the lens edge, mirrored). Also the frame's normal offset s0 (a quarter of the way
+              up the observed offsets of both lenses: a line that hugs the lens edge, not the inflated stretches).
+              Returns (dict lens-id -> expectation, s0)."""
+              mirror = {}
+              if len(scans) == 2:
+                  l_, r_ = sorted(scans, key=lambda q: q[2]); mirror[l_[0]] = r_[3]; mirror[r_[0]] = l_[3]
+              allS = [v[0] for _, _, _, got in scans for v in got.values()]
+              s0 = float(np.percentile(allS, 25)) if allS else 5.0
+              exp = {}
+              for i, cy, cx, got in scans:
+                  if len(got) >= 40:
+                      ka = np.array(sorted(got)); rl = np.array([got[k][2] + got[k][0] for k in ka]); kw = np.array([got[k][1] for k in ka])
+                      exp[i] = ("own", ka, rl, kw)
+                  else:
+                      o = mirror.get(i)
+                      if not o or len(o) < 120:
+                          continue
+                      use = {round((180.0 - k) % 360.0, 2): v for k, v in o.items()}
+                      ka = np.array(sorted(use)); ks = np.array([use[k][0] for k in ka]); kw = np.array([use[k][1] for k in ka])
+                      exp[i] = ("mirror", ka, ks, kw)
+              return exp, s0
+
+
+          def _wire_at(e, ang, r_edge):
+              """(offset of the line from the lens edge, its width) expected at this direction."""
+              kind, ka, v, kw = e
+              val = float(np.interp(ang, ka, v, period=360.0)); w = float(np.interp(ang, ka, kw, period=360.0))
+              return ((val - r_edge) if kind == "own" else val), w
+
+
+          def _edge_radius(lab, i, cy, cx, ang, H, W):
+              dy, dx = np.sin(np.radians(ang)), np.cos(np.radians(ang)); r = 0.0
+              while True:
+                  y, x = int(round(cy + dy * r)), int(round(cx + dx * r))
+                  if y < 0 or x < 0 or y >= H or x >= W:
+                      return None
+                  if lab[y, x] != i:
+                      return r
+                  r += 1.0
+
+
+          def _restore_wire_line(a, rgb, lens_mask, S=None):
+              """Bring back the dark line where the cut lost it: where the intact stretches say it runs, take the photo's own dark
+              pixels. Returns (boolean mask of pixels to add, number of directions that had lost the line)."""
+              import cv2
+              if S is None:
+                  S = _rim_fit_setup(a, rgb, lens_mask)
+              if S is None:
+                  return np.zeros(a.shape, bool), 0
+              A, H, W, L, lab, ids, d_all = S
+              add = np.zeros((H, W), bool); lost_total = 0
+              scans = _wire_scan(A, H, W, lab, ids, d_all, step=1.0)
+              exp, s0 = _wire_expect(scans)
+              for i, cy, cx, got in scans:
+                  e = exp.get(i)
+                  if e is None:
+                      continue
+                  have = set(got)
+                  for ang in np.arange(0.0, 360.0, 0.5):
+                      if any(round(float(q), 2) in have for q in (np.floor(ang), np.ceil(ang) % 360)):
+                          continue                                          # a line is seen here (or right beside): not lost
+                      r = _edge_radius(lab, i, cy, cx, ang, H, W)
+                      if r is None:
+                          continue
+                      s, w = _wire_at(e, ang, r)
+                      s = max(0.0, min(30.0, s)); w = max(2.0, min(14.0, w))
+                      lost_total += 1
+                      dy, dx = np.sin(np.radians(ang)), np.cos(np.radians(ang))
+                      lo, hi = int(max(0, np.floor(s) - 3)), int(np.ceil(s + w) + 3)
+                      cells = []
+                      for k in range(lo, hi + 1):
+                          y, x = int(round(cy + dy * (r + k))), int(round(cx + dx * (r + k)))
+                          if 0 <= y < H and 0 <= x < W:
+                              cells.append((k, y, x, d_all[y, x] < WIRE_DARK * 0.8))
+                      runs, cur = [], []
+                      for c in cells:
+                          if c[3]: cur.append(c)
+                          elif cur: runs.append(cur); cur = []
+                      if cur: runs.append(cur)
+                      # radial width of a line seen at a slant (an oval lens) is more than the line's own width: allow up to twice
+                      good = [rn for rn in runs if max(2.0, 0.5 * w) <= len(rn) <= 2.0 * w + 2.0]
+                      if good:
+                          best = min(good, key=lambda rn: abs(rn[0][0] - s))
+                          for k, y, x, _ in best:
+                              if not A[y, x] and not L[y, x]:
+                                  add[y, x] = True
+              if add.any():
+                  add = cv2.morphologyEx(add.astype(np.uint8), cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))) > 0
+                  add &= ~A & ~L
+              return add, lost_total
+
+
+          def _trim_wire_pale(a, rgb, lens_mask, S=None):
+              """Take away the pale fill that is not the wire, on the lower arc only:
+                 (1) OUTSIDE the line: kept pixels that are not dark, from 2 px beyond the line out to 24 px;
+                 (2) INSIDE the line, wider than the frame's normal pale highlight beside it: where the pale band between the lens
+                     edge and the line is more than a few px wider than it is on the rest of the frame (uncleared glass, or fill the
+                     cut added), the extra width is taken away, so the lens opening reaches the highlight like it does elsewhere.
+              Where the line itself is lost, its expected place (from the intact stretches, or the other lens) is used.
+              Returns a boolean mask of pixels to remove."""
+              import cv2
+              if S is None:
+                  S = _rim_fit_setup(a, rgb, lens_mask)
+              if S is None:
+                  return np.zeros(a.shape, bool)
+              A, H, W, L, lab, ids, d_all = S
+              rem = np.zeros((H, W), bool)
+              scans = _wire_scan(A, H, W, lab, ids, d_all, step=1.0)
+              exp, s0 = _wire_expect(scans)
+              pale = d_all > -25.0
+              cxs = sorted(c[2] for c in scans)
+              for i, cy, cx, got in scans:
+                  e = exp.get(i)
+                  if e is None:
+                      continue
+                  # the side of a lens that faces the other lens carries the nose-pad arms (real silver parts of the frame, outside the
+                  # line): within 45 degrees of the direction toward the other lens is left alone (the pad arms end about 30 degrees down)
+                  toward = 0.0 if (len(cxs) == 2 and cx <= cxs[0] + 1e-6) else 180.0
+                  for ang in np.arange(25.0, 155.5, 1.0):
+                      if abs(((ang - toward) + 180.0) % 360.0 - 180.0) < 45.0:
+                          continue
+                      r = _edge_radius(lab, i, cy, cx, ang, H, W)
+                      if r is None:
+                          continue
+                      s, w = _wire_at(e, ang, r)
+                      s = max(0.0, min(30.0, s)); w = max(2.0, min(14.0, w))
+                      dy, dx = np.sin(np.radians(ang)), np.cos(np.radians(ang))
+                      for k in range(int(s + w) + 2, int(s + w) + 26):                      # (1) outside the line
+                          y, x = int(round(cy + dy * (r + k))), int(round(cx + dx * (r + k)))
+                          if 0 <= y < H and 0 <= x < W and A[y, x] and pale[y, x] and not L[y, x]:
+                              rem[y, x] = True
+                      extra = int(round(s - (s0 + 2.0)))                                    # (2) inside the line
+                      for k in range(0, max(0, extra)):
+                          y, x = int(round(cy + dy * (r + k))), int(round(cx + dx * (r + k)))
+                          if 0 <= y < H and 0 <= x < W and A[y, x] and pale[y, x] and not L[y, x]:
+                              rem[y, x] = True
+              if rem.any():
+                  # sweep up the crumbs between the rays: pale, next to a removed pixel
+                  near = cv2.dilate(rem.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+                  rem |= near & A & pale & ~L
+              return rem
+
+
+          def _thin_wire_repair(a, rgb, lens_mask, wire):
+              notes = ["ring: thin dark-wire frame (the line is about %.0f px wide) -- the wire repair is used, not the plastic-rim one" % wire["width"]]
+              S = _rim_fit_setup(a, rgb, lens_mask)
+              add, lost = _restore_wire_line(a, rgb, lens_mask, S)
+              a2 = np.maximum(a, (add * 1.0).astype(a.dtype))
+              band = add.copy()
+              if add.any():
+                  notes.append("ring: %d px of the dark line brought back from the photo (%d directions had lost it)" % (int(add.sum()), lost))
+              else:
+                  notes.append("ring: no dark pixels to bring back (the line was not lost, or the photo shows none there)")
+              seal = _seal_cracks(a2, lens_mask)
+              if seal.any():
+                  a2 = np.maximum(a2, (seal * 0.9).astype(a2.dtype)); band |= seal
+              S2 = _rim_fit_setup(a2, rgb, lens_mask)
+              rem = _trim_wire_pale(a2, rgb, lens_mask, S2)
+              if rem.any():
+                  a_t = a2.copy(); a_t[rem] = 0
+                  if rim_balance(a_t) is None and rim_balance(a2) is not None:
+                      notes.append("ring: the pale fill was left in place -- taking it away would have opened the ring (the dark line is not whole there)")
+                  else:
+                      a2 = a_t
+                      notes.append("ring: %d px of pale fill taken away (outside the line, and the extra-wide pale band inside it)" % int(rem.sum()))
+              return a2, notes, band
+
+
           def close_full_rim_ring(a, colour_rgb, min_alpha=0.42, lens_mask=None):
               """
               Close the ring on a full-rim frame. FIRST from the lens shape (when the lens
@@ -2729,6 +2968,17 @@ jobs:
               """
               notes = []
               band0 = None
+              if lens_mask is not None:
+                  try:
+                      _wire = _thin_wire_check(a, colour_rgb, lens_mask)
+                  except Exception as ex:
+                      _wire = None
+                      notes.append("ring: wire check could not run (%s)" % str(ex)[:60])
+                  if _wire:
+                      try:
+                          return _thin_wire_repair(a, colour_rgb, lens_mask, _wire)
+                      except Exception as ex:
+                          notes.append("ring: wire repair could not run (%s) -- the plastic-rim repair is used" % str(ex)[:60])
               if lens_mask is not None:
                   try:
                       a, band0, n0 = _lens_shape_ring(a, colour_rgb, lens_mask)
@@ -5337,7 +5587,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01k (as 01j; the sheet-ring peel now adapts to THIN metal rims -- protected band = 60% of the rim width, pale rims skipped -- and runs for every frame cut with the lens step, metal included; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01l (as 01k, plus a THIN DARK-WIRE repair: a round black metal frame gets its dark line brought back from the photo and the pale fill taken away, instead of the plastic-rim repair; plastic frames unchanged; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
