@@ -1,8 +1,8 @@
-Run 1278  Thu Oct  1 09:04:40 UTC 2026
+Run 1279  Thu Oct  1 09:15:08 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
-Robot build 2026-10-01n (as 01m, plus THIN DARK RIM KEPT WHOLE: a dark rim thinner than the edge band -- a metal wire like VG-1014 -- gets a band that follows its own thickness, so the edge finishing can no longer cut it into pieces; plastic and light frames unchanged; stages:<code> report; codes in the run box; 45-degree fit points; CHECK PHOTO)
+Robot build 2026-10-01o (as 01n, plus from the review: finer stage pictures inside the lens step and a removed-pixels line per step; the pale-bit trim is now judged -- it is only kept if the rim still passes, and the robot judges the trimmed picture; the lower-rim thickness after repair is logged, not a rejection; thin dark rims kept whole; stages:<code>; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height,   [VG-1006 Frames]
   1 frame(s): Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.  [VG-1009 Frames]
