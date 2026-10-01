@@ -1,4 +1,4 @@
-Run 1337  Thu Oct  1 16:45:40 UTC 2026
+Run 1345  Thu Oct  1 17:51:49 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Trial re-cut of pmun6ongh11 (VG-1012 Frames).
@@ -13,9 +13,10 @@ Model loaded: ZhengPeng7/BiRefNet at 1024 px
     rim type: not set (0 clean lens holes)
 half-rim: 36 enclosed pieces, 4 candidates, rejected {'size': 31, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
 half-rim: left lens took the glass cut off by an arm (+10243 px)
-    lens edge line drawn (half-rim / rimless): 5174 px at 80%
-    a little tint left on the demo (half-rim / rimless): 108525 px
-    size check: frame works out at 128 mm (typed 49 + 18 -> about 135 mm expected)
-    the frame fills 59% of the photo's width
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790873136/lzl7unrvk72nkqj0fhqi.png
+    lens edge line drawn (half-rim / rimless): 5362 px at 80%
+    a little tint left on the demo (half-rim / rimless): 114884 px
+    levelled: the frame was 0.6 degrees off, turned straight
+    size check: frame works out at 120 mm (typed 49 + 18 -> about 135 mm expected)
+    the frame fills 57% of the photo's width
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790877105/sgdqsdqjxqq7bvf5aczv.png
   Finished. Cut 1, failed 0, rejected 0, still waiting 0.
