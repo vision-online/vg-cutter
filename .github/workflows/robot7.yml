@@ -544,6 +544,7 @@ jobs:
               return not any(k in rim for k in ("half", "supra", "semi", "rimless"))
           LENS_TEST = [False]   # True only in a 'test-lens:' run
           THIN_RIM_PX = [None]  # set by cut() when the thin-dark-rim rule applies to this cut (the rim's thickness in px)
+          LAST_PADS = [None]    # the nose pads the supra step kept (apply_half_rim), protected from the later clean-ups
           STAGES_ON = [False]   # True only in a 'stages:' run (1 Oct 2026): every step's picture is kept for the stage sheet
           STAGES = []
 
@@ -1535,6 +1536,7 @@ jobs:
                   # clearing and the tint all follow the smooth outline.
                   try:
                       import cv2 as _cv2
+                      _outer_line = {}
                       for _k in range(2):
                           _r = out[_k]
                           # THE DEMO'S OWN SIZE (1 Oct 2026, Rauf: "copy the demo size, nothing else"). The edge tracing stops a few
@@ -1556,15 +1558,37 @@ jobs:
                                   else:
                                       _outer = _xx > _x1r - _third; _nose = _xx < _x0r + _third
                                   _mid = ~_outer & ~_nose
-                                  _rowfrom[_outer] = int(_y0 + 0.40 * _hh)
+                                  _rowfrom[_outer] = int(_y0 + 0.08 * _hh)   # right up under the temple (2 Oct, Rauf: "the demo
+                                                                              # under the temple is not cut like the original")
                                   _rowfrom[_mid] = int(_y0 + 0.50 * _hh)
                                   _rowfrom[_nose] = int(_y0 + 0.65 * _hh)
                                   _rowok = np.arange(H)[:, None] >= _rowfrom[None, :]
                                   _band = ndimage.binary_dilation(_r, iterations=20)
                                   _grow = solid & _band & ~_r & _rowok
+                                  # never into the hinge or the end piece: the metal there is dark (the demo's edge is pale glass)
+                                  _gmed = float(np.median(gray[_r])) if _r.any() else 128.0
+                                  _grow &= ~(gray < _gmed - 60)
                                   _grow[:, :fx0] = False; _grow[:, fx1 + 1:] = False
                                   if _grow.any():
                                       _r = ndimage.binary_fill_holes(_r | _grow)
+                                  # under the temple the demo's edge does not reach further out than its straight middle stretch; the end piece
+                                  # beside it is not demo, so nothing is kept outside that line (+1 px) in the upper half
+                                  _yf, _xf = [], []
+                                  for _yy in range(int(_y0 + 0.35 * _hh), int(_y0 + 0.60 * _hh)):
+                                      _xr = np.where(_r[_yy])[0]
+                                      if _xr.size:
+                                          _yf.append(_yy); _xf.append(_xr.min() if _k == 0 else _xr.max())
+                                  if len(_yf) > 10:
+                                      # the straight middle stretch of the outer side; above it a lens edge goes straight up or
+                                      # turns in towards the corner -- it never flares out (that is the end piece)
+                                      _pa, _pb = 0.0, float(np.median(np.array(_xf, float)))
+                                      _outer_line[_k] = (_pa, _pb, _y0, _hh)
+                                      for _yy in range(max(0, _y0), int(_y0 + 0.50 * _hh)):
+                                          _lim = _pa * _yy + _pb
+                                          if _k == 0:
+                                              _r[_yy, :max(0, int(np.floor(_lim - 1)))] = False
+                                          else:
+                                              _r[_yy, min(W, int(np.ceil(_lim + 1)) + 1):] = False
                           except Exception:
                               pass
                           # THE NOSE SIDE IS ONE PLAIN LINE (1 Oct 2026, Rauf: "the nose bridge area of the glass has to be straight --
@@ -1579,10 +1603,12 @@ jobs:
                               _cv2.fillConvexPoly(_hm, _cv2.convexHull(_pts), 1)
                               _w0 = float(_xs_r.max() - _xs_r.min() + 1)
                               _nz = np.zeros(_r.shape, bool)
-                              # the nose side AND the outer side are each one plain line (the outer side too, so the demo's own
-                              # edge found low down and the edge found under the hinge join without a step)
-                              _nz[:, int(_xs_r.max() - 0.33 * _w0):] = True
-                              _nz[:, :int(_xs_r.min() + 0.33 * _w0) + 1] = True
+                              # the NOSE side is one plain line (the outer side is grown out to the demo's own edge all the way up
+                              # under the temple instead, so it has no step either; a plain line there bulged into the end piece)
+                              if _k == 0:
+                                  _nz[:, int(_xs_r.max() - 0.33 * _w0):] = True
+                              else:
+                                  _nz[:, :int(_xs_r.min() + 0.33 * _w0) + 1] = True
                               _r = _r | ((_hm > 0) & _nz)
                           # small bites in the outline (a nose pad, a reflection: narrower than ~3% of the lens) are filled first --
                           # a closing only ADDS inside dents, so the rounded corners and the bottom curve are not touched
@@ -1611,6 +1637,14 @@ jobs:
                           if _new.sum() < 0.9 * _r.sum() or _new.sum() > 1.1 * _r.sum():
                               continue                                      # never let the smoothing change the lens's size
                           _new[:, :fx0] = False; _new[:, fx1 + 1:] = False
+                          if _k in _outer_line:                             # the same limit once more, after the smoothing
+                              _pa, _pb, _y0l, _hhl = _outer_line[_k]
+                              for _yy in range(max(0, _y0l), int(_y0l + 0.50 * _hhl)):
+                                  _lim = _pa * _yy + _pb
+                                  if _k == 0:
+                                      _new[_yy, :max(0, int(np.floor(_lim - 1)))] = False
+                                  else:
+                                      _new[_yy, min(W, int(np.ceil(_lim + 1)) + 1):] = False
                           out[_k] = _new
                   except Exception as _ex:
                       try:
@@ -1639,19 +1673,81 @@ jobs:
               seen through it, an arm behind it, the supplier's printing -- so
               the customer's own face shows through. The lens EDGE is kept as a
               faint thin line, as a real demo lens shows one, and so the try-on
-              can find the opening. The metal bar and the nose pads lie outside
-              the traced glass and are not touched.
+              can find the opening. The metal bar is outside the traced glass; the
+              nose pads seen through the glass on the nose side are kept (2 Oct).
               """
               from scipy import ndimage
               out = alpha.copy()
               ring_all = np.zeros_like(alpha, dtype=bool)
-              for r in regions:
+              LAST_PADS[0] = np.zeros(alpha.shape, dtype=bool)
+              for _i, r in enumerate(regions):
                   inner = ndimage.binary_erosion(r, iterations=3)   # 3 px: about 1.5 px on a phone, like a real lens edge (25 Sep)
                   ring = r & ~inner
-                  out[inner] = 0.0
-                  out[ring] = 1.0                 # solid for now, so the arm rules can see the opening
-                  ring_all |= ring
+                  try:
+                      pads = nose_pads_in_lens(img, alpha, r, _i, len(regions))
+                  except Exception:
+                      pads = np.zeros_like(r)
+                  out[inner & ~pads] = 0.0
+                  out[ring & ~pads] = 1.0         # solid for now, so the arm rules can see the opening
+                  LAST_PADS[0] |= pads
+                  ring_all |= ring & ~pads
               return out, ring_all
+
+
+          def nose_pads_in_lens(img, alpha, r, idx, n_regions):
+              """THE NOSE PADS STAY (2 Oct 2026, Rauf: "see the nose pads also get cut in our cutting"). On a supra the nose pad
+              and its metal arm sit just behind the lens on the nose side, so they show through the glass -- and clearing
+              everything inside the demo took them away. Kept: whatever does not look like the glass, on the nose-side 30% of the
+              lens, between 12% and 82% of its height, in pieces that reach the lens's nose-side edge (a pad hangs from the
+              bridge; an arm seen through the glass comes from the other side and is still cleared)."""
+              from scipy import ndimage
+              pads = np.zeros_like(r)
+              if n_regions != 2 or not r.any():
+                  return pads
+              rgb = np.asarray(img).astype(np.float32)
+              ys, xs = np.where(r)
+              y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
+              h, w = float(y1 - y0 + 1), float(x1 - x0 + 1)
+              zone = np.zeros_like(r)
+              if idx == 0:                                          # left lens: its nose side is on the right
+                  zone[int(y0 + 0.12 * h):int(y0 + 0.82 * h), int(x1 - 0.30 * w):x1 + 1] = True
+              else:                                                 # right lens: its nose side is on the left
+                  zone[int(y0 + 0.12 * h):int(y0 + 0.82 * h), x0:int(x0 + 0.30 * w) + 1] = True
+              inner = ndimage.binary_erosion(r, iterations=3)
+              glass = np.median(rgb[inner & ~zone], axis=0) if (inner & ~zone).any() else np.median(rgb[r], axis=0)
+              d = np.sqrt(((rgb - glass) ** 2).sum(axis=2))
+              nonglass = r & zone & (d > 30) & (np.asarray(alpha) > 0.5)
+              if not nonglass.any():
+                  return pads
+              edge = r & ~ndimage.binary_erosion(r, iterations=1) & zone          # the lens's own nose-side edge
+              band = ndimage.binary_dilation(edge, iterations=6) & r                # the lens's own bright edge lies in here
+              # the pad itself: what is not glass, OUTSIDE that edge band, in a piece that reaches the band
+              cand = nonglass & ~band
+              # a pad and its arm are solid pieces; the lens's own bright edge is a thin line -- a 3-px opening removes thin lines
+              _disk = np.ones((7, 7), bool); _yy, _xx = np.ogrid[-3:4, -3:4]; _disk = (_xx * _xx + _yy * _yy) <= 9
+              solid_bits = ndimage.binary_opening(cand, structure=_disk)
+              cand = ndimage.binary_dilation(solid_bits, iterations=3) & nonglass
+              touch = ndimage.binary_dilation(band, iterations=2)
+              lab, n = ndimage.label(cand, structure=np.ones((3, 3)))
+              for j in range(1, n + 1):
+                  comp = lab == j
+                  if comp.sum() < 30 or comp.sum() > 0.15 * r.sum():
+                      continue
+                  if (comp & touch).any():
+                      pads |= comp
+              if not pads.any():
+                  return pads
+              # the pad's metal arm where it crosses the edge band (dark), joined to a kept pad -- never the bright lens edge
+              lum = rgb[..., 0] * 0.299 + rgb[..., 1] * 0.587 + rgb[..., 2] * 0.114
+              glum = float(glass[0] * 0.299 + glass[1] * 0.587 + glass[2] * 0.114)
+              metal = nonglass & band & (lum < glum - 50)
+              lab2, n2 = ndimage.label(metal, structure=np.ones((3, 3)))
+              near_pad = ndimage.binary_dilation(pads, iterations=2)
+              for j in range(1, n2 + 1):
+                  comp = lab2 == j
+                  if (comp & near_pad).any():
+                      pads |= comp
+              return ndimage.binary_fill_holes(pads) & r & zone
 
 
           def rim_kind_of(rim_txt):
@@ -4434,6 +4530,7 @@ jobs:
               # hole, so trace the lens edge from the photograph instead; its ring is
               # made solid for the moment so every rule below sees a proper opening.
               half_ring = None; half_regions = []; tint_mask = None; edge_mask = None
+              _half_keep = None; _a_half = None                    # the supra's own edge and nose pads (protected, 2 Oct)
               LAST_SOURCE[0] = None
               if front and rim_kind == "full":
                   # FULL RIM (typed in admin): never the half-rim path. If the
@@ -4459,6 +4556,13 @@ jobs:
                       half_regions = half_rim_lenses(img, a)
                       if half_regions:
                           a, half_ring = apply_half_rim(img, a, half_regions)
+                          # THE SUPRA'S OWN PARTS ARE PROTECTED (2 Oct 2026; a second review found it, VG-1012 confirms it): the
+                          # later clean-ups -- lens hull clearing (3c), inner-lens clearing (3d), the half-rim whisker trim --
+                          # were made for full rims and cut what this step keeps: on VG-1012 the nose pads went from 2,697 px to
+                          # 363 px, and the whisker trim would take 3 of every 4 lens-edge pixels. Both are put back, as this
+                          # step left them, just before the edge line is made.
+                          _half_keep = half_ring | (LAST_PADS[0] if LAST_PADS[0] is not None else np.zeros_like(half_ring))
+                          _a_half = a.copy()
                           if rim_kind:
                               a = firm_rim(a)                      # new method only
               lens_ran = False
@@ -4596,6 +4700,14 @@ jobs:
                   # the demo lens edge: a thin line, as a real one shows -- painted bright
                   # into the finished pixels at the very end (25 Sep), because at a faint
                   # sheet grey it could not be seen on a face
+                  try:
+                      if _half_keep is not None and _half_keep.shape == a.shape:
+                          _lost = int((_half_keep & (_a_half > 0.5) & (a <= 0.5)).sum())
+                          a = np.where(_half_keep, np.maximum(a, _a_half), a).astype(np.float32)
+                          if _lost:
+                              log("    supra: %d px of the lens edge and nose pads put back after the clean-ups" % _lost)
+                  except NameError:
+                      pass
                   edge_mask = half_ring & (a > 0.5)
                   a = np.where(edge_mask, np.float32(LENS_EDGE), a).astype(np.float32)
                   log("    lens edge line drawn (half-rim / rimless): %d px at %d%%" % (int(edge_mask.sum()), int(LENS_EDGE * 100)))
@@ -4888,12 +5000,17 @@ jobs:
               if edge_mask is not None and edge_mask.shape == a.shape and edge_mask.any():
                   rgba = rgba.copy() if not rgba.flags.writeable else rgba
                   try:
-                      rgba = paint_lens_edge(rgba, a, edge_mask, tint_mask)
-                  except Exception as _ex:
-                      # the old way, if the new drawing ever fails
-                      log("    lens edge drawn the old way (%s)" % str(_ex)[:60])
-                      rgba[edge_mask, 0] = 242; rgba[edge_mask, 1] = 245; rgba[edge_mask, 2] = 250
-                      rgba[edge_mask, 3] = int(round(LENS_EDGE * 255))
+                      rgba = copy_lens_edge(rgba, a, edge_mask, tint_mask, colour_img)
+                      log("    demo edge copied from the photo (half-rim / rimless)")
+                  except Exception as _ex0:
+                      log("    demo edge could not be copied (%s) -- drawn instead" % str(_ex0)[:60])
+                      try:
+                          rgba = paint_lens_edge(rgba, a, edge_mask, tint_mask)
+                      except Exception as _ex:
+                          # the old way, if the new drawing ever fails
+                          log("    lens edge drawn the old way (%s)" % str(_ex)[:60])
+                          rgba[edge_mask, 0] = 242; rgba[edge_mask, 1] = 245; rgba[edge_mask, 2] = 250
+                          rgba[edge_mask, 3] = int(round(LENS_EDGE * 255))
               ys, xs = np.where(a > 0.02)
               if ys.size:
                   pad = 4
@@ -5020,6 +5137,80 @@ jobs:
                       num = col[ch] * lam + out[..., ch] * a0 * (1.0 - lam)
                       out[..., ch] = np.where(a1 > 1e-4, num / np.maximum(a1, 1e-4), out[..., ch])
                   out[..., 3] = a1 * 255.0
+              return np.clip(np.round(out), 0, 255).astype(np.uint8)
+
+
+          # THE DEMO EDGE COPIED FROM THE PHOTO (2 Oct 2026, Rauf: "copy the demo, don't draw it -- it looks like a cheap cutter").
+          # Every drawn line -- white band, grey line, silver line -- is still a drawing. The photo already shows the real demo:
+          # its polished edge, its exact curve at the bottom and the corners, the nose pads. So along the lens outline (a band
+          # 10 px inside to 4 px outside) each pixel is now taken from the photo itself, kept exactly as much as it differs from
+          # the sheet behind it (the sheet is filled in under the frame from the sheet around it). The glass, which looks like
+          # the sheet, goes clear; the edge, which catches the light, stays -- the real edge, not a drawn one. A temple seen
+          # through the glass is dark and is not kept (except on the nose side, where the pads' metal arms are). A 1-px ring at
+          # 10% stays underneath so the try-on still finds each opening as one closed ring.
+          def copy_lens_edge(rgba, a, edge_mask, tint_mask, img):
+              import cv2
+              from scipy import ndimage
+              H, W = a.shape
+              rgb = np.asarray(img.convert("RGB") if hasattr(img, "convert") else img).astype(np.float32)
+              if rgb.shape[:2] != (H, W):
+                  raise ValueError("photo and cut-out differ in size")
+              region_all = ndimage.binary_fill_holes(edge_mask)
+              lab, n = ndimage.label(region_all)
+              if n < 1:
+                  raise ValueError("no lens outline")
+              # the sheet behind the frame: filled in from the sheet around it (at half size, then smoothed)
+              frame = cv2.dilate(((a > 0.02) | region_all).astype(np.uint8), np.ones((9, 9), np.uint8))
+              sm = cv2.resize(np.clip(rgb, 0, 255).astype(np.uint8), (max(1, W // 2), max(1, H // 2)), interpolation=cv2.INTER_AREA)
+              hm = cv2.resize(frame, (max(1, W // 2), max(1, H // 2)), interpolation=cv2.INTER_NEAREST)
+              bg = cv2.inpaint(sm, hm, 9, cv2.INPAINT_TELEA)
+              bg = cv2.GaussianBlur(cv2.resize(bg, (W, H), interpolation=cv2.INTER_CUBIC).astype(np.float32), (0, 0), 3)
+              D = cv2.GaussianBlur(np.sqrt(((rgb - bg) ** 2).sum(axis=2)), (0, 0), 1.0)
+              a_diff = np.clip((D - 14.0) / 32.0, 0.0, 1.0)
+              lum = rgb[..., 0] * 0.299 + rgb[..., 1] * 0.587 + rgb[..., 2] * 0.114
+              out = rgba.astype(np.float32)
+              alpha = out[..., 3] / 255.0
+              sizes = ndimage.sum(region_all, lab, range(1, n + 1))
+              ids = [int(i) + 1 for i in np.argsort(sizes)[::-1][:2]]
+              cxs = {i: float(np.where(lab == i)[1].mean()) for i in ids}
+              ring = np.zeros((H, W), np.uint8)
+              for i in ids:
+                  r = lab == i
+                  if r.sum() < 500:
+                      continue
+                  inner = ndimage.binary_erosion(r, iterations=10)
+                  band = (r & ~inner) | (ndimage.binary_dilation(r, iterations=4) & (a > 0.05) & ~r)
+                  ys, xs = np.where(r); x0, x1 = xs.min(), xs.max(); w = float(x1 - x0 + 1)
+                  nose = np.zeros((H, W), bool)
+                  if len(ids) == 2 and cxs[i] < max(cxs.values()):         # the left lens: its nose side is on the right
+                      nose[:, int(x1 - 0.30 * w):] = True
+                  elif len(ids) == 2:
+                      nose[:, :int(x0 + 0.30 * w) + 1] = True
+                  glum = float(np.median(lum[inner])) if inner.any() else float(np.median(lum[r]))
+                  dark_arm = (lum < glum - 60) & ~nose
+                  keep = np.where(band & ~dark_arm, a_diff, 0.0)
+                  pads = r & nose & (a > 0.9) & ~edge_mask                  # the nose pads the cut already kept stay as they are
+                  new = np.where(pads, alpha, keep)
+                  sel = band | pads
+                  alpha[sel] = new[sel]
+                  cs, _ = cv2.findContours(r.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+                  cv2.drawContours(ring, cs, -1, 255, 1)
+              # colour of the copied pixels: the sheet taken out of them
+              a3 = np.clip(alpha, 1e-3, 1.0)[..., None]
+              fg = np.clip((rgb - (1.0 - a3) * bg) / a3, 0, 255)
+              copied = (alpha > 0) & (alpha < 0.95) & region_all | ((alpha > 0) & (alpha < 0.95) & (ndimage.binary_dilation(region_all, iterations=4) & ~region_all))
+              out[..., :3] = np.where(copied[..., None], fg, out[..., :3])
+              # the faint closed ring underneath, so the try-on finds each opening
+              rr = ring > 0
+              low = rr & (alpha < 0.10)
+              out[low, 0] = 236; out[low, 1] = 240; out[low, 2] = 244
+              alpha[low] = 0.10
+              out[..., 3] = alpha * 255.0
+              # the demo's own glass inside keeps the shop's tint, if this frame has one
+              if tint_mask is not None and tint_mask.shape == a.shape:
+                  inside = region_all & (alpha <= LENS_TINT + 0.01) & ~rr
+                  out[inside, 0] = 232; out[inside, 1] = 236; out[inside, 2] = 244
+                  out[inside, 3] = LENS_TINT * 255.0
               return np.clip(np.round(out), 0, 255).astype(np.uint8)
 
           def stage_sheet(pid, name, cname, cpreset):
@@ -6134,7 +6325,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-02a (as 01z, plus SUPRA: the lens edge is a thin light-silver line with a fine grey edge -- white-silver on a face like Lenskart, still visible on the white product page; demo own size, plain sides; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-02e (as 02d, plus SUPRA: the lens edge and the nose pads are protected from the later clean-ups made for full rims -- they are put back just before the edge is made; demo edge copied from the photo; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
