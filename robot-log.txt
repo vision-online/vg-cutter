@@ -1,5 +1,5 @@
-Run 1362  Thu Oct  1 20:21:43 UTC 2026
-Trigger: workflow_dispatch
+Run 1363  Thu Oct  1 20:24:34 UTC 2026
+Trigger: schedule
 
 --- what the robot found ---
 Robot build 2026-10-02a (as 01z, plus SUPRA: the lens edge is a thin light-silver line with a fine grey edge -- white-silver on a face like Lenskart, still visible on the white product page; demo own size, plain sides; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
