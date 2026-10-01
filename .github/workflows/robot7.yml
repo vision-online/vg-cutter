@@ -3156,6 +3156,34 @@ jobs:
               return worst
 
 
+          def side_arm_spans(alpha):
+              """Both sides of side_arm_span: (left, right) fractions of the frame's width."""
+              A = alpha > 0.5
+              heights = A.sum(axis=0)
+              cols = np.where(heights > 0)[0]
+              if cols.size < 10:
+                  return 0.0, 0.0
+              depth = float(heights.max()); x0, x1 = int(cols.min()), int(cols.max())
+              thin = heights < depth * 0.12
+              l = x0
+              while l < x1 and thin[l]:
+                  l += 1
+              r = x1
+              while r > l and thin[r]:
+                  r -= 1
+              w = float(max(1, x1 - x0 + 1))
+              return (l - x0) / w, (x1 - r) / w
+
+
+          def arm_beside(left, right):
+              """IS IT AN ARM, OR THE FRAME'S OWN END PIECES? (1 Oct 2026, VG-1006 aviator.) A frame turned to the camera shows an
+              arm on ONE side; an aviator's long hinge pieces stick out on BOTH sides alike (VG-1006: 39 px left, 36 px right in
+              a straight photo from the stand -- about 5% each, over the 3% limit, rejected as "an arm"). So a strip only counts as
+              an arm when one side reaches past the limit AND the other side shows less than half of it."""
+              big, small = max(left, right), min(left, right)
+              return big > SIDE_WARN and small < 0.5 * big
+
+
           def side_arm_span(alpha):
               """How far a thin strip (thinner than 12% of the frame's depth) reaches out
               beyond the frame's ends, as a fraction of the frame's width -- the larger
@@ -4012,6 +4040,49 @@ jobs:
               # one is more than 7% bigger, it is trimmed to the MIRROR image of the
               # other (a few pixels of tolerance): rim it took is given back. When in
               # doubt a sliver of glass stays -- never rim.
+              # GROW THE SMALLER LENS FIRST (1 Oct 2026, VG-1006 aviator). An arm seen through the glass can run from the hinge
+              # right down to the lower rim and cut a whole corner of glass off the lens; the corner then sat outside the lens
+              # box, never joined, and the pair rule below trimmed the OTHER (complete) lens down to match -- so both lenses kept
+              # a corner of glass (VG-1006: 46,944 + 63,151 px -> 48,059 after trimming). Before trimming, a glass piece on the
+              # smaller lens's side joins that lens when (a) it lies where the other lens, mirrored, has glass, (b) it is a real
+              # piece of glass, not a sliver, and (c) it is closed in by DARK lines (the rim and the arm) -- so the see-through
+              # rim of a clear frame (VG-1002, the reason the pair rule exists) can never join.
+              if not angled and max(areas) > 0 and min(areas) < 0.93 * max(areas) and ones_.get("L") is not None and ones_.get("R") is not None:
+                  big_k, small_k = ("L", "R") if areas[0] > areas[1] else ("R", "L")
+                  try:
+                      mx_ = np.clip(np.round(2 * mid - np.arange(W)).astype(int), 0, W - 1)
+                      tp_ = max(2, int(round(3 * s)))
+                      mirror_big = cv2.dilate(ones_[big_k][:, mx_], np.ones((2 * tp_ + 1, 2 * tp_ + 1), np.uint8)) > 0
+                      small_m = ones_[small_k] > 0
+                      glass_med = float(np.median(g[small_m])) if small_m.any() else 255.0
+                      dark = g < glass_med - 40
+                      added = []
+                      for i in range(1, n):
+                          if i == rim or border(i) or st[i][4] < thin_a:
+                              continue
+                          comp = lab == i
+                          a_i = int(comp.sum())
+                          if (comp & small_m).sum() > 0.5 * a_i:
+                              continue                                           # already part of the lens
+                          if (comp & mirror_big).sum() < 0.85 * a_i or dist[comp].max() < glass_t:
+                              continue
+                          ring_i = (cv2.dilate(comp.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0) & ~comp
+                          if ring_i.sum() == 0 or (ring_i & dark).sum() < 0.35 * ring_i.sum():
+                              continue
+                          added.append(i)
+                      if added:
+                          grown_m = small_m | np.isin(lab, added)
+                          hull_ = cv2.convexHull(cv2.findNonZero(grown_m.astype(np.uint8)))
+                          fill_ = np.zeros((H, W), np.uint8); cv2.fillPoly(fill_, [hull_], 1)
+                          new_small = (fill_ > 0) & (mirror_big | small_m)
+                          gained = int(new_small.sum()) - int(small_m.sum())
+                          if gained > 0:
+                              ones_[small_k] = new_small.astype(np.uint8)
+                              lens |= ones_[small_k]
+                              areas[0 if small_k == "L" else 1] = int(new_small.sum())
+                              how += ", %s lens: glass cut off by an arm joined (+%d px)" % ("left" if small_k == "L" else "right", gained)
+                  except Exception as ex:
+                      how += ", (joining glass cut off by an arm could not run: %s)" % str(ex)[:40]
               if not angled and max(areas) > 0 and min(areas) < 0.93 * max(areas) and ones_.get("L") is not None and ones_.get("R") is not None:
                   big_k, small_k = ("L", "R") if areas[0] > areas[1] else ("R", "L")
                   mx = np.clip(np.round(2 * mid - np.arange(W)).astype(int), 0, W - 1)
@@ -4233,7 +4304,12 @@ jobs:
                       # 2026-09-21, Rauf: this step cut VG-1002's short hinge tabs. In lens
                       # mode it never cuts: short tabs are the end pieces; a long thin
                       # strip beyond an end is an arm -> the photo is rejected below
-                      arms_side = side_arm_span(a)
+                      _sl, _sr = side_arm_spans(a)
+                      arms_side = max(_sl, _sr)
+                      if max(_sl, _sr) > SIDE_WARN and not arm_beside(_sl, _sr):
+                          log("    thin pieces stick out at BOTH ends alike (%.1f%% left, %.1f%% right of the width): the frame's own end "
+                              "pieces, not an arm -- not rejected" % (_sl * 100, _sr * 100))
+                          arms_side = 0.0
                   elif half_ring is None:
                       a = cut_end_to_end(a)                         # step 6b: arms beyond the ends
                   # (a half-rim's end pieces are thin metal and would be mistaken for arm)
@@ -5777,7 +5853,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01o (as 01n, plus from the review: finer stage pictures inside the lens step and a removed-pixels line per step; the pale-bit trim is now judged -- it is only kept if the rim still passes, and the robot judges the trimmed picture; the lower-rim thickness after repair is logged, not a rejection; thin dark rims kept whole; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01p (as 01o, plus AVIATOR FIXES: end pieces that stick out alike at both ends are not taken for an arm; a glass corner cut off by an arm seen through the lens joins its lens before the pair rule, so neither lens keeps a corner of glass; thin dark rims kept whole; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
