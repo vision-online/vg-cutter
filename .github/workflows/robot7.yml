@@ -1529,6 +1529,94 @@ jobs:
                           log("half-rim: joining glass cut off by an arm could not run (%s)" % str(_ex)[:60])
                       except Exception:
                           pass
+                  # A SMOOTH LENS OUTLINE (1 Oct 2026, VG-1012 on a face: "the bottom looks zig-zag"). The traced outline follows
+                  # the photo's edge pixel by pixel -- through the nose pads, the faint thread and reflections -- so the lens edge
+                  # line drawn from it came out in steps. Each outline is smoothed along its own curve; the edge line, the
+                  # clearing and the tint all follow the smooth outline.
+                  try:
+                      import cv2 as _cv2
+                      for _k in range(2):
+                          _r = out[_k]
+                          # THE DEMO'S OWN SIZE (1 Oct 2026, Rauf: "copy the demo size, nothing else"). The edge tracing stops a few
+                          # pixels short of the real demo edge where that edge is faint -- VG-1012: 11 px short on the left lens's
+                          # outer side, 5 px on the right. The AI model's outline hugs the demo edge there, so the outline is grown
+                          # out to the model's outline, but only within 20 px, and only where nothing else touches the demo: the
+                          # outer side below the hinge (lower 60%), the bottom (lower half) and the nose-side corner below the nose
+                          # pads (lower 35%). The bar, the hinges and the pads are never taken in.
+                          try:
+                              _ysr = np.where(_r.any(1))[0]; _xsr = np.where(_r.any(0))[0]
+                              if _ysr.size and _xsr.size:
+                                  _y0, _hh = int(_ysr.min()), float(_ysr.max() - _ysr.min() + 1)
+                                  _x0r, _x1r = int(_xsr.min()), int(_xsr.max()); _ww = float(_x1r - _x0r + 1)
+                                  _rowfrom = np.full(W, H, dtype=np.int64)
+                                  _xx = np.arange(W)
+                                  _third = 0.33 * _ww
+                                  if _k == 0:
+                                      _outer = _xx < _x0r + _third; _nose = _xx > _x1r - _third
+                                  else:
+                                      _outer = _xx > _x1r - _third; _nose = _xx < _x0r + _third
+                                  _mid = ~_outer & ~_nose
+                                  _rowfrom[_outer] = int(_y0 + 0.40 * _hh)
+                                  _rowfrom[_mid] = int(_y0 + 0.50 * _hh)
+                                  _rowfrom[_nose] = int(_y0 + 0.65 * _hh)
+                                  _rowok = np.arange(H)[:, None] >= _rowfrom[None, :]
+                                  _band = ndimage.binary_dilation(_r, iterations=20)
+                                  _grow = solid & _band & ~_r & _rowok
+                                  _grow[:, :fx0] = False; _grow[:, fx1 + 1:] = False
+                                  if _grow.any():
+                                      _r = ndimage.binary_fill_holes(_r | _grow)
+                          except Exception:
+                              pass
+                          # THE NOSE SIDE IS ONE PLAIN LINE (1 Oct 2026, Rauf: "the nose bridge area of the glass has to be straight --
+                          # a plain curve, not out somewhere and zig-zag somewhere"). The nose pads sit right on that edge and the
+                          # tracing dents round them. On the nose-side third of each lens the outline is replaced by the lens's own
+                          # convex outline there (a straight or plainly curved line); the bottom and the outer corners keep their
+                          # own curve.
+                          _xs_r = np.where(_r.any(0))[0]
+                          if _xs_r.size:
+                              _pts = np.column_stack(np.where(_r)[::-1]).astype(np.int32)
+                              _hm = np.zeros(_r.shape, np.uint8)
+                              _cv2.fillConvexPoly(_hm, _cv2.convexHull(_pts), 1)
+                              _w0 = float(_xs_r.max() - _xs_r.min() + 1)
+                              _nz = np.zeros(_r.shape, bool)
+                              # the nose side AND the outer side are each one plain line (the outer side too, so the demo's own
+                              # edge found low down and the edge found under the hinge join without a step)
+                              _nz[:, int(_xs_r.max() - 0.33 * _w0):] = True
+                              _nz[:, :int(_xs_r.min() + 0.33 * _w0) + 1] = True
+                              _r = _r | ((_hm > 0) & _nz)
+                          # small bites in the outline (a nose pad, a reflection: narrower than ~3% of the lens) are filled first --
+                          # a closing only ADDS inside dents, so the rounded corners and the bottom curve are not touched
+                          _rw = float(np.ptp(np.where(_r.any(0))[0]) + 1) if _r.any() else 0.0
+                          _rad = int(max(4, round(0.035 * _rw)))
+                          _disk = _cv2.getStructuringElement(_cv2.MORPH_ELLIPSE, (2 * _rad + 1, 2 * _rad + 1))
+                          _pad = _rad + 2
+                          _rp = np.pad(_r.astype(np.uint8), _pad)
+                          _r = _cv2.morphologyEx(_rp, _cv2.MORPH_CLOSE, _disk)[_pad:-_pad, _pad:-_pad] > 0
+                          # the outline is smoothed ALONG ITS OWN CURVE (not replaced by straight lines): the rounded corners and
+                          # the gentle curve of the bottom stay exactly as the lens has them; only the pixel steps go (1 Oct,
+                          # Rauf: the convex outline tried first "changed the shape of the bottom" -- straight lines, cut corners)
+                          _cs, _ = _cv2.findContours(_r.astype(np.uint8), _cv2.RETR_EXTERNAL, _cv2.CHAIN_APPROX_NONE)
+                          if not _cs:
+                              continue
+                          _c = max(_cs, key=_cv2.contourArea)[:, 0, :].astype(np.float64)
+                          if len(_c) < 40:
+                              continue
+                          _w = float(_c[:, 0].max() - _c[:, 0].min())
+                          _sg = max(4.0, 0.025 * _w)                       # about 8 px on a 330 px lens
+                          _sx = ndimage.gaussian_filter1d(_c[:, 0], _sg, mode="wrap")
+                          _sy = ndimage.gaussian_filter1d(_c[:, 1], _sg, mode="wrap")
+                          _new = np.zeros(_r.shape, np.uint8)
+                          _cv2.fillPoly(_new, [np.round(np.stack([_sx, _sy], 1)).astype(np.int32)], 1)
+                          _new = _new > 0
+                          if _new.sum() < 0.9 * _r.sum() or _new.sum() > 1.1 * _r.sum():
+                              continue                                      # never let the smoothing change the lens's size
+                          _new[:, :fx0] = False; _new[:, fx1 + 1:] = False
+                          out[_k] = _new
+                  except Exception as _ex:
+                      try:
+                          log("half-rim: the lens outline could not be smoothed (%s)" % str(_ex)[:60])
+                      except Exception:
+                          pass
                   # two lenses side by side, alike in size, not overlapping
                   a, b = out
                   if (a & b).any() or abs(a.sum() - b.sum()) > 0.5 * max(a.sum(), b.sum()):
@@ -5990,7 +6078,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01u (as 01t, plus SUPRA: the smaller lens takes the glass an arm cut off it, so the whole demo is cleared and tinted evenly; the shadow-ring peel never takes the traced lens edge, so the edge line stays whole; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01y (as 01x, plus SUPRA: the outline takes the demo lens own size -- grown out to the AI model edge on the outer side, the bottom and the nose corner, never into the bar, hinges or pads -- and both sides are plain lines; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
