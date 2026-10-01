@@ -1,5 +1,5 @@
-Run 1324  Thu Oct  1 15:24:02 UTC 2026
-Trigger: schedule
+Run 1326  Thu Oct  1 15:30:46 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-10-01s (as 01r, plus: on a thin-wire frame the behind-glass clean-up is skipped -- its 4 px erosion wiped the wire inside that step and took one nose-pad arm only; lens hull filling and inner-lens clearing only on the two lenses; stages:<code>; CHECK PHOTO)
