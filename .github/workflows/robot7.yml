@@ -743,12 +743,32 @@ jobs:
               corner. The outer rim is not touched: nothing here operates on it.
               """
               import cv2
+              from scipy import ndimage
               lens, outside = lens_holes(alpha)
               if not lens.any():
                   return alpha
               k = cv2.getStructuringElement(
                   cv2.MORPH_ELLIPSE, (int(alpha.shape[1] * 0.024) | 1,) * 2)
-              lens_closed = cv2.morphologyEx(lens.astype(np.uint8), cv2.MORPH_CLOSE, k).astype(bool)
+              # EACH OPENING ON ITS OWN (1 Oct 2026, VG-1006 aviator). Closing all openings together bridged a thin wire rim
+              # wherever two openings lie close: the gap under an aviator's top bar is an opening too, and the closing joined it
+              # to both lenses straight through the 6 px rim between them -- the upper rims were wiped out and the ring broke
+              # (stage report: rim check 67% before this step, BROKEN after). Each opening is now rounded off by itself, so a
+              # rim between two openings is never crossed; and a pixel of one opening's rounding that is nearer another opening
+              # is left alone.
+              lab_, n_ = ndimage.label(lens)
+              if n_ <= 1:
+                  lens_closed = cv2.morphologyEx(lens.astype(np.uint8), cv2.MORPH_CLOSE, k).astype(bool)
+              else:
+                  lens_closed = np.zeros(lens.shape, bool)
+                  for j in range(1, n_ + 1):
+                      one = (lab_ == j).astype(np.uint8)
+                      cj = cv2.morphologyEx(one, cv2.MORPH_CLOSE, k).astype(bool)
+                      others = lens & (lab_ != j)
+                      if others.any():
+                          d_own = ndimage.distance_transform_edt(~(lab_ == j))
+                          d_oth = ndimage.distance_transform_edt(~others)
+                          cj &= d_own <= d_oth
+                      lens_closed |= cj
               lens_closed &= ~outside
               out = alpha.copy()
               out[lens_closed] = 0.0
@@ -5853,7 +5873,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01p (as 01o, plus AVIATOR FIXES: end pieces that stick out alike at both ends are not taken for an arm; a glass corner cut off by an arm seen through the lens joins its lens before the pair rule, so neither lens keeps a corner of glass; thin dark rims kept whole; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01q (as 01p, plus: the inner-lens clearing rounds off each opening on its own, so it can no longer cut through a thin rim between a lens and the gap under an aviator top bar; aviator end pieces not taken for an arm; glass corners cut off by an arm joined; thin dark rims kept whole; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
