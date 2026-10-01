@@ -4886,10 +4886,14 @@ jobs:
                   rgba[_m, 0] = 232; rgba[_m, 1] = 236; rgba[_m, 2] = 244
                   rgba[_m, 3] = int(round(LENS_TINT * 255))
               if edge_mask is not None and edge_mask.shape == a.shape and edge_mask.any():
-                  # the lens edge line, bright and thin, like the edge of a real demo lens
                   rgba = rgba.copy() if not rgba.flags.writeable else rgba
-                  rgba[edge_mask, 0] = 242; rgba[edge_mask, 1] = 245; rgba[edge_mask, 2] = 250
-                  rgba[edge_mask, 3] = int(round(LENS_EDGE * 255))
+                  try:
+                      rgba = paint_lens_edge(rgba, a, edge_mask, tint_mask)
+                  except Exception as _ex:
+                      # the old way, if the new drawing ever fails
+                      log("    lens edge drawn the old way (%s)" % str(_ex)[:60])
+                      rgba[edge_mask, 0] = 242; rgba[edge_mask, 1] = 245; rgba[edge_mask, 2] = 250
+                      rgba[edge_mask, 3] = int(round(LENS_EDGE * 255))
               ys, xs = np.where(a > 0.02)
               if ys.size:
                   pad = 4
@@ -4965,6 +4969,58 @@ jobs:
               dt = _cv2.distanceTransform(big.astype(np.uint8), _cv2.DIST_L2, 5)
               return 2.0 * float(np.median(dt[sk]))
 
+
+
+          # THE SUPRA LENS EDGE, DRAWN LIKE A REAL ONE (1 Oct 2026, Rauf, from Lenskart's half-rim pictures: "implement for us").
+          # A real demo lens edge shows as ONE THIN, SMOOTH, SOFT GREY LINE that follows the lens exactly -- not a 3-pixel band of
+          # bright white band. On a face Lenskart's line is thin white-silver; on their white product photos it shows grey -- so the
+          # line here is a 1-px light-silver line (kept closed, so the opening stays one closed ring for everything that measures
+          # it) with a fine soft grey edge either side: silver reads on a face, the grey edge on a white page. Drawn with sub-pixel
+          # smoothing, never over the frame itself (the bar, the nose pads). The band the old edge used gets the demo's tint.
+          EDGE_RGB = (238, 241, 245)     # light silver core: on a face the edge of a clear lens shows as a thin white-silver line
+          EDGE_SHADE = (150, 156, 163)   # a fine grey edge either side, so the line also shows on the white product page
+          EDGE_FRINGE = 0.40             # how strong that grey edge is
+
+
+          def paint_lens_edge(rgba, a, edge_mask, tint_mask):
+              import cv2
+              from scipy import ndimage
+              H, W = a.shape
+              out = rgba.astype(np.float32)
+              # 1. the old band: the demo's own tint (or clear, if this frame has no tint)
+              if tint_mask is not None and tint_mask.shape == a.shape:
+                  out[edge_mask, 0] = 232; out[edge_mask, 1] = 236; out[edge_mask, 2] = 244
+                  out[edge_mask, 3] = LENS_TINT * 255.0
+              else:
+                  out[edge_mask, 3] = 0.0
+              # 2. the lens outline: the outer boundary of each band
+              region = ndimage.binary_fill_holes(edge_mask)
+              cs, _ = cv2.findContours(region.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+              core = np.zeros((H, W), np.uint8); soft = np.zeros((H, W), np.uint8); hard = np.zeros((H, W), np.uint8)
+              for c in cs:
+                  if cv2.contourArea(c) < 500 or len(c) < 30:
+                      continue
+                  p = c[:, 0, :].astype(np.float64)
+                  sx = ndimage.gaussian_filter1d(p[:, 0], 2.0, mode="wrap"); sy = ndimage.gaussian_filter1d(p[:, 1], 2.0, mode="wrap")
+                  sub = np.round(np.stack([sx, sy], 1) * 16).astype(np.int32)        # 1/16 px precision
+                  cv2.polylines(soft, [sub], True, 255, thickness=3, lineType=cv2.LINE_AA, shift=4)      # the fine grey edge
+                  cv2.polylines(core, [sub], True, 255, thickness=1, lineType=cv2.LINE_AA, shift=4)      # the silver line
+                  cv2.polylines(hard, [np.round(np.stack([sx, sy], 1)).astype(np.int32)], True, 255, thickness=1, lineType=cv2.LINE_8)
+              lam_g = soft.astype(np.float32) / 255.0 * EDGE_FRINGE
+              lam_s = np.maximum(core.astype(np.float32) / 255.0, hard.astype(np.float32) / 255.0) * LENS_EDGE   # closed, unbroken
+              frame_px = a > 0.9                                   # never over the bar, the pads or the frame itself
+              lam_g[frame_px] = 0.0; lam_s[frame_px] = 0.0
+              if not lam_s.any():
+                  raise ValueError("no outline to draw")
+              # 3. laid over what is there ("over" compositing): first the grey edge, then the silver line on top
+              for lam, col in ((lam_g, EDGE_SHADE), (lam_s, EDGE_RGB)):
+                  a0 = out[..., 3] / 255.0
+                  a1 = lam + a0 * (1.0 - lam)
+                  for ch in range(3):
+                      num = col[ch] * lam + out[..., ch] * a0 * (1.0 - lam)
+                      out[..., ch] = np.where(a1 > 1e-4, num / np.maximum(a1, 1e-4), out[..., ch])
+                  out[..., 3] = a1 * 255.0
+              return np.clip(np.round(out), 0, 255).astype(np.uint8)
 
           def stage_sheet(pid, name, cname, cpreset):
               """stages: run -- one picture with every step of the cut, top to bottom, each row the whole frame on a skin tone
@@ -6078,7 +6134,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01y (as 01x, plus SUPRA: the outline takes the demo lens own size -- grown out to the AI model edge on the outer side, the bottom and the nose corner, never into the bar, hinges or pads -- and both sides are plain lines; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-02a (as 01z, plus SUPRA: the lens edge is a thin light-silver line with a fine grey edge -- white-silver on a face like Lenskart, still visible on the white product page; demo own size, plain sides; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
