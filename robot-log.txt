@@ -1,4 +1,4 @@
-Run 1280  Thu Oct  1 09:27:02 UTC 2026
+Run 1282  Thu Oct  1 09:34:21 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -45,7 +45,7 @@ Model loaded: ZhengPeng7/BiRefNet at 1024 px
     trim of pale bits skipped: it would have broken or thinned the lower rim below the approval limit
     RIM CHECK: left rim only 62% of the other side near the top -> kept off the website
     arms beside the frame: 3.5% of its width -> REJECTED, re-shoot (nothing was cut)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790846817/on3br1tyheh7i5lnjscu.png
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790847256/ivepcc9pcnz3rejjkwny.png
   pmumk4ozy38 REJECTED, kept off the website: Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height, and take it again.
   Why they were held back: 1 arm beside the frame
   Finished. Cut 0, failed 0, rejected 1, still waiting 1.  Rejected: VG-1006 Frames: Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height, and take it again.
