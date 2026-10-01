@@ -3317,14 +3317,34 @@ jobs:
                       return alpha
                   wallc = cv2.blur(rgbf * far[:, :, None], (161, 161)) / (cv2.blur(far.astype(np.float32), (161, 161))[:, :, None] + 1e-6)
                   dist_l = cv2.GaussianBlur(np.sqrt(((rgbf - wallc) ** 2).sum(axis=2)).astype(np.float32), (3, 3), 0)
+                  # A PALE RIM CANNOT BE TOLD FROM THE WALL (a pale metal or clear frame): peeling it would eat the rim itself,
+                  # so nothing is peeled (the original rule skipped such frames too).
+                  _rim_ref = float(np.percentile(dist_l[A0], 60))
+                  if _rim_ref < 45.0:
+                      return alpha
+                  _thr = float(min(40.0, 0.55 * _rim_ref))              # a rim only a little different from the wall gets a gentler threshold
+                  # the rim's own width, measured on the pixels that clearly differ from the wall (not on the model's mask, which
+                  # carries the shadow ring and would make a thin rim look thicker than it is)
+                  _core = (A0 & (dist_l >= _thr)).astype(np.uint8)
+                  _has_lens = lens_mask is not None and lens_mask.shape == alpha.shape
+                  _lm8 = lens_mask.astype(np.uint8) if _has_lens else np.zeros(alpha.shape, np.uint8)
+                  _zone = (cv2.dilate(_lm8, np.ones((61, 61), np.uint8)) > 0) & (_core > 0)
+                  _dtc = cv2.distanceTransform(_core, cv2.DIST_L2, 5)
+                  _vals = _dtc[_zone & (_dtc > 0)]
+                  _rw = 2.0 * float(np.median(_vals)) if _vals.size > 50 else 20.0
+                  # the band next to a lens opening is not peeled (it is the inner edge of the rim): 60% of this frame's rim
+                  # width, at least 3 px and at most 12 px. A fixed 12 px kept a thin rim safe but also protected the shadow
+                  # ring right outside it.
                   protect = np.zeros(alpha.shape, bool)
-                  if lens_mask is not None and lens_mask.shape == alpha.shape:
-                      protect = cv2.dilate(lens_mask.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))) > 0
+                  if _has_lens:
+                      _r = int(max(3, min(12, round(0.6 * _rw))))
+                      protect = cv2.dilate(_lm8, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * _r + 1, 2 * _r + 1))) > 0
+                  _passes = 3 if _rw >= 9.0 else 2                      # a very thin rim is peeled in two passes, not three
                   out = alpha.copy()
-                  for _ in range(3):
+                  for _ in range(_passes):
                       solid = (out > 0.5).astype(np.uint8)
                       near_edge = cv2.distanceTransform(solid, cv2.DIST_L2, 5) <= 3
-                      ring = (out > 0) & near_edge & (dist_l < 40.0) & ~protect
+                      ring = (out > 0) & near_edge & (dist_l < _thr) & ~protect
                       if not ring.any():
                           break
                       out[ring] = 0.0
@@ -5317,7 +5337,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01j (as 01i, plus the sheet-ring peel judges against the LOCAL wall colour in lens mode, so it no longer erases a clear lower rim; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01k (as 01j; the sheet-ring peel now adapts to THIN metal rims -- protected band = 60% of the rim width, pale rims skipped -- and runs for every frame cut with the lens step, metal included; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
