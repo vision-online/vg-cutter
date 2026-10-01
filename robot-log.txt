@@ -1,4 +1,4 @@
-Run 1271  Thu Oct  1 08:23:09 UTC 2026
+Run 1272  Thu Oct  1 08:31:14 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -6,6 +6,49 @@ Robot build 2026-10-01m (as 01l, plus a STAGE REPORT run: type stages:<code> to 
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height,   [VG-1006 Frames]
   1 frame(s): Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.  [VG-1009 Frames]
-::notice::Frames: 13. Waiting: 0. Rejected: 2.
+::notice::Frames: 13. Waiting: 1. Rejected: 2.  Trial re-cut asked for: stages:VG-1014
 
 --- what the robot did ---
+Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
+Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
+Stage report of pmun6qw7381 (VG-1014 Frames) -- nothing is saved.
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Model loaded: ZhengPeng7/BiRefNet at 1024 px
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:390: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    rim type: not set (0 clean lens holes)
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_5m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_11m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_11m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_384 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_384. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_512 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_512. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/build_sam.py:91: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  state_dict = torch.load(f)
+    MobileSAM ready
+    lens step: lenses 78482 + 76434 px (found by rim line, SAM: nothing to add); 133254 pixels of glass cleared
+    sheet-ring peel (local wall colour): 1401 px taken off the edge
+    size check: frame works out at 131 mm (typed 51 + 18 -> about 139 mm expected)
+    glass check: the demo is clear (0.0% left)
+    the frame fills 61% of the photo's width
+    ring: thin dark-wire frame (the line is about 6 px wide) -- the wire repair is used, not the plastic-rim one
+    ring: 495 px of the dark line brought back from the photo (85 directions had lost it)
+    ring: the pale fill was left in place -- taking it away would have opened the ring (the dark line is not whole there)
+    rim check after closing the ring: saved picture 85% | repaired pixels counted as solid 85%
+    trimmed 206 px of pale wall/floor beyond the rim's dark outer edge (ring still closed; balance after the trim 81%, shown only, not used for the decision)
+    RIM CHECK: both rims match (thinnest spot 85% of the other side)
+    arms above the frame: 0.0% (below 2.5%, no note)
+    stage report: the cut would pass the robot's checks
+    STAGE 1 AI model (raw)                             kept  170981 px | rim check BROKEN | lower LEFT: dark  5128 pale 32620 | lower RIGHT: dark  5414 pale 31761
+    STAGE 2 edge finished (matte)                      kept  168878 px | rim check BROKEN | lower LEFT: dark  5108 pale 33470 | lower RIGHT: dark  4438 pale 31526
+    STAGE 3 lens step (glass cleared)                  kept   32834 px | rim check 85%    | lower LEFT: dark  2623 pale  3775 | lower RIGHT: dark  1842 pale  4831
+    STAGE 4 clean-ups (before the peel)                kept   32433 px | rim check 85%    | lower LEFT: dark  2623 pale  3630 | lower RIGHT: dark  1842 pale  4831
+    STAGE 5 after the sheet-ring peel                  kept   31032 px | rim check 74%    | lower LEFT: dark  2617 pale  3176 | lower RIGHT: dark  1832 pale  4495
+    STAGE 6 cropped and levelled (before the rim check) kept   31032 px | rim check 74%    | lower LEFT: dark  2617 pale  3176 | lower RIGHT: dark  1832 pale  4495
+    STAGE 7 final (what would be saved)                kept   31542 px | rim check 81%    | lower LEFT: dark  2641 pale  3005 | lower RIGHT: dark  2305 pale  4558
+    STAGE SHEET (VG-1014 Frames, every step top to bottom; right: close-ups of the lower left and lower right): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790843472/o3fup283wegvk0orluxc.jpg
