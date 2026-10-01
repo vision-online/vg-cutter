@@ -1,4 +1,4 @@
-Run 1255  Thu Oct  1 06:20:22 UTC 2026
+Run 1256  Thu Oct  1 06:27:39 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -6,51 +6,7 @@ Robot build 2026-10-01k (as 01j; the sheet-ring peel now adapts to THIN metal ri
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height,   [VG-1006 Frames]
   1 frame(s): Robot check: the rim came out broken (a lens is open to the outside). Not published -- needs a look, the photo is not the problem.  [VG-1009 Frames]
-::notice::Frames: 13. Waiting: 1. Rejected: 2.  Trial re-cut asked for: VG-1014 Frames
+  1 frame(s): Robot check: the rim came out thinner on the left lens (bridge side, 65% of the other side). Not published -- needs a look, the photo is not the problem.  [VG-1014 Frames]
+::notice::Frames: 13. Waiting: 0. Rejected: 3.
 
 --- what the robot did ---
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Trial re-cut of pmun6qw7381 (VG-1014 Frames).
-Catalogue: 13 frames. Waiting for a cut-out: 1.
-Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
---- pmun6qw7381 : VG-1014 Frames
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet at 1024 px
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:378: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
-  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
-    rim type: not set (0 clean lens holes)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_5m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_11m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_11m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_384 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_384. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_512 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_512. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/build_sam.py:91: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-  state_dict = torch.load(f)
-    MobileSAM ready
-    lens step: lenses 78482 + 76434 px (found by rim line, SAM: nothing to add); 133254 pixels of glass cleared
-    sheet-ring peel (local wall colour): 1401 px taken off the edge
-    size check: frame works out at 131 mm (typed 51 + 18 -> about 139 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 61% of the photo's width
-    ring: left lens -- rim rebuilt round the lens shape: 9 directions open, 8 thinner than the other lens (rim 11-22 px thick there)
-    ring: right lens -- rim rebuilt round the lens shape: 6 directions open, 6 thinner than the other lens (rim 12-22 px thick there)
-    ring: left lens -- rim rebuilt round the lens shape: 0 directions open, 1 thinner than the other lens (rim 15-15 px thick there)
-    ring: right lens -- rim rebuilt round the lens shape: 1 directions open, 0 thinner than the other lens (rim 17-17 px thick there)
-    ring: no gap found whose closing makes a lens a closed ring
-    ring: 105 px of hairline cracks in the rim sealed
-    ring: 1289 px added along the outer edge of the lower rim (the cut ended inside the rim)
-    ring: 682 px of the pale metal plate on the outer end pieces brought back
-    rim check after closing the ring: saved picture 65% | repaired pixels counted as solid 65%
-    trimmed 217 px of pale wall/floor beyond the rim's dark outer edge (ring still closed; balance after the trim 65%, shown only, not used for the decision)
-    RIM CHECK: left rim only 65% of the other side near the bridge side -> kept off the website
-    arms above the frame: 0.0% (below 2.5%, no note)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1790835616/ucekzaqntkhoa8varfxd.png
-  pmun6qw7381 REJECTED, kept off the website: Robot check: the rim came out thinner on the left lens (bridge side, 65% of the other side). Not published -- needs a look, the photo is not the problem.
-  Why they were held back: 1 rim damaged
-  Finished. Cut 0, failed 0, rejected 1, still waiting 1.  Rejected: VG-1014 Frames: Robot check: the rim came out thinner on the left lens (bridge side, 65% of the other side). Not published -- needs a look, the photo is not the problem.
