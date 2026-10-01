@@ -4116,6 +4116,23 @@ jobs:
                       _b = int(max(2, min(band_px, round(0.3 * _thick))))
                       log("    full rim: rim about %.0f px thick, edge band %d px (was %d)" % (_thick, _b, band_px))
                       band_tri = _b
+              elif front and not half_rim_hint:
+                  # THIN DARK RIM, ANY FRAME (1 Oct 2026, VG-1014 stage report). The edge finishing works from a "trimap": it eats
+                  # band_px from each side of the model's mask to find what is SURELY frame, and lets the matting guess the rest.
+                  # A thin black wire (VG-1014: about 6 px, band 12 px) has no sure part at all, so the matting guessed the whole
+                  # wire -- and on the lower right, next to a bright reflection, it guessed "background": the AI model had the
+                  # line whole (left 5,128 / right 5,414 dark px), the edge finishing left the right side in pieces (4,438; the
+                  # arc covered 65% -> 12%). The same rule Lot's thin-metal method uses since 23 Sep fixes it: the band follows
+                  # the rim's own thickness (a third of it), so the wire keeps a solid core. Only for a DARK rim thinner than the
+                  # usual band; plastic rims and light frames keep the usual band, exactly as before.
+                  try:
+                      _thin = thin_dark_rim_px(img, m)
+                  except Exception:
+                      _thin = None
+                  if _thin is not None and _thin <= 0.8 * band_px:
+                      _b = int(max(2, min(band_px, round(0.3 * _thin))))
+                      log("    thin dark rim: about %.0f px thick, edge band %d px (was %d) so the line keeps a solid core" % (_thin, _b, band_px))
+                      band_tri = _b
               tri = make_trimap(m, band_tri)                        # step 3 (only the trimap uses the rim-sized band)
               a = matte(img, tri)                                   # step 4
               a = tighten_edge(a)                                   # step 4b: a 1-2 px edge, not a glow
@@ -4596,6 +4613,36 @@ jobs:
                   return ImageFont.load_default(size=20)
               except Exception:
                   return ImageFont.load_default()
+
+
+          def thin_dark_rim_px(img, m):
+              """How thick is the frame's DARK rim, inside the AI model's own mask? The rim is the dark line along the OUTER EDGE
+              of the mask (the model often keeps the glass solid, and the arms seen through the glass are dark too, so only the
+              dark pixels within 20 px of the mask's edge are used). Width = the median, along their middle line, of twice the
+              distance to their own edge. Small dark specks are left out. None when there is too little dark metal to tell (a
+              light or crystal frame)."""
+              import cv2 as _cv2
+              from skimage.morphology import skeletonize
+              _rgb = np.asarray(img).astype(np.float32)
+              _lum = _rgb[..., 0] * 0.299 + _rgb[..., 1] * 0.587 + _rgb[..., 2] * 0.114
+              _sheet_l = float(np.dot(sheet_colour(np.asarray(img)), [0.299, 0.587, 0.114]))
+              _mask = (np.asarray(m) > 0.5).astype(np.uint8)
+              _edge_zone = _cv2.distanceTransform(_mask, _cv2.DIST_L2, 5) <= 20.0
+              _metal = ((_mask > 0) & _edge_zone & (_lum < 0.5 * _sheet_l)).astype(np.uint8)
+              _metal = _cv2.morphologyEx(_metal, _cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))     # a 1 px crack does not split a wire
+              n, lab, st, _ = _cv2.connectedComponentsWithStats(_metal, 8)
+              if n < 2:
+                  return None
+              tot = float(st[1:, _cv2.CC_STAT_AREA].sum())
+              keep = [i for i in range(1, n) if st[i, _cv2.CC_STAT_AREA] >= max(150.0, 0.03 * tot)]
+              if not keep:
+                  return None
+              big = np.isin(lab, keep)
+              sk = skeletonize(big)
+              if int(sk.sum()) < 300:
+                  return None
+              dt = _cv2.distanceTransform(big.astype(np.uint8), _cv2.DIST_L2, 5)
+              return 2.0 * float(np.median(dt[sk]))
 
 
           def stage_sheet(pid, name, cname, cpreset):
@@ -5702,7 +5749,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01m (as 01l, plus a STAGE REPORT run: type stages:<code> to see the picture after every step of one cut on one sheet, nothing saved; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01n (as 01m, plus THIN DARK RIM KEPT WHOLE: a dark rim thinner than the edge band -- a metal wire like VG-1014 -- gets a band that follows its own thickness, so the edge finishing can no longer cut it into pieces; plastic and light frames unchanged; stages:<code> report; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
