@@ -1,4 +1,4 @@
-Run 1259  Thu Oct  1 06:59:24 UTC 2026
+Run 1262  Thu Oct  1 07:30:45 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Trial re-cut of pmun6qw7381 (VG-1014 Frames).
@@ -8,7 +8,7 @@ Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploa
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:378: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:390: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
     rim type: not set (0 clean lens holes)
 /opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_5m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
@@ -36,6 +36,5 @@ Model loaded: ZhengPeng7/BiRefNet at 1024 px
     trimmed 206 px of pale wall/floor beyond the rim's dark outer edge (ring still closed; balance after the trim 81%, shown only, not used for the decision)
     RIM CHECK: both rims match (thinnest spot 85% of the other side)
     arms above the frame: 0.0% (below 2.5%, no note)
-    read from the photo: colour2?
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790837961/yonk7qv7oaltpg7eb8wg.png
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790839841/ysoowwgnnm5kl41zlzc7.png
   Finished. Cut 1, failed 0, rejected 0, still waiting 0.
