@@ -1,8 +1,8 @@
-Run 1323  Thu Oct  1 15:20:12 UTC 2026
-Trigger: workflow_dispatch
+Run 1324  Thu Oct  1 15:24:02 UTC 2026
+Trigger: schedule
 
 --- what the robot found ---
-Robot build 2026-10-01q (as 01p, plus: the inner-lens clearing rounds off each opening on its own, so it can no longer cut through a thin rim between a lens and the gap under an aviator top bar; aviator end pieces not taken for an arm; glass corners cut off by an arm joined; thin dark rims kept whole; stages:<code>; CHECK PHOTO)
+Robot build 2026-10-01s (as 01r, plus: on a thin-wire frame the behind-glass clean-up is skipped -- its 4 px erosion wiped the wire inside that step and took one nose-pad arm only; lens hull filling and inner-lens clearing only on the two lenses; stages:<code>; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
   1 frame(s): Please re-take this photo: an arm shows beside the frame, so the phone was held at an angle. Hold the phone straight in front of the frame, at the same height,   [VG-1006 Frames]
 ::notice::Frames: 13. Waiting: 0. Rejected: 1.
