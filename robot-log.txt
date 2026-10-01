@@ -1,9 +1,46 @@
-Run 1335  Thu Oct  1 16:33:09 UTC 2026
+Run 1336  Thu Oct  1 16:40:50 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
-Robot build 2026-10-01t (as 01s, plus: an aviator top bar running on over the bridge is not taken for arms above the frame -- only the straight bar is left out, an arm rising at an end is still caught; stages:<code>; CHECK PHOTO)
+Robot build 2026-10-01u (as 01t, plus SUPRA: the smaller lens takes the glass an arm cut off it, so the whole demo is cleared and tinted evenly; the shadow-ring peel never takes the traced lens edge, so the edge line stays whole; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::Frames: 13. Waiting: 0. Rejected: 0.
+::notice::Frames: 13. Waiting: 1. Rejected: 0.  Trial re-cut asked for: stages:VG-1012
 
 --- what the robot did ---
+Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
+Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
+Stage report of pmun6ongh11 (VG-1012 Frames) -- nothing is saved.
+/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Model loaded: ZhengPeng7/BiRefNet at 1024 px
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:391: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    rim type: not set (0 clean lens holes)
+half-rim: 36 enclosed pieces, 4 candidates, rejected {'size': 31, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
+half-rim: left lens took the glass cut off by an arm (+10243 px)
+    lens edge line drawn (half-rim / rimless): 5174 px at 80%
+    a little tint left on the demo (half-rim / rimless): 108525 px
+    size check: frame works out at 128 mm (typed 49 + 18 -> about 135 mm expected)
+    the frame fills 59% of the photo's width
+    stage report: the cut would pass the robot's checks
+    STAGE 1 AI model (raw)                             kept  132666 px | rim check BROKEN | lower LEFT: dark  2011 pale 25114 | lower RIGHT: dark  2177 pale 26110
+    STAGE CHANGE 2 edge finished (matte)                    removed 241 photo-dark and 2420 photo-pale px (whole photo, including glass)
+    STAGE 2 edge finished (matte)                      kept  131909 px | rim check BROKEN | lower LEFT: dark  1950 pale 25360 | lower RIGHT: dark  2124 pale 25960
+    STAGE CHANGE 3a photo openings only                     removed 10357 photo-dark and 81785 photo-pale px (whole photo, including glass)
+    STAGE 3a photo openings only                       kept   24597 px | rim check 60%    | lower LEFT: dark    73 pale  2031 | lower RIGHT: dark   143 pale  1771
+    STAGE CHANGE 3b colour glass clearing                   removed 0 photo-dark and 0 photo-pale px (whole photo, including glass)
+    STAGE 3b colour glass clearing                     kept   24597 px | rim check 60%    | lower LEFT: dark    73 pale  2031 | lower RIGHT: dark   143 pale  1771
+    STAGE CHANGE 3c lens hull clearing                      removed 3 photo-dark and 0 photo-pale px (whole photo, including glass)
+    STAGE 3c lens hull clearing                        kept   24592 px | rim check 60%    | lower LEFT: dark    73 pale  2031 | lower RIGHT: dark   143 pale  1771
+    STAGE CHANGE 3d inner lens clearing                     removed 102 photo-dark and 202 photo-pale px (whole photo, including glass)
+    STAGE 3d inner lens clearing                       kept   24204 px | rim check BROKEN | lower LEFT: dark    21 pale  1944 | lower RIGHT: dark   112 pale  1692
+    STAGE CHANGE 3 lens step (glass cleared)                removed 0 photo-dark and 0 photo-pale px (whole photo, including glass)
+    STAGE 3 lens step (glass cleared)                  kept   24204 px | rim check BROKEN | lower LEFT: dark    21 pale  1944 | lower RIGHT: dark   112 pale  1692
+    STAGE CHANGE 4 clean-ups (before the peel)              removed 62 photo-dark and 83 photo-pale px (whole photo, including glass)
+    STAGE 4 clean-ups (before the peel)                kept   24004 px | rim check BROKEN | lower LEFT: dark    21 pale  1944 | lower RIGHT: dark   112 pale  1692
+    STAGE CHANGE 5 after the sheet-ring peel                removed 55 photo-dark and 1913 photo-pale px (whole photo, including glass)
+    STAGE 5 after the sheet-ring peel                  kept   20439 px | rim check 20%    | lower LEFT: dark    19 pale  1317 | lower RIGHT: dark    92 pale  1293
+    STAGE 6 cropped and levelled (before the rim check) kept   20439 px | rim check 20%    | lower LEFT: dark    19 pale  1317 | lower RIGHT: dark    92 pale  1293
+    STAGE CHANGE 7 final (what would be saved)              removed 0 photo-dark and 0 photo-pale px (whole photo, including glass)
+    STAGE 7 final (what would be saved)                kept   20439 px | rim check 20%    | lower LEFT: dark    19 pale  1317 | lower RIGHT: dark    92 pale  1293
+    STAGE SHEET (VG-1012 Frames, every step top to bottom; right: close-ups of the lower left and lower right): https://res.cloudinary.com/jpf6kf5g/image/upload/v1790872849/qvob1rduoknnf3hyxxop.jpg
