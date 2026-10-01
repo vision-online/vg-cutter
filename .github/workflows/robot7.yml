@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       recut:
-        description: 'first / a frame id / reset / all / test:<id or fullrim> / test-lens:<ids, names or all> / guard / guard:save:<ids or all> / adopt-lens:<ids or all> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
+        description: 'first / a frame id / stages:<code> (picture of every step, nothing saved) / reset / all / test:<id or fullrim> / test-lens:<ids, names or all> / guard / guard:save:<ids or all> / adopt-lens:<ids or all> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
         required: false
         default: ''
 
@@ -543,6 +543,18 @@ jobs:
               rim = str(p.get("rim") or p.get("rimType") or "").lower()
               return not any(k in rim for k in ("half", "supra", "semi", "rimless"))
           LENS_TEST = [False]   # True only in a 'test-lens:' run
+          STAGES_ON = [False]   # True only in a 'stages:' run (1 Oct 2026): every step's picture is kept for the stage sheet
+          STAGES = []
+
+
+          def _stage(label, img, a):
+              """stages: run only -- keep this step's picture (photo + what is kept) for the stage sheet. Changes nothing."""
+              if not STAGES_ON[0]:
+                  return
+              try:
+                  STAGES.append((label, np.asarray(img.convert("RGB")).copy(), np.asarray(a, dtype=np.float32).copy()))
+              except Exception:
+                  pass
           LENS_MODE = [False]   # set by cut(): True while a lens-step cut is running (end-piece corners kept)
           MODEL_NAME = [""]        # a test run can ask for another model (e.g. BiRefNet_HR)
           MODEL_SIZE = [1024]      # and the size it looks at the photo
@@ -4075,6 +4087,7 @@ jobs:
               img, (px, py) = pad_with_sheet(img)                   # margin for the model
 
               m = coarse_mask(img)                                  # step 2
+              _stage("1 AI model (raw)", img, m)
               m = largest_component(m)
               band_px = max(6, min(24, int(round(12 * max(img.size) / 1440.0))))
               band_tri = band_px
@@ -4107,6 +4120,7 @@ jobs:
               a = matte(img, tri)                                   # step 4
               a = tighten_edge(a)                                   # step 4b: a 1-2 px edge, not a glow
               a = heal_rim(a)                                       # step 4c: a highlight slit inside the rim is rim
+              _stage("2 edge finished (matte)", img, a)
               if rim_kind:
                   a = firm_rim(a)                                   # new method only: a speckled metal bar/rim is made solid inside
               # HALF-RIM: metal on top only, the demo lens on a thread below. No closed
@@ -4169,6 +4183,7 @@ jobs:
                   a, _ = clear_glass_by_colour(img, a, band_px)     # step 5a
               a = fill_lens_hulls(a, band_px)                       # step 5b: temple/hinge through the glass
               a = clear_inner_lens(a)                               # step 5c: tinted glass, leftovers
+              _stage("3 lens step (glass cleared)", img, a)
               if not front:
                   # ANGLED AND SIDE VIEWS (2026-09-26, shop): at 45 degrees the near temple
                   # is close to the camera, thick enough to count as "inside the frame",
@@ -4208,12 +4223,14 @@ jobs:
                   a = clean_ghosts(a)                                            # step 6b5: no floating soft outlines
                   a = clear_behind_glass(a)                         # step 6c: nothing seen through the lenses
                   a = trim_ends(a)                                  # step 6d: half a millimetre off each end
+              _stage("4 clean-ups (before the peel)", img, a)
               if LENS_MODE[0]:
                   _n_before = int((a > 0.5).sum())
                   a = strip_sheet_ring(img, a, lens_mask=lens_mask, local=True)   # step 7 (lens mode): judged against the wall colour at each place
                   log("    sheet-ring peel (local wall colour): %d px taken off the edge" % (_n_before - int((a > 0.5).sum())))
               else:
                   a = strip_sheet_ring(img, a)                      # step 7: the sheet's shadow ring next to the rim (old frames: unchanged)
+              _stage("5 after the sheet-ring peel", img, a)
               if front and rim_kind == "full":
                   a = clear_sheet_at_ends(img, a)                   # step 7b: sheet wedge between end piece and rim
               if front and rim_kind:
@@ -4429,6 +4446,7 @@ jobs:
                           nums["photoFrac"] = round(_fill, 4)
                           nums["photoCx"] = round(((_xs.min() + _xs.max()) / 2.0 - px) / float(_pw), 4)
                           nums["photoCy"] = round(((_ys.min() + _ys.max()) / 2.0 - py) / float(max(1, a.shape[0] - 2 * py)), 4)
+              _stage("6 cropped and levelled (before the rim check)", img, a)
               if front and not nums.get("reject") and half_ring is None and not half_rim_hint:
                   # (half-rim and rimless frames have no rim below the lens by design, so
                   #  comparing rim thickness around the lens means nothing there -- 25 Sep,
@@ -4544,6 +4562,7 @@ jobs:
                       for e in nums["lenses"]:
                           e["centreX"] = float(e["centreX"] - x0); e["centreY"] = float(e["centreY"] - y0)
                       nums["frontWidthPx"] = int(x1 - x0); nums["frontHeightPx"] = int(y1 - y0)
+              _stage("7 final (what would be saved)", img, a)
               buf = io.BytesIO()
               Image.fromarray(rgba, "RGBA").save(buf, "PNG", optimize=True)
               # THE SOURCE PICTURE (2026-09-26, FIX IT): the same crop of the plain
@@ -4563,6 +4582,69 @@ jobs:
           # ---------------------------------------------------------------- the round
 
           PLAIN_PHOTO = [False]   # True only in a 'test-plain:' run
+
+
+          def _sheet_font():
+              """a readable font for the stage sheet on a phone (the runner has DejaVu; Pillow's own font otherwise)"""
+              from PIL import ImageFont
+              for f in ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"):
+                  try:
+                      return ImageFont.truetype(f, 20)
+                  except Exception:
+                      pass
+              try:
+                  return ImageFont.load_default(size=20)
+              except Exception:
+                  return ImageFont.load_default()
+
+
+          def stage_sheet(pid, name, cname, cpreset):
+              """stages: run -- one picture with every step of the cut, top to bottom, each row the whole frame on a skin tone
+              and a 2x close-up of its LOWER RIGHT and LOWER LEFT; and the numbers for each step in the log. Saves nothing."""
+              from PIL import ImageDraw
+              rows = []
+              for label, rgb, a in STAGES:
+                  try:
+                      A = a > 0.5
+                      ys, xs = np.where(A)
+                      if not len(xs):
+                          log("    STAGE %-44s nothing kept" % label); continue
+                      x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max(); mx, my = (x0 + x1) // 2, (y0 + y1) // 2
+                      g = (0.299 * rgb[..., 0] + 0.587 * rgb[..., 1] + 0.114 * rgb[..., 2])
+                      def q(xa, xb):
+                          m = A[my:y1 + 1, xa:xb]; gg = g[my:y1 + 1, xa:xb]
+                          return int((m & (gg < 80)).sum()), int((m & (gg > 150)).sum())
+                      dl, pl = q(x0, mx); dr, pr = q(mx, x1 + 1)
+                      try:
+                          rb = rim_balance(a); rbs = "BROKEN" if rb is None else "%d%%" % int(rb[0] * 100)
+                      except Exception:
+                          rbs = "?"
+                      log("    STAGE %-44s kept %7d px | rim check %-6s | lower LEFT: dark %5d pale %5d | lower RIGHT: dark %5d pale %5d"
+                          % (label, int(A.sum()), rbs, dl, pl, dr, pr))
+                      al = np.clip(a, 0, 1)[..., None]
+                      comp = (rgb.astype(np.float32) * al + np.array([196, 160, 140], np.float32) * (1 - al)).astype(np.uint8)
+                      fr = comp[max(0, y0 - 8):y1 + 9, max(0, x0 - 8):x1 + 9]
+                      k = 640.0 / max(1, fr.shape[1]); full = np.asarray(Image.fromarray(fr).resize((640, max(1, int(fr.shape[0] * k))), Image.LANCZOS))
+                      def zoom(xa, xb):
+                          z = comp[my:y1 + 9, xa:xb]
+                          kz = full.shape[0] / float(max(1, z.shape[0]))
+                          return np.asarray(Image.fromarray(z).resize((max(1, int(z.shape[1] * kz)), full.shape[0]), Image.LANCZOS))
+                      zl, zr = zoom(max(0, x0 - 8), mx), zoom(mx, x1 + 9)
+                      row = np.hstack([full, np.full((full.shape[0], 10, 3), 255, np.uint8), zl, np.full((full.shape[0], 6, 3), 255, np.uint8), zr])
+                      head = Image.new("RGB", (row.shape[1], 40), (255, 255, 255)); d = ImageDraw.Draw(head)
+                      d.text((8, 8), "%s   |   rim check %s   |   lower right: dark %d, pale %d   (lower left: dark %d, pale %d)" % (label, rbs, dr, pr, dl, pl), fill=(110, 0, 0), font=_sheet_font())
+                      rows.append(np.vstack([np.asarray(head), row, np.full((10, row.shape[1], 3), 255, np.uint8)]))
+                  except Exception as ex:
+                      log("    STAGE %s could not be drawn: %s" % (label, str(ex)[:80]))
+              if not rows:
+                  log("    STAGE SHEET: no steps were recorded"); return None
+              Wm = max(r.shape[1] for r in rows)
+              rows = [np.hstack([r, np.full((r.shape[0], Wm - r.shape[1], 3), 255, np.uint8)]) if r.shape[1] < Wm else r for r in rows]
+              sheet = np.vstack(rows)
+              buf = io.BytesIO(); Image.fromarray(sheet).save(buf, "JPEG", quality=85)
+              url = cloudinary_upload(buf.getvalue(), "stages-%s" % pid, cname, cpreset)
+              log("    STAGE SHEET (%s, every step top to bottom; right: close-ups of the lower left and lower right): %s" % ((name or "")[:30], url))
+              return url
 
 
           def compare_many(pngs, names, pid, name, cname, cpreset):
@@ -5299,6 +5381,39 @@ jobs:
                       save_product(p)
                       log("    restored %s (%s) -> %s" % (p.get("id"), (p.get("name") or "")[:30], prev["url"]))
                   return 0
+              if recut.lower().startswith("stages:"):
+                  # STAGE REPORT (1 Oct 2026, Rauf: "check where the actual problem is, while it runs" -- the way VG-1005 was
+                  # found). One frame is cut exactly as a normal run would cut it, and the picture after EVERY step is put on one
+                  # sheet with its numbers, so we see at which step the rim goes wrong. NOTHING is saved to the frame.
+                  want_ = recut.split(":", 1)[1].strip()
+                  pick = next((p for p in products if frame_matches(p, want_)), None)
+                  if pick is None:
+                      log("Stage report: no frame matched '%s'." % want_); return 0
+                  cname, cpreset = cloudinary_probe(products)
+                  pid = pick.get("id")
+                  log("Stage report of %s (%s) -- nothing is saved." % (pid, (pick.get("name") or "")[:40]))
+                  rim_txt = str(pick.get("rim") or pick.get("rimType") or "").lower()
+                  rk = rim_kind_of(rim_txt) if str(pid) in NEW_METHOD_IDS else ""
+                  old_hint = None if rk else any(k in rim_txt for k in ("half", "supra", "semi", "rimless"))
+                  src = front_photo(pick)
+                  colour_src = None
+                  if not is_metal(pick):
+                      colour_src = no_enhancement(src)
+                      if colour_src == src:
+                          colour_src = None
+                  lf = str(pid) in LENS_FIX_IDS or (LENS_FOR_ALL and lens_ok(pick))
+                  STAGES_ON[0] = True; del STAGES[:]
+                  try:
+                      png_s, nums_s = cut(download(src), front=True, rim_kind=rk, half_rim_hint=old_hint,
+                                          colour_bytes=download(colour_src) if colour_src else None, front_crop=False, lens_fix=lf, size=pick.get("size"))
+                      log("    stage report: the cut %s" % ("would be REJECTED: " + str(nums_s.get("reject"))[:120] if nums_s.get("reject") else "would pass the robot's checks"))
+                  except Exception as ex:
+                      log("    stage report: the cut stopped with an error: %s" % str(ex)[:200])
+                  finally:
+                      STAGES_ON[0] = False
+                  stage_sheet(pid, pick.get("name"), cname, cpreset)
+                  del STAGES[:]
+                  return 0
               if recut.lower().startswith("test-raw:"):
                   # PROOF TEST: what each AI model itself sees, before any of our own
                   # rim fixing. The same photo goes through the normal BiRefNet (1024 px)
@@ -5587,7 +5702,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01l (as 01k, plus a THIN DARK-WIRE repair: a round black metal frame gets its dark line brought back from the photo and the pale fill taken away, instead of the plastic-rim repair; plastic frames unchanged; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01m (as 01l, plus a STAGE REPORT run: type stages:<code> to see the picture after every step of one cut on one sheet, nothing saved; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
