@@ -4192,14 +4192,18 @@ jobs:
                   else:
                       log("    %slens step skipped, nothing changed: %s" % ("angled " if angled else "", lnote))
                       LAST_VIEW_GLASS[0] = False
+              _stage("3a photo openings only", img, a)
               a_before_glass = a.copy()
               holes, _ = lens_holes(a)
               if not holes.any():
                   # the model kept the lenses solid (common for clear glass):
                   # clear them by colour where the sheet shows through
                   a, _ = clear_glass_by_colour(img, a, band_px)     # step 5a
+              _stage("3b colour glass clearing", img, a)
               a = fill_lens_hulls(a, band_px)                       # step 5b: temple/hinge through the glass
+              _stage("3c lens hull clearing", img, a)
               a = clear_inner_lens(a)                               # step 5c: tinted glass, leftovers
+              _stage("3d inner lens clearing", img, a)
               _stage("3 lens step (glass cleared)", img, a)
               if not front:
                   # ANGLED AND SIDE VIEWS (2026-09-26, shop): at 45 degrees the near temple
@@ -4499,6 +4503,7 @@ jobs:
                               _f = lambda r_: "BROKEN" if r_ is None else "%d%%" % int(r_[0] * 100)
                               log("    rim check after closing the ring: saved picture %s | repaired pixels counted as solid %s%s" % (
                                   _f(rb), _f(_rb_solid), "" if _f(rb) == _f(_rb_solid) else "   <-- DIFFERENT: the decision uses the saved picture"))
+                              _stage("6b ring repair before cosmetic trim", img, a)
                               # COSMETIC FINISH (after the decision numbers above are taken): take away the pale bits of wall and
                               # floor that the cut kept beyond the rim's dark outer edge. Undone if it would open the ring.
                               try:
@@ -4508,15 +4513,30 @@ jobs:
                                       if int(_rem.sum()) > 0:
                                           _a_t = a.copy(); _a_t[_rem] = 0
                                           _rb_t = rim_balance(_a_t)
-                                          if _rb_t is not None:
+                                          _bottom_t = rim_bottom_loss(_a_t) if _rb_t is not None else None
+                                          if (_rb_t is not None and _rb_t[0] >= RIM_MIN and
+                                                  (_bottom_t is None or _bottom_t >= 0.5)):
                                               a = _a_t
-                                              log("    trimmed %d px of pale wall/floor beyond the rim's dark outer edge (ring still closed; balance after the trim %d%%, shown only, not used for the decision)" % (int(_rem.sum()), int(_rb_t[0] * 100)))
+                                              rb = _rb_t
+                                              log("    trimmed %d px of pale wall/floor beyond the rim's dark outer edge (final rim balance %d%%, used for the decision)" % (int(_rem.sum()), int(_rb_t[0] * 100)))
                                           else:
-                                              log("    trim of pale bits skipped: it would have opened the ring")
+                                              log("    trim of pale bits skipped: it would have broken or thinned the lower rim below the approval limit")
                               except Exception as _ex:
                                   log("    trim of pale bits could not run (%s)" % str(_ex)[:60])
                       except Exception as ex:
                           log("    close the ring could not run: %s" % str(ex)[:100])
+                  if lens_ran and rb is not None:
+                      # Left/right balance can look healthy when both lower rims were eaten alike, so the lower arc is measured
+                      # again AFTER repair and any trim -- SHOWN ONLY, never a rejection (1 Oct, Rauf's choice): a frame with a
+                      # heavy top rim reads low by nature (the approved VG-1007 reads 51%), so a fixed 50% limit would hold back
+                      # good frames. Staff see the number in the log and judge the picture in TO CHECK.
+                      try:
+                          _bottom_final = rim_bottom_loss(a)
+                      except Exception:
+                          _bottom_final = None
+                      if _bottom_final is not None and _bottom_final < 0.5:
+                          log("    note: the rim under the lenses is %d%% as thick as the rest of its own ring (shown only, not a "
+                              "rejection; a frame with a heavy top rim reads low by nature)" % int(100 * _bottom_final))
                   if rb is None and lens_ran:
                       # the lens step cleared two lenses, but the finished frame no longer
                       # encloses two: a rim has been cut right through
@@ -4650,6 +4670,7 @@ jobs:
               and a 2x close-up of its LOWER RIGHT and LOWER LEFT; and the numbers for each step in the log. Saves nothing."""
               from PIL import ImageDraw
               rows = []
+              previous = None
               for label, rgb, a in STAGES:
                   try:
                       A = a > 0.5
@@ -4662,6 +4683,13 @@ jobs:
                           m = A[my:y1 + 1, xa:xb]; gg = g[my:y1 + 1, xa:xb]
                           return int((m & (gg < 80)).sum()), int((m & (gg > 150)).sum())
                       dl, pl = q(x0, mx); dr, pr = q(mx, x1 + 1)
+                      if previous is not None and previous.shape == A.shape:
+                          gone = previous & ~A
+                          dark_gone = int((gone & (g < 80)).sum())
+                          pale_gone = int((gone & (g > 150)).sum())
+                          log("    STAGE CHANGE %-42s removed %d photo-dark and %d photo-pale px (whole photo, including glass)"
+                              % (label, dark_gone, pale_gone))
+                      previous = A.copy()
                       try:
                           rb = rim_balance(a); rbs = "BROKEN" if rb is None else "%d%%" % int(rb[0] * 100)
                       except Exception:
@@ -5749,7 +5777,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01n (as 01m, plus THIN DARK RIM KEPT WHOLE: a dark rim thinner than the edge band -- a metal wire like VG-1014 -- gets a band that follows its own thickness, so the edge finishing can no longer cut it into pieces; plastic and light frames unchanged; stages:<code> report; codes in the run box; 45-degree fit points; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01o (as 01n, plus from the review: finer stage pictures inside the lens step and a removed-pixels line per step; the pale-bit trim is now judged -- it is only kept if the rim still passes, and the robot judges the trimmed picture; the lower-rim thickness after repair is logged, not a rejection; thin dark rims kept whole; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
