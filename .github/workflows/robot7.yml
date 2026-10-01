@@ -965,8 +965,43 @@ jobs:
                   cx = xs.mean()
                   outward = 1.0 if cx > centre_x else -1.0       # +1: outside lies to the right
                   return (xt - cx) * outward < -0.15 * (xs.max() - xs.min() + 1)
+              # A TOP BAR ACROSS THE BRIDGE IS NOT AN ARM (1 Oct 2026, VG-1006 aviator: "arms above the frame: 4.9%" on a
+              # straight photo -- it was the aviator's own top bar, which lies above the inner halves of both lenses). Only when
+              # the frame's top at the very middle is a thin band lying clearly ABOVE both lenses' top lines: that band is
+              # followed column by column, outward to both sides, as a straight line (a bar does not bend; at most a few degrees
+              # of tilt), and only those pixels are taken out of the arm test. An arm rising at an outer end is not on that line
+              # and is judged exactly as before.
+              bar = np.zeros_like(solid)
+              if LENS_MODE[0] and rx0 - lx1 >= 6 and lim[lx1] > 0 and lim[rx0] > 0:
+                  xc_ = int(round((lx1 + rx0) / 2.0))
+                  colc = np.where(solid[:, xc_])[0]
+                  if colc.size:
+                      y0_ = int(colc[0]); y1_ = y0_
+                      while y1_ + 1 < H and solid[y1_ + 1, xc_]:
+                          y1_ += 1
+                      th_ = y1_ - y0_ + 1
+                      if th_ <= max(12, 2.5 * rim_t) and y1_ < min(lim[lx1], lim[rx0]) - 2:
+                          for step_ in (-1, 1):
+                              cy_ = (y0_ + y1_) / 2.0; x_ = xc_; cy0 = cy_
+                              while 0 <= x_ < W:
+                                  lo_, hi_ = int(cy_ - th_ - 2), int(cy_ + th_ + 3)
+                                  seg = np.where(solid[max(0, lo_):min(H, hi_), x_])[0]
+                                  if not seg.size:
+                                      break
+                                  seg = seg + max(0, lo_)
+                                  yn = int(seg[np.argmin(np.abs(seg - cy_))])
+                                  if abs(yn - cy_) > 2.5:
+                                      break
+                                  a_ = int(round(max(yn - th_, cy_ - th_ / 2.0 - 1))); b_ = int(round(min(yn + th_, cy_ + th_ / 2.0 + 1)))
+                                  bar[max(0, a_):min(H, b_ + 1), x_] = solid[max(0, a_):min(H, b_ + 1), x_]
+                                  ncy = (a_ + b_) / 2.0
+                                  if abs(ncy - cy0) > 4 + 0.06 * abs(x_ - xc_):      # a straight bar, a few degrees of tilt at most
+                                      break
+                                  cy_ = 0.7 * cy_ + 0.3 * ncy
+                                  x_ += step_
               keep = np.zeros_like(above)
-              alab, an = ndimage.label(above)
+              keep |= above & bar
+              alab, an = ndimage.label(above & ~bar)
               for c in range(1, an + 1):
                   comp = alab == c
                   ys, xs = np.where(comp)
@@ -5910,7 +5945,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-01s (as 01r, plus: on a thin-wire frame the behind-glass clean-up is skipped -- its 4 px erosion wiped the wire inside that step and took one nose-pad arm only; lens hull filling and inner-lens clearing only on the two lenses; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-01t (as 01s, plus: an aviator top bar running on over the bridge is not taken for "arms above the frame" -- only the straight bar is left out, an arm rising at an end is still caught; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
