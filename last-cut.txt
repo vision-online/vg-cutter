@@ -1,4 +1,4 @@
-Run 1347  Thu Oct  1 18:03:57 UTC 2026
+Run 1359  Thu Oct  1 19:57:46 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Trial re-cut of pmun6ongh11 (VG-1012 Frames).
@@ -18,5 +18,5 @@ half-rim: left lens took the glass cut off by an arm (+10243 px)
     levelled: the frame was 0.6 degrees off, turned straight
     size check: frame works out at 120 mm (typed 49 + 18 -> about 135 mm expected)
     the frame fills 57% of the photo's width
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790877831/ruhofpes818vwy40cn61.png
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1790884662/qsryj1pp5hgewgct5vdr.png
   Finished. Cut 1, failed 0, rejected 0, still waiting 0.
