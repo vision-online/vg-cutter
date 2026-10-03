@@ -1,0 +1,66 @@
+name: Website deploy
+
+# Puts the website live on Vercel from the phone (3 Oct 2026).
+# Upload a website zip (vision-gallery-d17_xx.zip) to this repository (main page, or the "site" folder):
+# this runs by itself, unpacks the newest zip and publishes it to the visiongallery.me project on Vercel.
+# It can also be started by hand: Actions -> Website deploy -> Run workflow.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'site/*.zip'
+      - '*.zip'
+
+concurrency:
+  group: website-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Unpack the newest website zip
+        run: |
+          # the zip uploaded most recently (from the history, not the file dates, which are all the same after checkout);
+          # if that cannot be read, the highest version number in the file names
+          SHA=$(git log -1 --format=%H -- 'site/*.zip' '*.zip')
+          Z=$( [ -n "$SHA" ] && git show --name-only --diff-filter=AM --format= "$SHA" -- 'site/*.zip' '*.zip' | tail -1 )
+          [ -f "$Z" ] || Z=$(ls site/*.zip *.zip 2>/dev/null | sort -V | tail -1)
+          if [ -z "$Z" ]; then echo "::error::No website zip found in the repository"; exit 1; fi
+          rm -rf out && mkdir out && unzip -q "$Z" -d out
+          if [ -f out/index.html ]; then D=out; else D=$(dirname "$(find out -maxdepth 3 -name index.html | head -1)"); fi
+          if [ ! -f "$D/index.html" ]; then echo "::error::The zip has no index.html"; exit 1; fi
+          echo "DIR=$D" >> "$GITHUB_ENV"
+          V=$(grep -o "d17\.[0-9]*" "$D/check.html" | head -1)
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+          echo "### Website deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "Zip: $Z — build $V — $(find "$D" -type f | wc -l) files" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check the three keys are set
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN || secrets.VERCELTOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID || secrets.VERCELORG }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID || secrets.VERCELPROJECT }}
+        run: |
+          miss=""
+          [ -z "$VERCEL_TOKEN" ] && miss="$miss VERCEL_TOKEN"
+          [ -z "$VERCEL_ORG_ID" ] && miss="$miss VERCEL_ORG_ID"
+          [ -z "$VERCEL_PROJECT_ID" ] && miss="$miss VERCEL_PROJECT_ID"
+          if [ -n "$miss" ]; then echo "::error::Missing secret(s):$miss (or VERCELTOKEN / VERCELORG / VERCELPROJECT) — add them in Settings -> Secrets and variables -> Actions"; exit 1; fi
+
+      - name: Publish to Vercel (live)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN || secrets.VERCELTOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID || secrets.VERCELORG }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID || secrets.VERCELPROJECT }}
+        run: |
+          npm install --global vercel@latest >/dev/null 2>&1
+          cd "$DIR"
+          URL=$(vercel deploy --prod --yes --token "$VERCEL_TOKEN" 2>deploy.log) || { cat deploy.log; echo "::error::Vercel refused the deploy (see the lines above)"; exit 1; }
+          echo "::notice::Build $VERSION is live: $URL"
+          echo "Live: $URL — now open https://visiongallery.me/check and it should say $VERSION" >> "$GITHUB_STEP_SUMMARY"
