@@ -1,5 +1,5 @@
-Run 1560  Sat Oct  3 05:09:27 UTC 2026
-Trigger: schedule
+Run 1561  Sat Oct  3 05:09:50 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-10-02e (as 02d, plus SUPRA: the lens edge and the nose pads are protected from the later clean-ups made for full rims -- they are put back just before the edge is made; demo edge copied from the photo; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
