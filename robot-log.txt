@@ -1,5 +1,5 @@
-Run 1906  Mon Oct  5 14:26:25 UTC 2026
-Trigger: schedule
+Run 1907  Mon Oct  5 14:27:11 UTC 2026
+Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-10-05h (as 02g, plus: a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
