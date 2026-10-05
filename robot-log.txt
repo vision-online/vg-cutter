@@ -1,9 +1,9 @@
-Run 1875  Mon Oct  5 09:07:41 UTC 2026
+Run 1877  Mon Oct  5 09:27:45 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
-Robot build 2026-10-02e (as 02d, plus SUPRA: the lens edge and the nose pads are protected from the later clean-ups made for full rims -- they are put back just before the edge is made; demo edge copied from the photo; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
+Robot build 2026-10-05h (as 02g, plus: a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::Frames: 15. Waiting: 0. Rejected: 0.
+::notice::Frames: 13. Waiting: 0. Rejected: 0.
 
 --- what the robot did ---
