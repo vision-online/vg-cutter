@@ -386,11 +386,15 @@ jobs:
                   return None
 
 
+          import datetime as _dt_rs
+          RUN_STARTED = _dt_rs.datetime.utcnow().isoformat() + "Z"
+
           def save_product(product):
               """Write the frame back, whole, exactly as the admin does."""
               import datetime
               # A DELETED FRAME STAYS DELETED (2026-10-05, shop): if the shop deleted this frame while the robot was
               # cutting it, the row is gone (or marked deleted) -- writing it back would bring it back to life.
+              cur = None
               try:
                   chk = requests.get(SUPABASE_URL + "/rest/v1/products?select=id,data&id=eq." + str(product["id"]),
                                      headers=sb_headers(), timeout=30)
@@ -398,8 +402,47 @@ jobs:
                   if rows_ is not None and (not rows_ or (rows_[0].get("data") or {}).get("deleted")):
                       log("    not saved: this frame was deleted in admin while it was being cut")
                       return
+                  if rows_:
+                      cur = rows_[0].get("data") or None
               except Exception:
                   pass
+              # THE SHOP'S DECISIONS WIN (2026-10-05, shop: "I approved it and 5 minutes later it is READY TO CHECK again").
+              # The robot read this frame at the start of its run; if the shop approved it, published a fix, or changed its
+              # details in admin since then, those changes are kept -- the robot only brings what is its own (cut-outs, fit
+              # points, numbers). An approval made after this run began is never undone.
+              if isinstance(cur, dict):
+                  robot_keys = {"tryOnUrl", "tryOnReady", "tryOnFails", "tryOnFail", "tryOnNumbers", "tryOnSource", "tryOnDraft",
+                                "tryOnWarning", "tryOnAngleUrl", "tryOnAngleRUrl", "tryOnSideUrl", "tryOnAngleFit", "tryOnAngleRFit",
+                                "tryOnAngleSource", "tryOnAngleRSource", "tryOnSideSource", "tryOnViewsV", "tryOnViewsOk", "tryOnPrev",
+                                "tryOnTest", "guardBase", "robotRead", "pendingViews", "viewProblems"}
+                  merged = dict(cur)
+                  for k in robot_keys:
+                      if k in product:
+                          merged[k] = product[k]
+                      elif k in merged and k not in ("pendingViews", "viewProblems"):
+                          merged.pop(k, None)
+                  # details the robot guessed: only where the shop has not decided them itself
+                  auto_now = set(cur.get("autoFields") or []) if isinstance(cur.get("autoFields"), list) else set()
+                  for k in (product.get("autoFields") or []):
+                      if not cur.get(k) or k in auto_now:
+                          merged[k] = product.get(k)
+                          auto_now.add(k)
+                  merged["autoFields"] = sorted(auto_now)
+                  def _ts(v):
+                      try:
+                          return _dt_rs.datetime.fromisoformat(str(v).replace("Z", "+00:00")).replace(tzinfo=None)
+                      except Exception:
+                          return None
+                  _a, _r = _ts(cur.get("approvedAt")), _ts(RUN_STARTED)
+                  approved_since = bool(_a and _r and _a >= _r - _dt_rs.timedelta(minutes=1))
+                  if product.get("awaitingCheck") and not cur.get("awaitingCheck") and (approved_since or cur.get("tryOnLocked")):
+                      merged["awaitingCheck"] = False        # approved while the robot was working: stays approved
+                  elif "awaitingCheck" in product:
+                      merged["awaitingCheck"] = product["awaitingCheck"]
+                  if cur.get("tryOnLocked"):                   # a front fixed by hand in admin is never replaced
+                      for k in ("tryOnUrl", "tryOnSource", "tryOnReady"):
+                          if k in cur: merged[k] = cur[k]
+                  product = merged
               body = [{
                   "id": str(product["id"]),
                   "data": product,
@@ -6447,7 +6490,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-05h (as 02g, plus: a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-05i (as 02g, plus: the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
