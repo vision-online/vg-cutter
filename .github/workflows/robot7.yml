@@ -389,6 +389,17 @@ jobs:
           def save_product(product):
               """Write the frame back, whole, exactly as the admin does."""
               import datetime
+              # A DELETED FRAME STAYS DELETED (2026-10-05, shop): if the shop deleted this frame while the robot was
+              # cutting it, the row is gone (or marked deleted) -- writing it back would bring it back to life.
+              try:
+                  chk = requests.get(SUPABASE_URL + "/rest/v1/products?select=id,data&id=eq." + str(product["id"]),
+                                     headers=sb_headers(), timeout=30)
+                  rows_ = chk.json() if chk.ok else None
+                  if rows_ is not None and (not rows_ or (rows_[0].get("data") or {}).get("deleted")):
+                      log("    not saved: this frame was deleted in admin while it was being cut")
+                      return
+              except Exception:
+                  pass
               body = [{
                   "id": str(product["id"]),
                   "data": product,
@@ -4523,6 +4534,13 @@ jobs:
               a = matte(img, tri)                                   # step 4
               a = tighten_edge(a)                                   # step 4b: a 1-2 px edge, not a glow
               a = heal_rim(a)                                       # step 4c: a highlight slit inside the rim is rim
+              if front and half_rim_hint:
+                  try:
+                      a, _nh = restore_end_highlights(img, m, a)
+                      if _nh:
+                          log("    end pieces: %d px of bright metal the edge finishing dropped put back" % _nh)
+                  except Exception as _ex:
+                      log("    end pieces: could not check (%s)" % str(_ex)[:60])
               _stage("2 edge finished (matte)", img, a)
               if rim_kind:
                   a = firm_rim(a)                                   # new method only: a speckled metal bar/rim is made solid inside
@@ -4555,13 +4573,43 @@ jobs:
                   if half_rim_hint or (rim_kind and h_n < 2):
                       half_regions = half_rim_lenses(img, a)
                       if half_regions:
+                          # the bar along the top of each lens, as the cut had it BEFORE the lens is cleared: the traced lens can
+                          # reach a few pixels up into a thin bar, and clearing the lens must not take the bar with it (2 Oct,
+                          # Rauf: "the upper rim is cut")
+                          _a_pre_half = a.copy()
+                          _bar_keep = np.zeros(a.shape, dtype=bool)
+                          try:
+                              _rgbh = np.asarray(img).astype(np.float32)
+                              _lumh = _rgbh[..., 0] * 0.299 + _rgbh[..., 1] * 0.587 + _rgbh[..., 2] * 0.114
+                              for _hr in half_regions:
+                                  _ysh, _xsh = np.where(_hr)
+                                  if not _ysh.size:
+                                      continue
+                                  _hy0, _hh2 = int(_ysh.min()), int(_ysh.max() - _ysh.min() + 1)
+                                  _gl = float(np.median(_lumh[_hr]))
+                                  _top = np.zeros(a.shape, dtype=bool)
+                                  _top[max(0, _hy0 - 30):_hy0 + int(0.15 * _hh2), int(_xsh.min()):int(_xsh.max()) + 1] = True
+                                  _bar_keep |= _top & (a >= 0.9) & (_lumh < _gl - 60)
+                          except Exception:
+                              pass
                           a, half_ring = apply_half_rim(img, a, half_regions)
+                          if _bar_keep.any():
+                              a = np.where(_bar_keep, np.maximum(a, _a_pre_half), a).astype(np.float32)
                           # THE SUPRA'S OWN PARTS ARE PROTECTED (2 Oct 2026; a second review found it, VG-1012 confirms it): the
                           # later clean-ups -- lens hull clearing (3c), inner-lens clearing (3d), the half-rim whisker trim --
                           # were made for full rims and cut what this step keeps: on VG-1012 the nose pads went from 2,697 px to
                           # 363 px, and the whisker trim would take 3 of every 4 lens-edge pixels. Both are put back, as this
                           # step left them, just before the edge line is made.
                           _half_keep = half_ring | (LAST_PADS[0] if LAST_PADS[0] is not None else np.zeros_like(half_ring))
+                          # and the bar right above each lens (a supra's bar can be as thin as the threads the whisker trim is for)
+                          for _hr in half_regions:
+                              _ysh, _xsh = np.where(_hr)
+                              if _ysh.size:
+                                  _hy0, _hh2 = int(_ysh.min()), int(_ysh.max() - _ysh.min() + 1)
+                                  _top = np.zeros_like(half_ring)
+                                  _top[max(0, _hy0 - 30):_hy0 + int(0.15 * _hh2), int(_xsh.min()):int(_xsh.max()) + 1] = True
+                                  _half_keep |= _top & (a >= 0.9)
+                          _half_keep |= _bar_keep
                           _a_half = a.copy()
                           if rim_kind:
                               a = firm_rim(a)                      # new method only
@@ -5188,18 +5236,57 @@ jobs:
                       nose[:, :int(x0 + 0.30 * w) + 1] = True
                   glum = float(np.median(lum[inner])) if inner.any() else float(np.median(lum[r]))
                   dark_arm = (lum < glum - 60) & ~nose
-                  keep = np.where(band & ~dark_arm, a_diff, 0.0)
-                  pads = r & nose & (a > 0.9) & ~edge_mask                  # the nose pads the cut already kept stay as they are
-                  new = np.where(pads, alpha, keep)
-                  sel = band | pads
-                  alpha[sel] = new[sel]
+                  # ONLY THE DEMO IS TOUCHED (2 Oct, Rauf: "the upper rim is cut"): the solid frame -- the bar above the lens, the
+                  # end pieces, the nose pads -- is never changed here. 02e changed every dark pixel in the band to clear, and the
+                  # band's top reaches 4 px into the bar, so the bar was cut along the top of the lens.
+                  solid_frame = (a >= 0.9) & ~edge_mask
+                  # on the nose side only the lens's own edge is copied, from inside the outline -- outside it are the pads and
+                  # the bridge leg, which the cut already keeps as they are (copying there brought back loose bits of reflection)
+                  band_here = band & ~(nose & ~r)
+                  sel = band_here & ~solid_frame
+                  keep = np.where(~dark_arm, a_diff, 0.0)
+                  alpha[sel] = keep[sel]
+                  # loose bits: a copied piece that is not part of the lens's long edge and does not touch the frame goes
+                  lab_c, n_c = ndimage.label((alpha > 0.15) & sel, structure=np.ones((3, 3)))
+                  if n_c > 0:
+                      sz = ndimage.sum(np.ones_like(alpha), lab_c, range(1, n_c + 1))
+                      big = int(np.argmax(sz)) + 1
+                      near_frame = ndimage.binary_dilation(solid_frame, iterations=2)
+                      for j in range(1, n_c + 1):
+                          if j == big or sz[j - 1] >= 0.15 * sz[big - 1]:
+                              continue
+                          cj = lab_c == j
+                          if (cj & near_frame).any():
+                              continue
+                          alpha[cj] = 0.0
                   cs, _ = cv2.findContours(r.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
                   cv2.drawContours(ring, cs, -1, 255, 1)
+              # A CONTINUOUS EDGE UNDER THE COPY (2 Oct 2026, Rauf: "the left demo edge is cut"). Where the photo's own edge is
+              # faint the copy left gaps (on VG-1012 the outer edge was there in 84% / 64% of rows). Under the copy a smooth thin
+              # line now runs along the whole outline: the photo's edge where it is strong, this line where it is faint -- never a
+              # gap. Never over the frame itself.
+              under = np.zeros((H, W), np.uint8); soft_u = np.zeros((H, W), np.uint8)
+              for i in ids:
+                  r = lab == i
+                  cs_u, _ = cv2.findContours(r.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+                  for c in cs_u:
+                      if cv2.contourArea(c) < 500 or len(c) < 30:
+                          continue
+                      p = c[:, 0, :].astype(np.float64)
+                      sx = ndimage.gaussian_filter1d(p[:, 0], 2.0, mode="wrap"); sy = ndimage.gaussian_filter1d(p[:, 1], 2.0, mode="wrap")
+                      sub = np.round(np.stack([sx, sy], 1) * 16).astype(np.int32)
+                      cv2.polylines(under, [sub], True, 255, thickness=1, lineType=cv2.LINE_AA, shift=4)
+                      cv2.polylines(soft_u, [sub], True, 255, thickness=2, lineType=cv2.LINE_AA, shift=4)
+              lam_u = np.maximum(under.astype(np.float32) / 255.0 * 0.55, soft_u.astype(np.float32) / 255.0 * 0.25)
+              lam_u[(a >= 0.9) & ~edge_mask] = 0.0
+              line_wins = lam_u > alpha
+              alpha = np.maximum(alpha, lam_u)
               # colour of the copied pixels: the sheet taken out of them
               a3 = np.clip(alpha, 1e-3, 1.0)[..., None]
               fg = np.clip((rgb - (1.0 - a3) * bg) / a3, 0, 255)
               copied = (alpha > 0) & (alpha < 0.95) & region_all | ((alpha > 0) & (alpha < 0.95) & (ndimage.binary_dilation(region_all, iterations=4) & ~region_all))
               out[..., :3] = np.where(copied[..., None], fg, out[..., :3])
+              out[line_wins, 0] = EDGE_RGB[0]; out[line_wins, 1] = EDGE_RGB[1]; out[line_wins, 2] = EDGE_RGB[2]
               # the faint closed ring underneath, so the try-on finds each opening
               rr = ring > 0
               low = rr & (alpha < 0.10)
@@ -5212,6 +5299,41 @@ jobs:
                   out[inside, 0] = 232; out[inside, 1] = 236; out[inside, 2] = 244
                   out[inside, 3] = LENS_TINT * 255.0
               return np.clip(np.round(out), 0, 255).astype(np.uint8)
+
+
+          def restore_end_highlights(img, m, a):
+              """THE END PIECES' BRIGHT FACES (2 Oct 2026, VG-1012, Rauf: "the upper right corner metal is cut"). A supra's end
+              piece has a polished silver face beside its black block. It is almost as light as the white sheet, so the edge
+              finishing (matting) treated it as background and dropped it -- the AI model itself had it (stage sheet, step 1).
+              At each END of the frame (outer 8% of its width), what the model called frame, is BRIGHTER than the sheet and touches
+              the frame that was kept, is put back as the model had it. Shadows are darker than the sheet, so they never come back."""
+              from scipy import ndimage
+              rgb = np.asarray(img).astype(np.float32)
+              lum = rgb[..., 0] * 0.299 + rgb[..., 1] * 0.587 + rgb[..., 2] * 0.114
+              M = np.asarray(m) > 0.5
+              cols = np.where(M.any(axis=0))[0]
+              if cols.size < 20:
+                  return a, 0
+              x0, x1 = int(cols.min()), int(cols.max()); wf = float(x1 - x0 + 1)
+              ends = np.zeros(M.shape, bool)
+              ends[:, x0:int(x0 + 0.08 * wf) + 1] = True
+              ends[:, int(x1 - 0.08 * wf):x1 + 1] = True
+              far = ~ndimage.binary_dilation(M, iterations=15)
+              sheet_l = float(np.median(lum[far])) if far.any() else 200.0
+              bright = M & ends & (lum > sheet_l + 25) & (a < 0.5)
+              if not bright.any():
+                  return a, 0
+              kept = ndimage.binary_dilation(a > 0.5, iterations=2)
+              lab, n = ndimage.label(bright, structure=np.ones((3, 3)))
+              back = np.zeros(M.shape, bool)
+              for j in range(1, n + 1):
+                  cj = lab == j
+                  if (cj & kept).any():
+                      back |= cj
+              if not back.any():
+                  return a, 0
+              out = np.where(back, np.maximum(a, np.asarray(m, dtype=np.float32)), a).astype(np.float32)
+              return out, int(back.sum())
 
           def stage_sheet(pid, name, cname, cpreset):
               """stages: run -- one picture with every step of the cut, top to bottom, each row the whole frame on a skin tone
@@ -6325,7 +6447,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-02e (as 02d, plus SUPRA: the lens edge and the nose pads are protected from the later clean-ups made for full rims -- they are put back just before the edge is made; demo edge copied from the photo; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-05h (as 02g, plus: a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
