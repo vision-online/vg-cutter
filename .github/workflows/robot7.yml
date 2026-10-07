@@ -149,7 +149,7 @@ jobs:
                           if str(r.get("id") or "").startswith("__") or d.get("tryOnLocked") or d.get("tryOnOk") is False:
                               continue
                           d["tryOnReady"] = False; d["tryOnFails"] = 0; d.pop("tryOnFail", None)
-                          d.pop("tryOnAngleUrl", None); d.pop("tryOnSideUrl", None)
+                          d.pop("tryOnAngleUrl", None); d.pop("tryOnSideUrl", None); d.pop("tryOnSide2Url", None)
                           redo.append({"id": str(r.get("id")), "data": d, "updated_at": now})
                       if redo:
                           call("/rest/v1/products?on_conflict=id", "POST", redo,
@@ -173,7 +173,7 @@ jobs:
                               d["tryOnPrev"] = {"url": d.get("tryOnUrl"), "numbers": d.get("tryOnNumbers"),
                                                 "angle": d.get("tryOnAngleUrl"), "side": d.get("tryOnSideUrl")}
                           d["tryOnReady"] = False; d["tryOnFails"] = 0; d.pop("tryOnFail", None)
-                          d.pop("tryOnAngleUrl", None); d.pop("tryOnSideUrl", None)
+                          d.pop("tryOnAngleUrl", None); d.pop("tryOnSideUrl", None); d.pop("tryOnSide2Url", None)
                           redo.append({"id": str(r.get("id")), "data": d, "updated_at": now})
                       if redo:
                           call("/rest/v1/products?on_conflict=id", "POST", redo,
@@ -412,7 +412,7 @@ jobs:
               # points, numbers). An approval made after this run began is never undone.
               if isinstance(cur, dict):
                   robot_keys = {"tryOnUrl", "tryOnReady", "tryOnFails", "tryOnFail", "tryOnNumbers", "tryOnSource", "tryOnDraft",
-                                "tryOnWarning", "tryOnAngleUrl", "tryOnAngleRUrl", "tryOnSideUrl", "tryOnAngleFit", "tryOnAngleRFit",
+                                "tryOnWarning", "tryOnAngleUrl", "tryOnAngleRUrl", "tryOnSideUrl", "tryOnSide2Url", "tryOnSide2Source", "tryOnAngleFit", "tryOnAngleRFit",
                                 "tryOnAngleSource", "tryOnAngleRSource", "tryOnSideSource", "tryOnViewsV", "tryOnViewsOk", "tryOnPrev",
                                 "tryOnTest", "guardBase", "robotRead", "pendingViews", "viewProblems"}
                   merged = dict(cur)
@@ -5569,6 +5569,18 @@ jobs:
               return None
 
 
+          def side2_photo(p):
+              """The other 90-degree view -- the frame's RIGHT temple (admin tile 5, optional, 2026-10-07)."""
+              ang = p.get("anglePhotos") if isinstance(p.get("anglePhotos"), dict) else {}
+              for v in (p.get("rawSide2Url"), p.get("sidePhoto2"), ang.get("side2")):
+                  if isinstance(v, str) and v.startswith("http"):
+                      return v
+              for g in (p.get("gallery") or []):
+                  if isinstance(g, dict) and g.get("view") == "side-right" and str(g.get("url", "")).startswith("http"):
+                      return g["url"]
+              return None
+
+
           def angle_right_photo(p):
               """The other 45-degree view, taken for real (admin tile 3)."""
               ang = p.get("anglePhotos") if isinstance(p.get("anglePhotos"), dict) else {}
@@ -5604,7 +5616,8 @@ jobs:
               for view, src, field, angled, label in (
                       ("angle",  angle_photo(p),       "tryOnAngleUrl",  True,  "45 degree left"),
                       ("angleR", angle_right_photo(p), "tryOnAngleRUrl", True,  "45 degree right"),
-                      ("side",   side_photo(p),        "tryOnSideUrl",   False, "90 degree side")):
+                      ("side",   side_photo(p),        "tryOnSideUrl",   False, "90 degree left temple"),
+                      ("side2",  side2_photo(p),       "tryOnSide2Url",  False, "90 degree right temple")):
                   if not src or out_of_time():
                       continue
                   if locks.get(view) and p.get(field):
@@ -5882,7 +5895,9 @@ jobs:
                           break
                       if not (p.get("tryOnReady") and p.get("tryOnUrl")) or p.get("deleted") or p.get("draft"):
                           continue
-                      if int(p.get("tryOnViewsV") or 0) >= VIEWS_VERSION:
+                      # a 90-degree RIGHT TEMPLE photo added later in admin (2026-10-07): only that view is cut
+                      side2_new = bool(side2_photo(p)) and not p.get("tryOnSide2Url") and "side2" not in (p.get("viewProblems") or {})
+                      if int(p.get("tryOnViewsV") or 0) >= VIEWS_VERSION and not side2_new:
                           continue
                       # (a) staff changed this frame's 45 photos in the edit panel: that is
                       #     the go-ahead for this frame; (b) new frames and frames published
@@ -5893,7 +5908,7 @@ jobs:
                               continue
                           if max(str(p.get("added") or ""), str(p.get("tryOnFixedAt") or "")) < "2026-09-26":
                               continue
-                      if not (angle_photo(p) or angle_right_photo(p) or side_photo(p)):
+                      if not (angle_photo(p) or angle_right_photo(p) or side_photo(p) or side2_photo(p)):
                           continue
                       if cname_v is None:
                           cname_v, cpreset_v = cloudinary_probe(products)
@@ -6011,7 +6026,8 @@ jobs:
                       for k in ("tryOnUrl", "tryOnAngleUrl", "tryOnSideUrl", "tryOnNumbers",
                                 "tryOnTest", "tryOnPrev", "tryOnWarning",
                                 "tryOnAngleRUrl", "tryOnViewsV", "tryOnViewsOk", "tryOnViewsWant",
-                                "pendingViews", "viewProblems", "tryOnAngleSource", "tryOnAngleRSource", "tryOnSideSource"):
+                                "pendingViews", "viewProblems", "tryOnAngleSource", "tryOnAngleRSource", "tryOnSideSource",
+                                "tryOnSide2Url", "tryOnSide2Source"):
                           p.pop(k, None)
                       p["tryOnUrl"] = ""
                       p["tryOnReady"] = False
@@ -6045,7 +6061,7 @@ jobs:
                       done_n += 1
                       vo = p.get("tryOnViewsOk") or {}
                       log("    views on white: %s" % (", ".join("%s %s" % (k, "clean" if v else "photo kept") for k, v in vo.items()) or "no angle photos"))
-                      for f in ("tryOnAngleUrl", "tryOnAngleRUrl", "tryOnSideUrl"):
+                      for f in ("tryOnAngleUrl", "tryOnAngleRUrl", "tryOnSideUrl", "tryOnSide2Url"):
                           if p.get(f): log("      %s: %s" % (f, p[f]))
                   log("  Views done for %d frame(s)." % done_n)
                   return 0
@@ -6490,7 +6506,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-05i (as 02g, plus: the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-07j (as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
