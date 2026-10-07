@@ -1,8 +1,8 @@
-Run 2148  Wed Oct  7 06:41:25 UTC 2026
+Run 2149  Wed Oct  7 06:51:37 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
-Robot build 2026-10-05i (as 02g, plus: the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
+Robot build 2026-10-07j (as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
 ::notice::Frames: 4. Waiting: 0. Rejected: 0.
 
