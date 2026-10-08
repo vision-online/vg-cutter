@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       recut:
-        description: 'first / a frame id / stages:<code> (picture of every step, nothing saved) / reset / all / test:<id or fullrim> / test-lens:<ids, names or all> / guard / guard:save:<ids or all> / adopt-lens:<ids or all> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids>'
+        description: 'first / a frame id / stages:<code> (picture of every step, nothing saved) / reset / all / test:<id or fullrim> / test-lens:<ids, names or all> / guard / guard:save:<ids or all> / adopt-lens:<ids or all> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids> / views:<frame> / white:<frame or all> (shop photo on white)'
         required: false
         default: ''
 
@@ -570,6 +570,8 @@ jobs:
                          "lens and bridge boxes.")
           LAST_VIEW_GLASS = [None]         # did the last angled cut find and clear the glass (True/False)
           LAST_SOURCE = [None]             # the plain-photo crop matching the last cut (bytes), for FIX IT
+          VIEW_ROBOT_CLEAN = [False]       # 2026-10-07s: the last angled cut was cleaned, smoothed and had its pads put back
+          LAST_WHITE = [None]              # 2026-10-08: the last front cut's shop photo on plain white (JPEG bytes)
           LENS_EDGE = 0.80                 # the thin bright line along the lens edge on a half-rim or rimless frame
           LENS_TINT = 0.17                 # how visible the demo is on a half-rim or rimless frame (0 = invisible; the shop settled on 17% on 25 Sep)
           GLASS_LEFT = 0.02                # more than 2% of a lens still solid = the glass did not clear
@@ -2643,51 +2645,896 @@ jobs:
               pixels, so the try-on can sit the frame on a turned face: bridge on the
               nose bridge, lens height matched. Returns None when the two openings
               cannot be found (the try-on then falls back to the picture's box).
+              THIN METAL RIMS (2026-10-07, VG-1019): when the strict reading finds no
+              openings, a second reading takes the rim's soft edge too (alpha > 40) and
+              closes breaks of a few pixels; a lens cut short by solid glass above an arm
+              gets its real height back from the rim above and below it.
               """
               try:
                   from scipy import ndimage
                   im = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
-                  a = np.asarray(im)[:, :, 3] > 127
-                  H, W = a.shape
-                  if a.sum() < 400:
-                      return None
-                  outside = ndimage.binary_propagation(_border(~a), mask=~a)
-                  holes = ~a & ~outside
-                  lab_, n = ndimage.label(holes)
-                  if n < 2:
-                      return None
-                  fys, fxs = np.where(a)
-                  fh = float(fys.max() - fys.min() + 1); fw = float(fxs.max() - fxs.min() + 1)
-                  sizes = ndimage.sum(holes, lab_, range(1, n + 1))
-                  boxes = []
-                  for i in [int(i) + 1 for i in np.argsort(sizes)[::-1][:6]]:
-                      ys, xs = np.where(lab_ == i)
-                      h = int(ys.max() - ys.min() + 1); w = int(xs.max() - xs.min() + 1)
-                      # A LENS, NOT A SPECK (1 Oct): an opening only counts as a lens when it is
-                      # at least a quarter of the frame's height and not a sliver
-                      if h < 0.25 * fh or len(xs) < 0.015 * fh * fw or w < 0.06 * fw:
+                  alpha = np.asarray(im)[:, :, 3]
+                  for thr, close in ((127, False), (40, True)):
+                      a = alpha > thr
+                      H, W = a.shape
+                      if a.sum() < 400:
+                          return None
+                      fys, fxs = np.where(a)
+                      fh = float(fys.max() - fys.min() + 1); fw = float(fxs.max() - fxs.min() + 1)
+                      if close:
+                          r = max(2, int(round(fh * 0.0125)))
+                          a = ndimage.binary_closing(a, structure=np.ones((2 * r + 1, 2 * r + 1)), border_value=0)
+                      outside = ndimage.binary_propagation(_border(~a), mask=~a)
+                      holes = ~a & ~outside
+                      lab_, n = ndimage.label(holes)
+                      if n < 2:
                           continue
-                      boxes.append({"cx": float(xs.mean()), "cy": float(ys.mean()), "x0": int(xs.min()), "x1": int(xs.max()),
-                                    "y0": int(ys.min()), "y1": int(ys.max()), "h": h, "w": w, "area": int(len(xs))})
-                  if len(boxes) < 2:
-                      return None
-                  boxes = boxes[:2]
-                  if boxes[1]["area"] < 0.12 * boxes[0]["area"]:
-                      return None                                   # the far lens is not really visible
-                  if abs(boxes[0]["cy"] - boxes[1]["cy"]) > 0.35 * fh:
-                      return None                                   # not two lenses side by side
-                  near, far = boxes[0], boxes[1]                   # the bigger opening is the lens nearer the camera
-                  left, right = (near, far) if near["cx"] < far["cx"] else (far, near)
-                  bridge_x = (left["x1"] + right["x0"]) / 2.0
-                  bridge_y = (left["cy"] + right["cy"]) / 2.0
-                  ys, xs = np.where(a)
-                  return {"w": W, "h": H, "frame": [int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())],
-                          "bridge": [round(bridge_x, 1), round(bridge_y, 1)],
-                          "near": {k: near[k] for k in ("cx", "cy", "w", "h")}, "far": {k: far[k] for k in ("cx", "cy", "w", "h")},
-                          "nearSide": "left" if near is left else "right",
-                          "lensHeightPx": int(near["h"]), "lensLine": round((near["cy"] + far["cy"]) / 2.0, 1)}
+                      sizes = ndimage.sum(holes, lab_, range(1, n + 1))
+                      boxes = []
+                      for i in [int(i) + 1 for i in np.argsort(sizes)[::-1][:6]]:
+                          ys, xs = np.where(lab_ == i)
+                          h = int(ys.max() - ys.min() + 1); w = int(xs.max() - xs.min() + 1)
+                          # A LENS, NOT A SPECK (1 Oct): an opening only counts as a lens when it is
+                          # at least a quarter of the frame's height and not a sliver
+                          if h < 0.25 * fh or len(xs) < 0.015 * fh * fw or w < 0.06 * fw:
+                              continue
+                          boxes.append({"cx": float(xs.mean()), "cy": float(ys.mean()), "x0": int(xs.min()), "x1": int(xs.max()),
+                                        "y0": int(ys.min()), "y1": int(ys.max()), "h": h, "w": w, "area": int(len(xs))})
+                      if len(boxes) < 2:
+                          continue
+                      boxes = boxes[:2]
+                      for bi in (0, 1):
+                          b, other = boxes[bi], boxes[1 - bi]
+                          tops, bots, rims = [], [], []
+                          for x in range(int(b["x0"] + b["w"] * 0.3), int(b["x1"] - b["w"] * 0.3) + 1):
+                              col = a[:, x]
+                              opn = np.where(~col[b["y0"]:b["y1"] + 1])[0]
+                              if not len(opn):
+                                  continue
+                              y0 = b["y0"] + int(opn[0]); y1 = b["y0"] + int(opn[-1])
+                              up = 0
+                              while y0 - 1 - up >= 0 and col[y0 - 1 - up]:
+                                  up += 1
+                              dn = 0
+                              while y1 + 1 + dn < H and col[y1 + 1 + dn]:
+                                  dn += 1
+                              if up and dn:
+                                  tops.append(y0 - up); bots.append(y1 + dn); rims.append(min(up, dn))
+                          if len(tops) >= 3:
+                              t = float(np.median(rims)); top = float(np.median(tops)) + t; bot = float(np.median(bots)) - t
+                              sh = bot - top + 1
+                              if bot > top and sh > b["h"] * 1.2 and sh <= max(other["h"], b["h"]) * 1.08:
+                                  b.update({"y0": int(top), "y1": int(bot), "h": int(sh), "cy": (top + bot) / 2.0, "fixed": True})
+                      boxes.sort(key=lambda b: b["w"] * b["h"], reverse=True)   # the bigger opening is the lens nearer the camera
+                      if boxes[1]["area"] < 0.12 * boxes[0]["area"] and not boxes[1].get("fixed"):
+                          continue                                      # the far lens is not really visible
+                      if abs(boxes[0]["cy"] - boxes[1]["cy"]) > 0.35 * fh:
+                          continue                                      # not two lenses side by side
+                      near, far = boxes[0], boxes[1]
+                      left, right = (near, far) if near["cx"] < far["cx"] else (far, near)
+                      bridge_x = (left["x1"] + right["x0"]) / 2.0
+                      bridge_y = (left["cy"] + right["cy"]) / 2.0
+                      return {"w": W, "h": H, "frame": [int(fxs.min()), int(fys.min()), int(fxs.max()), int(fys.max())],
+                              "bridge": [round(bridge_x, 1), round(bridge_y, 1)],
+                              "near": {k: near[k] for k in ("cx", "cy", "w", "h")}, "far": {k: far[k] for k in ("cx", "cy", "w", "h")},
+                              "nearSide": "left" if near is left else "right",
+                              "lensHeightPx": int(near["h"]), "lensLine": round((near["cy"] + far["cy"]) / 2.0, 1),
+                              "pass": "thin rim" if close else "strict"}
+                  return None
               except Exception:
                   return None
+
+          def bottom_rim_share(rgba, L):
+              """
+              DOES THIS LENS HAVE A RIM ALONG ITS BOTTOM? (2026-10-08, shop: "it must work for every frame -- metal, TR,
+              supra, rimless"). Along the bottom of the lens (4 to 8 o'clock) each ray from the centre is checked for a solid,
+              rim-coloured piece where the lens outline is. A full rim (metal or plastic, dark or light) gives nearly every ray;
+              a supra or rimless lens has only its thin bright edge there and gives almost none. Returns the share 0..1.
+              """
+              H, W = rgba.shape[:2]
+              al = rgba[:, :, 3]
+              rgb = rgba[:, :, :3].astype(np.float32)
+              lum = rgb[:, :, 0] * 0.3 + rgb[:, :, 1] * 0.59 + rgb[:, :, 2] * 0.11
+              cx, cy, w, h = float(L["cx"]), float(L["cy"]), float(L["w"]), float(L["h"])
+              hits = tot = 0
+              for th in range(40, 141, 2):
+                  t = np.radians(th)
+                  re_ = 1.0 / np.sqrt((np.cos(t) / (w / 2.0)) ** 2 + (np.sin(t) / (h / 2.0)) ** 2)
+                  rr = np.arange(0.88 * re_, 1.2 * re_, 0.5)
+                  xs = np.round(cx + rr * np.cos(t)).astype(int); ys = np.round(cy + rr * np.sin(t)).astype(int)
+                  ok = (xs >= 0) & (xs < W) & (ys >= 0) & (ys < H)
+                  if not ok.any():
+                      continue
+                  tot += 1
+                  if ((al[ys[ok], xs[ok]] > 100) & (lum[ys[ok], xs[ok]] < 225)).any():
+                      hits += 1
+              return hits / float(tot) if tot else 0.0
+
+
+          def heal_view_rims(rgba):
+              """
+              RIMS WHOLE ON THE 30-DEGREE PICTURES (2026-10-07, shop on VG-1019: "the rim is
+              still cracked and broken in places"). A thin metal rim seen at 30 degrees comes
+              out of the cut with small breaks and light glare dots, mostly along the bottom.
+              The two lens openings are found (the fit-point reader), and only on each lens's
+              rim ring, breaks of a few pixels are closed with the photo's own pixels (a light
+              glare pixel takes the rim's colour instead) and glare dots beside the rim go.
+              Left alone on purpose: the inner side of each lens (nose pads, bridge joint) and
+              the outer top (hinge and end piece) -- closing there turned pads into blocks.
+              Returns (rgba, note).
+              """
+              from scipy import ndimage
+              try:
+                  buf = io.BytesIO(); Image.fromarray(rgba, "RGBA").save(buf, "PNG")
+                  fit = angle_anchors(buf.getvalue())
+                  if not fit:
+                      return rgba, "rim heal: lens openings not found -- left as cut"
+                  H, W = rgba.shape[:2]
+                  lenses = [fit["near"], fit["far"]]
+                  yy, xx = np.mgrid[0:H, 0:W]
+                  ring = np.zeros((H, W), bool); low = np.zeros((H, W), bool)
+                  for L, O in ((lenses[0], lenses[1]), (lenses[1], lenses[0])):
+                      ex = (xx - L["cx"]) / (L["w"] / 2.0); ey = (yy - L["cy"]) / (L["h"] / 2.0)
+                      q = np.sqrt(ex * ex + ey * ey); inward = 1.0 if O["cx"] > L["cx"] else -1.0
+                      ux = ex / np.maximum(q, 1e-6); uy = ey / np.maximum(q, 1e-6)
+                      protect = (ux * inward > 0.45) | ((ux * inward < -0.6) & (uy < 0.25))
+                      if bottom_rim_share(rgba, L) < 0.6:
+                          protect = protect | (uy > -0.1)                  # 08 Oct: supra / rimless -- its bottom is a thin lens edge, never "healed"
+                      ring |= (q > 0.97) & (q < 1.15) & ~protect
+                      low |= (q > 0.97) & (q < 1.15) & (uy > 0.4)       # glare from the table only along the bottom
+                  rgb = rgba[:, :, :3].astype(np.float32); al = rgba[:, :, 3]
+                  lum = rgb[:, :, 0] * 0.3 + rgb[:, :, 1] * 0.59 + rgb[:, :, 2] * 0.11
+                  on = ring & (al > 100)
+                  if on.sum() < 40:
+                      return rgba, "rim heal: rim too faint to read -- left as cut"
+                  order = np.argsort(lum[on]); darker = order[: max(10, len(order) // 2)]
+                  cols = rgb[on][darker]; rim = np.median(cols, axis=0); rim_lum = float(rim[0] * 0.3 + rim[1] * 0.59 + rim[2] * 0.11)
+                  dark = rim_lum < 110
+                  solid = ((al > 30) & (lum < rim_lum + 70)) if dark else (al > 30)
+                  r = max(2, int(round(min(lenses[0]["h"], lenses[1]["h"]) * 0.035)))
+                  closed = ndimage.binary_closing(solid, structure=np.ones((2 * r + 1, 2 * r + 1)), border_value=0)
+                  out = rgba.copy()
+                  fill = closed & ring & ~solid
+                  light = lum >= rim_lum + 70
+                  out[fill & light, 0] = int(rim[0]); out[fill & light, 1] = int(rim[1]); out[fill & light, 2] = int(rim[2])
+                  out[fill, 3] = 255
+                  faint = ring & solid & (al < 250) & ndimage.binary_erosion(closed, iterations=2)   # only inside the rim, so its soft edge stays soft
+                  out[faint, 3] = 255
+                  glare = (ring & low & ~closed & (al > 0)) if dark else np.zeros((H, W), bool)
+                  out[glare, 3] = 0
+                  # THE TABLE'S SHADOW UNDER THE BOTTOM RIM (shop, 7 Oct: "the shadow at the bottom is very heavy"): the rim's own
+                  # thickness is read along the top of each lens; along the bottom, anything solid hanging below the rim deeper than
+                  # that is the frame's shadow on the table, and goes.
+                  shadow = 0
+                  sol = out[:, :, 3] > 100
+                  def runs_for(L):
+                      tops, bots = [], []
+                      for x in range(int(L["cx"] - L["w"] * 0.25), int(L["cx"] + L["w"] * 0.25) + 1, 2):
+                          if x < 0 or x >= W:
+                              continue
+                          col = np.where(sol[:, x])[0]
+                          if col.size < 4:
+                              continue
+                          y_t = col[0]; n_t = 0
+                          while y_t + n_t < H and sol[y_t + n_t, x]:
+                              n_t += 1
+                          y_b = col[-1]; n_b = 0
+                          while y_b - n_b >= 0 and sol[y_b - n_b, x]:
+                              n_b += 1
+                          tops.append(n_t); bots.append((x, y_b, n_b))
+                      return tops, bots
+                  refs = []
+                  per = []
+                  for L in lenses:
+                      t_, b_ = runs_for(L)
+                      per.append(b_ if bottom_rim_share(rgba, L) >= 0.6 else [])   # 08 Oct: no shadow trim under a lens without a bottom rim
+                      if t_:
+                          refs.append(float(np.median(t_)))
+                  if refs:
+                      rim_t = max(2.0, min(refs))                       # the clean top rim's thickness (glass under a demo top makes the other longer)
+                      for b_ in per:
+                          for x, y_b, n_b in b_:
+                              if n_b > rim_t * 1.35:
+                                  cut_n = int(round(n_b - rim_t * 1.1))
+                                  out[y_b - cut_n + 1: y_b + 1, max(0, x - 1): x + 2, 3] = 0
+                                  shadow += cut_n * 3
+
+                  return out, "rim heal: %d break pixels closed, %d faint rim pixels made solid, %d glare dots removed, %d shadow pixels under the rim removed" % (int(fill.sum()), int(faint.sum()), int(glare.sum()), shadow)
+              except Exception as ex:
+                  return rgba, "rim heal skipped (%s)" % str(ex)[:60]
+
+          def clean_view_lenses(rgba):
+              """
+              THE 30-DEGREE PICTURE CLEAN BY ITSELF (2026-10-07, shop: "cut the opposite temple up
+              to where the bridge starts; the bridge looks doubled and the top of the demo is not
+              cleaned -- every frame is a lot of work"). On a 30-degree view everything seen
+              THROUGH the lenses is the far side of the frame -- the far temple crossing the far
+              lens, its tip, solid glass left in the top of the far lens -- and on a face it is
+              behind the head. So:
+                1. each lens opening is cleared inside, keeping an 8% margin so the rim is never touched;
+                2. between the lenses, the top bar is the bridge and stays; a thin bar below it
+                   is the far temple seen behind the nose (the "double bridge") and goes, with the
+                   light glass around it on a dark frame. A brow bar above the lenses is never looked at.
+              The far temple outside the far lens (end piece, hinge) stays.
+              Returns (rgba, note).
+              """
+              try:
+                  buf = io.BytesIO(); Image.fromarray(rgba, "RGBA").save(buf, "PNG")
+                  fit = angle_anchors(buf.getvalue())
+                  if not fit:
+                      return rgba, "lens clean: lens openings not found -- left as cut"
+                  out = rgba.copy(); H, W = out.shape[:2]
+                  N, F = fit["near"], fit["far"]
+                  yy, xx = np.mgrid[0:H, 0:W]
+                  cleared = 0
+                  # THE FAR TEMPLE'S FIRST 5-6 MM STAYS (shop, 7 Oct: "don't cut it at the edge -- keep 5 to 6 mm more, then it looks
+                  # natural"): its height is read at the far end piece, and that short piece behind the hinge is put back after the
+                  # far lens is cleared, fading out as it goes behind the head.
+                  stub = None
+                  try:
+                      outs = -1.0 if F["cx"] < N["cx"] else 1.0
+                      edge = F["cx"] + outs * F["w"] / 2.0
+                      ex0 = int(round(edge + 2)) if outs > 0 else int(round(edge - 2 - F["w"] * 0.2))
+                      ew = max(2, int(round(F["w"] * 0.2))); ex0 = max(0, min(W - 2, ex0)); ew = min(W - ex0, ew)
+                      ey0 = max(0, int(round(F["cy"] - F["h"] * 0.6))); eh = min(H - ey0, max(2, int(round(F["h"] * 0.7))))
+                      rows_e = (out[ey0:ey0 + eh, ex0:ex0 + ew, 3] > 100).sum(axis=1) > ew * 0.5
+                      best, cur = None, None
+                      for i, on in enumerate(list(rows_e) + [False]):
+                          if on and cur is None:
+                              cur = i
+                          elif not on and cur is not None:
+                              if best is None or (i - cur) > (best[1] - best[0] + 1):
+                                  best = (cur, i - 1)
+                              cur = None
+                      if best and (best[1] - best[0] + 1) <= F["h"] * 0.15:
+                          st = max(0, ey0 + best[0] - 2); sb = min(H, ey0 + best[1] + 3)
+                          slen = max(4, int(round(N["h"] * 0.13)))           # about 5.5 mm: a lens is about 42 mm tall
+                          sx0 = int(round(edge - slen)) if outs > 0 else int(round(edge))
+                          sx0 = max(0, sx0); sx1 = min(W, sx0 + slen)
+                          if sx1 - sx0 > 3:
+                              stub = (st, sb, sx0, sx1, out[st:sb, sx0:sx1].copy(), outs)
+                  except Exception:
+                      stub = None
+
+                  for L in (N, F):
+                      inside = ((xx - L["cx"]) / (L["w"] / 2.0 * 0.92)) ** 2 + ((yy - L["cy"]) / (L["h"] / 2.0 * 0.92)) ** 2 < 1.0
+                      # the NOSE PADS stay (shop, 7 Oct: "where is the nose pad"): the inner side of the lens, from just above the
+                      # middle to near the bottom, close to the rim, is left as it is
+                      O = F if L is N else N
+                      exn = (xx - L["cx"]) / (L["w"] / 2.0); eyn = (yy - L["cy"]) / (L["h"] / 2.0); qn = np.sqrt(exn * exn + eyn * eyn)
+                      inwd = 1.0 if O["cx"] > L["cx"] else -1.0
+                      padzone = ((exn / np.maximum(qn, 1e-6)) * inwd > 0.6) & ((eyn / np.maximum(qn, 1e-6)) > -0.45) & ((eyn / np.maximum(qn, 1e-6)) < 0.85) & (qn > 0.7)
+                      inside &= ~padzone
+                      cleared += int((inside & (out[:, :, 3] > 0)).sum())
+                      out[inside, 3] = 0
+                      # solid glass left between that and the rim (the top of a demo): light pixels joined to the cleared
+                      # inside are glass too, up to the dark rim (only on a dark frame -- a light rim looks like glass)
+                      try:
+                          from scipy import ndimage
+                          ex2 = (xx - L["cx"]) / (L["w"] / 2.0); ey2 = (yy - L["cy"]) / (L["h"] / 2.0); q2 = np.sqrt(ex2 * ex2 + ey2 * ey2)
+                          rgbL = out[:, :, :3].astype(np.float32); lumL = rgbL[:, :, 0] * 0.3 + rgbL[:, :, 1] * 0.59 + rgbL[:, :, 2] * 0.11
+                          ringL = (q2 > 1.0) & (q2 < 1.25) & (out[:, :, 3] > 160)
+                          if ringL.sum() > 20:
+                              rimL = float(np.percentile(lumL[ringL], 30))
+                              if rimL < 110:
+                                  glass = (out[:, :, 3] > 0) & (lumL >= rimL + 60) & (q2 < 1.35) & ~padzone   # clear nose pads are not glass
+                                  grown = ndimage.binary_propagation(inside & (q2 < 0.95), mask=glass | (inside & (q2 < 0.95)))
+                                  more = grown & glass
+                                  cleared += int(more.sum()); out[more, 3] = 0
+                      except Exception:
+                          pass
+                  # the far temple behind the bridge
+                  lft, rgt = (F, N) if F["cx"] < N["cx"] else (N, F)
+                  gx0 = int(round(lft["cx"] + lft["w"] / 2.0 + 2)); gx1 = int(round(rgt["cx"] - rgt["w"] / 2.0 - 2))
+                  top = max(0, int(round(min(F["cy"] - F["h"] / 2.0, N["cy"] - N["h"] / 2.0))))
+                  bot = min(H, int(round(max(F["cy"], N["cy"]) + min(F["h"], N["h"]) * 0.1)))
+                  note2 = "no bar behind the bridge"
+                  if gx1 - gx0 > 6 and bot - top > 6:
+                      # how dark the frame is, from the near rim ring
+                      ex = (xx - N["cx"]) / (N["w"] / 2.0); ey = (yy - N["cy"]) / (N["h"] / 2.0); q = np.sqrt(ex * ex + ey * ey)
+                      ringp = (q > 1.03) & (q < 1.12) & (out[:, :, 3] > 160)
+                      rgb = out[:, :, :3].astype(np.float32); lum = rgb[:, :, 0] * 0.3 + rgb[:, :, 1] * 0.59 + rgb[:, :, 2] * 0.11
+                      f_lum = float(np.median(lum[ringp])) if ringp.sum() > 20 else 60.0
+                      dark = f_lum < 130
+                      g = out[top:bot, gx0:gx1]; glum = lum[top:bot, gx0:gx1]
+                      bar = (g[:, :, 3] > 100) & ((~np.full(glum.shape, dark)) | (glum < f_lum + 55))
+                      cov = bar.sum(axis=1); gw = gx1 - gx0
+                      rows = cov > gw * 0.6
+                      bands, inb, b0 = [], False, 0
+                      for i, on in enumerate(list(rows) + [False]):
+                          if on and not inb: inb, b0 = True, i
+                          elif not on and inb: inb = False; bands.append((b0, i - 1))
+                      thin = min(F["h"], N["h"]) * 0.12
+                      bands = [b for b in bands if (b[1] - b[0] + 1) <= thin]
+                      if len(bands) >= 2:
+                          rim_t = max(3, int(round(min(F["h"], N["h"]) * 0.045)))
+                          for b in bands[1:]:
+                              out[max(0, top + b[0] - 2): top + b[1] + 3, gx0 + rim_t: max(gx0 + rim_t, gx1 - rim_t), 3] = 0
+                          if dark:                                    # light glass between the bridge and that bar -- not lower: the clear nose pads hang there
+                              y0c = top + bands[0][1] + 1
+                              y1c = min(bot, top + bands[-1][1] + 5)
+                              sub = out[y0c:y1c, gx0:gx1]; sl = lum[y0c:y1c, gx0:gx1]
+                              sub[(sub[:, :, 3] > 0) & (sl >= f_lum + 55), 3] = 0
+                              # lower down are the clear silicone nose pads: light, so they are made see-through, as they are
+                              px0 = max(0, gx0 - int((gx1 - gx0) * 0.3)); px1 = min(W, gx1 + int((gx1 - gx0) * 0.3))
+                              py1 = min(H, bot + int(min(F["h"], N["h"]) * 0.25))
+                              sub2 = out[y1c:py1, px0:px1]; sl2 = lum[y1c:py1, px0:px1]
+                              pm = (sub2[:, :, 3] > 80) & (sl2 >= f_lum + 55)
+                              sub2[pm, 3] = 80
+                          note2 = "far temple behind the bridge removed (%d bar%s)" % (len(bands) - 1, "" if len(bands) == 2 else "s")
+                  if stub is not None:
+                      st, sb, sx0, sx1, snap, outs = stub
+                      n_ = sx1 - sx0
+                      pos = np.arange(n_) / max(1.0, n_ - 1.0)                 # 0 .. 1 left to right
+                      from_hinge = (1.0 - pos) if outs > 0 else pos            # 0 at the hinge, 1 at the far end of the piece
+                      fade = np.clip((1.0 - from_hinge) / 0.65, 0, 1)          # solid for the first third, then fading out
+                      region = out[st:sb, sx0:sx1]
+                      rgbS = snap[:, :, :3].astype(np.float32); lumS = rgbS[:, :, 0] * 0.3 + rgbS[:, :, 1] * 0.59 + rgbS[:, :, 2] * 0.11
+                      keep = snap[:, :, 3] > 60
+                      if keep.sum() > 4:
+                          keep &= lumS < float(np.median(lumS[keep])) + 60       # the temple, not glass beside it
+                      a_new = (snap[:, :, 3].astype(np.float32) * fade[None, :]).astype(np.uint8)
+                      m = keep & (a_new > region[:, :, 3])
+                      region[m, :3] = snap[m, :3]; region[m, 3] = a_new[m]
+                      note2 += "; far temple kept %d px behind the hinge" % n_
+                  return out, "lens clean: %d pixels seen through the lenses cleared; %s" % (cleared, note2)
+              except Exception as ex:
+                  return rgba, "lens clean skipped (%s)" % str(ex)[:60]
+
+
+          def smooth_view_bottoms(rgba, lenses, rim_rgb=None, SPAN=26.0):
+              """
+              SMOOTH BOTTOM RIM (2026-10-07r, shop: "the rim is zigzag up and down at the
+              bottom; the top is very good"): around each lens, the rim's inner edge and
+              thickness are read along rays from the lens centre, one per degree. The rim's
+              true thickness is the one read along the top. Along the bottom (from 4 to 8
+              o'clock) the rim's middle line is smoothed (a local curve fitted over +-26 degrees
+              that ignores teeth and bites) and the rim is painted again there as one even
+              band of the top's thickness, in the rim's own colour, edges anti-aliased.
+              Towards the sides it blends back into the original rim, so there is no step;
+              the inner side (nose pads) and the outer top (hinge) are never touched.
+              """
+              out = rgba.copy()
+              H, W = out.shape[:2]
+              al = out[:, :, 3].astype(np.float32)
+              notes = []
+              if rim_rgb is None:
+                  rim_rgb = None
+              for L in lenses:
+                  cx, cy, w, h = float(L["cx"]), float(L["cy"]), float(L["w"]), float(L["h"])
+                  if w < 20 or h < 20:
+                      continue
+                  if bottom_rim_share(rgba, L) < 0.6:
+                      notes.append("no rim along the bottom (supra / rimless): left as is")
+                      continue
+                  r0 = 0.3 * min(w, h) / 2.0
+                  rr = np.arange(r0, 0.8 * max(w, h), 0.25)
+                  angs = np.arange(-180, 180)
+                  rin = np.full(360, np.nan); tk = np.full(360, np.nan)
+                  for k, th in enumerate(angs):
+                      t = np.radians(th)
+                      fx = cx + rr * np.cos(t); fy = cy + rr * np.sin(t)
+                      ok = (fx >= 0) & (fx < W - 1) & (fy >= 0) & (fy < H - 1)
+                      a = np.zeros(len(rr), np.float32)
+                      ix = np.floor(fx[ok]).astype(int); iy = np.floor(fy[ok]).astype(int)
+                      ux = fx[ok] - ix; uy = fy[ok] - iy
+                      a[ok] = (al[iy, ix] * (1 - ux) * (1 - uy) + al[iy, ix + 1] * ux * (1 - uy)
+                               + al[iy + 1, ix] * (1 - ux) * uy + al[iy + 1, ix + 1] * ux * uy)
+                      on = a > 127.5
+                      idx = np.where(on)[0]
+                      if not idx.size:
+                          continue
+                      runs = []; i = idx[0]
+                      while i is not None:
+                          j = i; gap = 0
+                          while j < len(a):
+                              if on[j]:
+                                  gap = 0
+                              else:
+                                  gap += 1
+                                  if gap > 8:                   # a crack of up to 2 px is still the rim
+                                      j -= gap - 1
+                                      break
+                              j += 1
+                          runs.append((i, j))
+                          nxt = idx[idx >= j]
+                          i = int(nxt[0]) if nxt.size else None
+                      # the RIM, not a nose pad seen through the glass inside it: the outermost run that starts where the lens
+                      # opening's own outline is (2026-10-07s: a pad put back inside the lens must never be read as the rim)
+                      re_ = 1.0 / np.sqrt((np.cos(t) / (w / 2.0)) ** 2 + (np.sin(t) / (h / 2.0)) ** 2)
+                      ok_runs = [(p, q) for (p, q) in runs if 0.85 * re_ <= rr[p] <= 1.15 * re_]
+                      i, j = (ok_runs[-1] if ok_runs else runs[0])
+                      def cross(p, q):                          # where the alpha crosses half, between samples p and q
+                          if p < 0 or q >= len(a) or a[p] == a[q]:
+                              return rr[min(max(q, 0), len(a) - 1)]
+                          return rr[p] + (127.5 - a[p]) / (a[q] - a[p]) * (rr[q] - rr[p])
+                      e_in = cross(i - 1, i); e_out = cross(j - 1, j) if j < len(a) else rr[-1]
+                      rin[k] = e_in; tk[k] = max(0.0, e_out - e_in)
+                  top = (angs >= -135) & (angs <= -45) & ~np.isnan(tk)
+                  if top.sum() < 20:
+                      continue
+                  T = float(np.median(tk[top]))
+                  if not (1.5 <= T <= 0.12 * min(w, h)):
+                      continue
+                  # the rim's middle line, per degree, with a trust weight
+                  mid = np.full(360, np.nan); wt = np.zeros(360)
+                  for k in range(360):
+                      if np.isnan(rin[k]):
+                          continue
+                      t = tk[k]
+                      if 0.6 * T <= t <= 1.5 * T:
+                          mid[k] = rin[k] + t / 2.0; wt[k] = 1.0
+                      elif t > 1.5 * T:                         # shadow outside: the inner edge is right
+                          mid[k] = rin[k] + T / 2.0; wt[k] = 0.7
+                      else:                                     # bitten: guess
+                          mid[k] = rin[k] + T / 2.0; wt[k] = 0.25
+                  # local robust curve fit over +-26 degrees, for 5..175 degrees
+                  A = np.arange(5, 176)
+                  smooth = np.full(len(A), np.nan)
+                  deg = angs.astype(float)
+                  rob = np.ones(360)
+                  for it in range(4):
+                      res = np.full(360, np.nan)
+                      for n, th in enumerate(A):
+                          d = deg - th
+                          m = (np.abs(d) <= SPAN) & ~np.isnan(mid) & (wt > 0)
+                          if m.sum() < 6:
+                              continue
+                          u = np.abs(d[m]) / SPAN
+                          ww = (1 - u ** 3) ** 3 * wt[m] * rob[m]
+                          if ww.sum() <= 1e-6:
+                              continue
+                          X = d[m] / SPAN; Y = mid[m]
+                          V = np.stack([np.ones_like(X), X, X * X], 1) * np.sqrt(ww)[:, None]
+                          try:
+                              cf = np.linalg.lstsq(V, Y * np.sqrt(ww), rcond=None)[0]
+                          except Exception:
+                              continue
+                          smooth[n] = cf[0]                     # a local curve, not a line: round corners stay round
+                      fitk = np.interp(deg, A, np.where(np.isnan(smooth), np.nanmedian(smooth), smooth))
+                      r = mid - fitk
+                      band = (deg >= 0) & (deg <= 180) & ~np.isnan(r)
+                      s = max(0.75, float(np.median(np.abs(r[band]))) * 1.4826)
+                      u = np.where(np.isnan(r), 9, np.abs(r) / (4.0 * s))
+                      rob = np.where(u < 1, (1 - u ** 2) ** 2, 0.0)
+                  if np.isnan(smooth).sum() > 20:
+                      continue
+                  smooth = np.interp(A, A[~np.isnan(smooth)], smooth[~np.isnan(smooth)])
+                  # the rim's colour: median of solid pixels on the top band
+                  if rim_rgb is None:
+                      cols = []
+                      for k in np.where(top)[0]:
+                          t = np.radians(angs[k]); rm = rin[k] + tk[k] / 2.0
+                          x = int(round(cx + rm * np.cos(t))); y = int(round(cy + rm * np.sin(t)))
+                          if 0 <= x < W and 0 <= y < H and out[y, x, 3] > 200:
+                              cols.append(out[y, x, :3])
+                      if len(cols) < 10:
+                          continue
+                      cols = np.array(cols, float); lum = cols @ [0.3, 0.59, 0.11]
+                      col = np.median(cols[lum <= np.median(lum)], axis=0)
+                  else:
+                      col = np.array(rim_rgb, float)
+                  # paint: core 30..150 degrees, blending out to 12 / 168
+                  rmax = float(smooth.max()) + T * 3.5 + 3
+                  x0 = max(0, int(cx - rmax)); x1 = min(W, int(cx + rmax) + 1)
+                  y0 = max(0, int(cy)); y1 = min(H, int(cy + rmax) + 1)
+                  yy, xx = np.mgrid[y0:y1, x0:x1].astype(np.float32)
+                  dx = xx - cx; dy = yy - cy
+                  R = np.hypot(dx, dy); TH = np.degrees(np.arctan2(dy, dx))
+                  sel = (TH >= 12) & (TH <= 168)
+                  M = np.interp(TH, A, smooth)
+                  inner = M - T / 2.0; outer = M + T / 2.0
+                  core = (TH >= 30) & (TH <= 150)               # towards the sides only the rim itself: pads sit there
+                  sel &= (R >= inner - np.where(core, 4, 1)) & (R <= outer + 2.5 * T + 2)
+                  wgt = np.clip(np.minimum(TH - 12, 168 - TH) / 18.0, 0, 1)
+                  wgt = 0.5 - 0.5 * np.cos(np.pi * wgt)
+                  cov = np.clip(np.minimum(R + 0.5, outer) - np.maximum(R - 0.5, inner), 0, 1)
+                  sub = out[y0:y1, x0:x1]
+                  a0 = sub[:, :, 3].astype(np.float32)
+                  na = wgt * cov * 255 + (1 - wgt) * a0
+                  rgb0 = sub[:, :, :3].astype(np.float32)
+                  # off the rim's own band, only DARK leftovers (teeth, shadow) go; light pieces there are clear nose pads: kept
+                  sel &= ~((cov <= 0) & (a0 > 0) & ((rgb0 @ np.array([0.299, 0.587, 0.114], np.float32)) > 150))
+                  # THE FRAME'S OWN COLOURS (08 Oct, shop: every frame -- a tortoise or two-tone rim keeps its pattern): where the
+                  # rim was already there its own pixels stay; a gap that is filled takes the colour of the rim pixel nearest to it
+                  from scipy import ndimage as _nd
+                  src_ok = (a0 > 200) & (R >= inner - 3) & (R <= outer + 3)
+                  if src_ok.any():
+                      _, (iy, ix) = _nd.distance_transform_edt(~src_ok, return_indices=True)
+                      near = rgb0[iy, ix]
+                  else:
+                      near = np.broadcast_to(col[None, None, :], rgb0.shape)
+                  tc = np.where((a0 > 200)[..., None], rgb0, near)
+                  mix = np.where(a0[..., None] > 0, (wgt * (cov > 0))[..., None], 1.0)
+                  nrgb = rgb0 * (1 - mix) + tc * mix
+                  changed = int((sel & (np.abs(na - a0) > 20)).sum())
+                  sub[:, :, 3] = np.where(sel, np.clip(np.round(na), 0, 255), a0).astype(np.uint8)
+                  sub[:, :, :3] = np.where(sel[..., None], np.clip(np.round(nrgb), 0, 255), rgb0).astype(np.uint8)
+                  notes.append("rim %.1f px, %d px evened" % (T, changed))
+              return out, notes
+
+
+          def restore_view_pads(photo, rgba, fit, debug=None):
+              """
+              THE NOSE PADS COME BACK (2026-10-07s, shop: "the nose pad is not visible --
+              compare with the original"). On a 30-degree picture the near lens's nose pad
+              is seen THROUGH the glass, so the glass clearing took it away with the glass,
+              and the clear silicone pads are pale like the sheet, so the edge finishing
+              dropped them. Here they are put back from the photo itself:
+                - the area under the bridge, between the two lenses, is emptied of the pale
+                  grey left there (it is sheet seen through, not a pad);
+                - in that area and on the nose side of each lens, the DARK metal pieces that
+                  hang from the rim (pad arm and pad holder) are taken from the photo, solid;
+                  a long straight dark bar is the far temple seen through the glass and is
+                  NOT taken;
+                - around each pad holder, the clear silicone pad (its outline differs from
+                  the sheet behind it) is taken see-through, with the photo's own colours.
+              """
+              from scipy import ndimage
+              import cv2
+              H, W = rgba.shape[:2]
+              out = rgba.copy()
+              near, far = fit["near"], fit["far"]
+              dirF = 1.0 if near["cx"] > far["cx"] else -1.0          # from the far lens towards the near lens
+              rgb = photo.astype(np.float32)
+              lum = rgb[..., 0] * 0.299 + rgb[..., 1] * 0.587 + rgb[..., 2] * 0.114
+              al = out[:, :, 3]
+              # ONLY METAL FRAMES WITH PAD ARMS: a thick (plastic) rim has its nose rests moulded in -- nothing to put back
+              runs_ = []
+              for x_ in range(int(near["cx"] - 0.25 * near["w"]), int(near["cx"] + 0.25 * near["w"]) + 1, 2):
+                  if not (0 <= x_ < W):
+                      continue
+                  col_ = np.where(al[:, x_] > 100)[0]
+                  if col_.size:
+                      y_ = col_[0]; n_ = 0
+                      while y_ + n_ < H and al[y_ + n_, x_] > 100:
+                          n_ += 1
+                      runs_.append(n_)
+              rimT = float(np.median(runs_)) if runs_ else 0.0
+              if not (0 < rimT <= 0.035 * near["h"]):
+                  return out, "nose pads: rim %.0f px thick (not a thin metal rim) -- nothing put back" % rimT
+              xs = np.arange(W)[None, :].astype(np.float32); ys = np.arange(H)[:, None].astype(np.float32)
+              # the pad area: from inside the far lens's nose side, across the gap, into the near lens's nose side
+              xa = far["cx"] + dirF * 0.30 * far["w"]; xb = near["cx"] - dirF * 0.12 * near["w"]
+              x0, x1 = min(xa, xb), max(xa, xb)
+              y0 = min(near["cy"] - 0.15 * near["h"], far["cy"] - 0.15 * far["h"])
+              y1 = max(near["cy"] + 0.48 * near["h"], far["cy"] + 0.48 * far["h"])
+              zone = (xs >= x0) & (xs <= x1) & (ys >= y0) & (ys <= y1)
+              # the far lens's opening and the near lens's opening (inside the rims), as ellipses
+              def ell(L, k):
+                  return ((xs - L["cx"]) / (L["w"] / 2.0)) ** 2 + ((ys - L["cy"]) / (L["h"] / 2.0)) ** 2 < k * k
+              inside_near = ell(near, 0.97); inside_far = ell(far, 0.97)
+              gap = zone & ~ell(near, 1.08) & ~ell(far, 1.08)          # between the lenses, under the bridge
+              # local sheet brightness (what the photo shows behind a clear pad)
+              k = int(max(15, round(0.12 * near["w"]))) | 1
+              bg = cv2.medianBlur(np.clip(lum, 0, 255).astype(np.uint8), min(k, 255)).astype(np.float32)
+              sheet = float(np.median(lum[zone & (al < 20)])) if (zone & (al < 20)).sum() > 50 else float(np.median(bg[zone]))
+              dark = (lum < 0.55 * sheet) & zone
+              # 1) the pale grey left under the bridge is sheet seen through: gone (dark metal stays)
+              pale = gap & (al > 0) & (lum > 0.62 * sheet)
+              out[pale, 3] = 0
+              n_pale = int(pale.sum())
+              # 2) the dark pieces hanging from the rims (pad arms, pad holders) -- the rims themselves are left as they are
+              def qmap(L):
+                  return np.sqrt(((xs - L["cx"]) / (L["w"] / 2.0)) ** 2 + ((ys - L["cy"]) / (L["h"] / 2.0)) ** 2)
+              qn, qf = qmap(near), qmap(far)
+              ring = ((qn > 0.93) & (qn < 1.12)) | ((qf > 0.93) & (qf < 1.12))
+              rim = al > 150
+              dark_all = lum < 0.55 * sheet                             # not cut at the zone's edge: a temple keeps its full length
+              lab, n = ndimage.label(dark_all & ~ring, structure=np.ones((3, 3)))
+              near_ring = ((qn > 0.82) & (qn < 1.2)) | ((qf > 0.82) & (qf < 1.2))
+              keep = np.zeros((H, W), bool); bars = np.zeros((H, W), bool); temples = 0; pieces = 0
+              for i in range(1, n + 1):
+                  c = lab == i
+                  cnt = int(c.sum())
+                  if cnt < 15 or not (c & zone).any():
+                      continue
+                  yy, xx = np.where(c)
+                  hug = (c & near_ring).sum() > 0.7 * cnt
+                  pts = np.stack([xx, yy], 1).astype(np.float64); pts -= pts.mean(0)
+                  ev = np.linalg.eigvalsh(np.cov(pts.T))
+                  major = 4.0 * np.sqrt(max(ev[1], 0)); minor = 4.0 * np.sqrt(max(ev[0], 0))
+                  if hug and minor < 0.3 * major:
+                      continue                                          # a sliver of the rim's own edge
+                  if major > 0.18 * near["w"] and minor < 0.3 * major:
+                      temples += 1; bars |= c                           # the far temple seen through the glass: stays out
+                      continue
+                  if not zone[int(round(yy.mean())), int(round(xx.mean()))]:
+                      continue
+                  if (xx.max() - xx.min()) > 0.35 * near["w"] or (yy.max() - yy.min()) > 0.4 * near["h"]:
+                      continue
+                  keep |= c; pieces += 1
+              # pad holders already in the cut-out (on the far lens they sit on the rim): the THICK dark blobs below the bridge
+              dtd = ndimage.distance_transform_edt(dark_all)
+              thick = (dtd >= max(4.0, 0.019 * near["h"])) & zone & ~ndimage.binary_dilation(bars, iterations=10) & (ys > min(near["cy"], far["cy"]) - 0.05 * near["h"])
+              holders = []
+              labh, nh = ndimage.label(thick)
+              for i in range(1, nh + 1):
+                  j = np.argmax(np.where(labh == i, dtd, -1)); hy, hx = divmod(int(j), W)
+                  holders.append((hx, hy, float(dtd[hy, hx])))
+              if not keep.any() and not holders:
+                  if debug is not None:
+                      debug.update(dict(zone=zone, dark=dark, keep=keep, clear=np.zeros_like(keep)))
+                  return out, "nose pads: none found in the photo (pale patch under the bridge cleared: %d px)" % n_pale
+              keep |= dark & ring & ~bars & ndimage.binary_dilation(keep, iterations=6)   # the arm joins the rim again
+              seed = keep.copy()
+              for hx, hy, r_ in holders:
+                  seed |= dark_all & ((xs - hx) ** 2 + (ys - hy) ** 2 <= (2.0 * r_) ** 2)
+              # 3) the clear silicone pad around each holder: the silicone is TEXTURED (its moulding and edges), the glass and
+              #    sheet behind it are smooth -- so the pad is where the photo is busy, close to a holder, filled in
+              dt = ndimage.distance_transform_edt(keep)
+              labk, nk = ndimage.label(keep, structure=np.ones((3, 3)))
+              around = np.zeros((H, W), bool); R = 0.15 * near["w"]
+              for i in range(1, nk + 1):
+                  c = labk == i
+                  if c.sum() < 25:
+                      continue
+                  j = np.argmax(np.where(c, dt, -1)); cy0, cx0 = divmod(int(j), W)       # the holder: the thickest part
+                  around |= (xs - cx0) ** 2 + (ys - cy0) ** 2 < R * R
+              for hx, hy, r_ in holders:
+                  around |= (xs - hx) ** 2 + (ys - hy) ** 2 < R * R
+              m1 = cv2.blur(lum, (5, 5)); m2 = cv2.blur(lum * lum, (5, 5)); sd = np.sqrt(np.maximum(m2 - m1 * m1, 0))
+              hard = ndimage.binary_dilation(rim | dark | ring, iterations=2) | ndimage.binary_dilation(bars, iterations=6)
+              busy = (sd > 5.0) & around & zone & ~hard
+              busy = ndimage.binary_closing(busy, structure=np.ones((3, 3)), iterations=2)
+              busy = ndimage.binary_fill_holes(busy) & around & ~ndimage.binary_dilation(bars, iterations=4)
+              busy = ndimage.binary_opening(busy, structure=np.ones((3, 3)), iterations=2)
+              grow = ndimage.binary_dilation(seed, iterations=5)
+              lab2, n2 = ndimage.label(busy)
+              clear = np.zeros((H, W), bool)
+              for i in range(1, n2 + 1):
+                  c = lab2 == i
+                  if (c & grow).any() and c.sum() >= 80:
+                      clear |= c
+              clear = (clear | (ndimage.binary_dilation(clear, iterations=2) & hard & ~dark & ~rim & ~bars)) & ~rim & ~keep
+              # see-through: the silicone's own contrast against the sheet, never less than a faint body
+              diff = np.abs(lum - bg)
+              # how much of the silicone shows: its contrast against the sheet behind it (where it looks just like the sheet it
+              # is nearly see-through), and its colour with that sheet taken out, so on a face it shows the face behind it
+              ca = np.clip(0.05 + diff / 90.0 + sd / 60.0, 0.05, 0.5)
+              ca = np.where(clear, ca, 0.0)
+              ka = np.where(keep, 1.0, 0.0)
+              na = np.maximum(ka, ca)
+              na = np.where(keep, na, cv2.GaussianBlur(na.astype(np.float32), (5, 5), 1.1))   # soft silicone edges, sharp metal
+              na = np.maximum(na, cv2.GaussianBlur(np.where(keep, 1.0, 0.0).astype(np.float32), (3, 3), 0.6))
+              na = np.where(keep | clear | (cv2.dilate((keep | clear).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0), na, 0.0)
+              a_new = np.round(na * 255).astype(np.int32)
+              up = a_new > out[:, :, 3]
+              kb = min(k, 255)
+              bgc = np.dstack([cv2.medianBlur(np.ascontiguousarray(photo[..., c]), kb) for c in range(3)]).astype(np.float32)
+              seen = photo.astype(np.float32)
+              unmix = np.clip(bgc + (seen - bgc) / np.maximum(na, 0.05)[..., None], 0, 255)
+              col = np.where(keep[..., None], seen, unmix)
+              out[up, :3] = np.round(col[up]).astype(np.uint8)
+              out[up, 3] = a_new[up].astype(np.uint8)
+              if debug is not None:
+                  debug.update(dict(zone=zone, dark=dark, keep=keep, clear=clear))
+              return out, "nose pads put back from the photo: %d dark pieces (%d px), clear pads %d px; far temple left out (%d); pale patch under the bridge cleared (%d px)" % (
+                  pieces, int(keep.sum()), int(clear.sum()), temples, n_pale)
+
+
+          def restore_pads_view(rgba, photo):
+              """2026-10-07s: the nose pads of a 30-degree picture put back from the photo (see above)."""
+              try:
+                  b = io.BytesIO(); Image.fromarray(rgba, "RGBA").save(b, "PNG")
+                  fit = angle_anchors(b.getvalue())
+                  if not fit:
+                      return rgba, "nose pads: lenses not found, left as is"
+                  if photo.shape[:2] != rgba.shape[:2]:
+                      return rgba, "nose pads: photo size differs, left as is"
+                  return restore_view_pads(photo, rgba, fit)
+              except Exception as ex:
+                  return rgba, "nose pads left as is (%s)" % str(ex)[:60]
+
+
+          def white_front(photo, a_robot=None, edge=None):
+              """
+              THE SHOP PHOTO ON PLAIN WHITE, DEMO LENS CLEAR (2026-10-08, shop: "touch only the background -- the frame as it was
+              taken -- make it nice white; clean the demo lens like a clear lens; the shadow under the frame and under the temple
+              tips lighter and shorter, the same on both sides; it must work for every frame").
+                - What is FRAME is decided twice: by the robot's own cut-out (a_robot -- it knows a clear, white, silver or TR frame
+                  too) and by the photo itself (clearly darker than the sheet behind it -- arms seen through the lens, pad holders).
+                  Every frame pixel is kept exactly as photographed; only the sheet around it becomes white (255), and the soft
+                  edge in between is blended, so nothing is cut hard.
+                - Inside each lens opening only clearly dark things stay (the arms seen through the glass, the pad holders) and
+                  the clear silicone nose pads (their moulded edges, see-through); the demo glass, its tint, its reflections and
+                  the studio's back edge seen through it go white.
+                - A supra or rimless lens keeps its thin edge (edge = the robot's lens-edge line), so the lens shape still shows.
+                - The photo's own table shadow (dark, long, different left and right) is taken away; one soft light shadow is laid
+                  under each lens and under each temple tip where they touch the table -- the same on every frame.
+              photo: H x W x 3 uint8. a_robot: H x W float 0..1 or None. edge: H x W bool or None. Returns H x W x 3 uint8.
+              """
+              import cv2
+              from scipy import ndimage
+              p = photo.astype(np.float32)
+              H, W = p.shape[:2]
+              lum = p @ np.array([0.299, 0.587, 0.114], np.float32)
+              ks = int(max(15, round(W * 0.03))) | 1
+              k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ks, ks))
+              bg = np.dstack([cv2.morphologyEx(p[..., c], cv2.MORPH_CLOSE, k) for c in range(3)])
+              bg = cv2.GaussianBlur(bg, (0, 0), max(3.0, W * 0.0065))
+              bgL = bg @ np.array([0.299, 0.587, 0.114], np.float32)
+              lm = cv2.medianBlur(np.clip(lum, 0, 255).astype(np.uint8), 3).astype(np.float32)
+              a = np.clip((bgL - lm - 30) / (bgL * 0.42), 0, 1)                      # clearly darker than the sheet = frame
+              ar = None
+              if a_robot is not None and a_robot.shape == (H, W):
+                  ar = np.clip(a_robot.astype(np.float32), 0, 1)
+                  # where the cut-out took in a patch of plain background (between the lenses, the table under the frame), the photo
+                  # there looks just like the sheet: flat, the same brightness and colour. Fat patches like that are not frame.
+                  lb0 = cv2.GaussianBlur(lum, (0, 0), 1.0)
+                  s1 = cv2.blur(lb0, (7, 7)); s2 = cv2.blur(lb0 * lb0, (7, 7)); sd0 = np.sqrt(np.maximum(s2 - s1 * s1, 0))
+                  kq = int(max(15, round(W * 0.03))) | 1
+                  med = np.dstack([cv2.medianBlur(np.ascontiguousarray(photo[..., c]), min(kq, 255)) for c in range(3)]).astype(np.float32)
+                  medL = med @ np.array([0.299, 0.587, 0.114], np.float32)
+                  cd0 = np.abs(p - med).sum(axis=2)
+                  bgpx = lm[ar < 0.05]
+                  sheet_ref = float(np.median(bgpx)) if bgpx.size > 100 else 200.0
+                  sheetlike = (np.abs(medL - lm) < 10) & (cd0 < 25) & (sd0 < 5) & (lm > sheet_ref - 45)
+                  blob = (ar > 0.5) & sheetlike
+                  blob = ndimage.binary_fill_holes(ndimage.binary_closing(blob, np.ones((3, 3)), iterations=3)) & (ar > 0.5) & (lm > sheet_ref - 45)
+                  lb_, nb_ = ndimage.label(blob)
+                  if nb_:
+                      dt = ndimage.distance_transform_edt(blob)
+                      mx = ndimage.maximum(dt, lb_, range(1, nb_ + 1))
+                      fat = np.isin(lb_, [i + 1 for i, m in enumerate(mx) if m > 0.012 * W])
+                      ar = np.where(fat, 0, ar)
+                  ar_sheet = sheetlike
+                  core = ndimage.binary_erosion(ar > 0.5, iterations=1)             # its very edge is often a little sheet
+                  arc = np.where(core, ar, 0)
+                  # the cut-out's outer few pixels are kept only where the photo there is really darker or of another colour than
+                  # the sheet next to it (a soft halo of sheet round the rim would show as a grey outline on white)
+                  rim_edge = (ar > 0.05) & ~ndimage.binary_erosion(ar > 0.5, iterations=3)
+                  arc = np.where(rim_edge & ~((lm < medL - 6) | (cd0 > 20)), 0, arc)
+                  if edge is not None and edge.shape == (H, W):
+                      arc = np.where(edge, np.maximum(arc, ar), arc)
+                  a = np.maximum(a, arc)
+              # the lens openings: holes inside the rim, from the photo and from the robot's cut-out
+              fr = ndimage.binary_closing(a > 0.5, np.ones((5, 5)), iterations=2)
+              holes = ndimage.binary_fill_holes(fr) & ~fr
+              if ar is not None:
+                  fr2 = ar > 0.5
+                  holes |= ndimage.binary_fill_holes(fr2) & ~fr2 & ~fr
+              lab, n = ndimage.label(holes)
+              lens = np.zeros((H, W), bool)
+              if n:
+                  sz = ndimage.sum(holes, lab, range(1, n + 1))
+                  big = [i + 1 for i in np.argsort(sz)[::-1][:2] if sz[i] > 0.01 * H * W]
+                  lens = np.isin(lab, big)
+              al = np.clip((bgL - lm - 45) / (bgL * 0.35), 0, 1)
+              if edge is not None and edge.shape == (H, W) and ar is not None:
+                  al = np.where(edge, np.maximum(al, ar), al)
+              # light frames (silver, gold, coloured TR): their arms seen through the lens are only a little darker than the sheet,
+              # or of another colour -- big connected pieces of that are kept; small marks (lens print, reflections) and a long
+              # thin straight band across the lens (the studio's back edge) are not
+              if lens.any():
+                  cd = np.abs(p - bg).sum(axis=2)
+                  cand = lens & (((bgL - lm) > 16) | (cd > 45))
+                  cand = ndimage.binary_closing(cand, np.ones((3, 3)), iterations=2) & lens   # an arm in one piece
+                  lc, ncand = ndimage.label(cand)
+                  lens_w = max(1, int(np.ptp(np.where(lens)[1]) / 2)) if lens.any() else W
+                  for j in range(1, ncand + 1):
+                      c = lc == j
+                      if c.sum() < 0.0012 * H * W:
+                          continue
+                      yy, xx = np.where(c)
+                      if (yy.max() - yy.min()) < 0.03 * H and (xx.max() - xx.min()) > 0.5 * lens_w:
+                          continue                                                  # the studio's back edge seen through the glass
+                      pts = np.stack([xx, yy], 1).astype(np.float64); pts -= pts.mean(0)
+                      ev = np.linalg.eigvalsh(np.cov(pts.T))
+                      major = 4.0 * np.sqrt(max(ev[1], 0)); minor = 4.0 * np.sqrt(max(ev[0], 0))
+                      if not (major > 2.5 * minor and minor < 0.05 * W and c.sum() < 0.02 * H * W):
+                          continue                                                  # a patch of tinted glass, not an arm (long and narrow)
+                      ca = np.clip(np.maximum((bgL - lm - 4) / 30.0, (cd - 15) / 50.0), 0, 1)
+                      al = np.where(c, np.maximum(al, ca), al)
+              a = np.where(lens, al, a)
+              # clear silicone nose pads beside the holders: only their moulded edges show, see-through
+              lb = cv2.GaussianBlur(lum, (0, 0), 1.0)
+              m1 = cv2.blur(lb, (7, 7)); m2 = cv2.blur(lb * lb, (7, 7)); sd = np.sqrt(np.maximum(m2 - m1 * m1, 0))
+              dk, nd = ndimage.label((a > 0.6) & ndimage.binary_dilation(lens, iterations=6))
+              padz = np.zeros((H, W), bool)
+              Yo, Xo = np.ogrid[:H, :W]
+              for i in range(1, nd + 1):
+                  c = dk == i; s = c.sum()
+                  if 80 < s < 0.004 * H * W:
+                      yy, xx = np.where(c)
+                      padz |= ((Xo - xx.mean()) ** 2 + (Yo - yy.mean()) ** 2 < (0.045 * W) ** 2)
+              pm = padz & (sd > 6) & ~ndimage.binary_dilation(a > 0.6, iterations=3)
+              pm = ndimage.binary_opening(ndimage.binary_fill_holes(ndimage.binary_closing(pm, np.ones((3, 3)), iterations=3)),
+                                          np.ones((3, 3)), iterations=2)
+              pa = np.clip(np.abs(lb - bgL) / 60 + sd / 40, 0, 0.85)
+              a = np.where(pm, np.maximum(a, pa), a)
+              # the table shadow: the photo's own goes, one soft light one under each lens and each temple tip
+              SHADOW_DARK, SHADOW_LEN = 0.20, 0.20
+              shadows = []
+              cleared = np.zeros((H, W), bool)                                      # what the shadow step took away stays away
+              if lens.any():
+                  labl, nl = ndimage.label(lens)
+                  dist_lens = ndimage.distance_transform_edt(~lens)                 # how far each pixel is from a lens opening
+                  solid = (lm < 45) | ((ar > 0.5) & ~ar_sheet) if ar is not None else (lm < 120)
+                  for i in range(1, nl + 1):
+                      Lm = labl == i; ys, xs = np.where(Lm); lw = xs.max() - xs.min(); cx = (xs.max() + xs.min()) / 2.0; yb = ys.max()
+                      # the rim's own thickness, read above the lens: a shadow stuck under the rim is further out than that
+                      runs = []
+                      for x in range(int(cx - 0.2 * lw), int(cx + 0.2 * lw) + 1, 3):
+                          col = np.where(Lm[:, x])[0]
+                          if not col.size: continue
+                          y = int(col.min()) - 1; n_ = 0
+                          while y >= 0 and (solid[y, x] or lm[y, x] < 120): n_ += 1; y -= 1
+                          runs.append(n_)
+                      Tr = float(np.median(runs)) if runs else 0.01 * W
+                      near_rim = dist_lens <= Tr + 3
+                      x0 = max(0, int(xs.min() - 0.25 * lw)); x1 = min(W, int(xs.max() + 0.25 * lw))
+                      ylo = int(yb - 0.03 * H); yhi = min(H, int(yb + 0.07 * H)); ycont = yb
+                      for x in range(x0, x1):
+                          col = Lm[:, x]
+                          if col.any() and abs(x - cx) < 0.38 * lw:                # under the lens bottom: below the rim itself
+                              y = int(np.where(col)[0].max()) + 1; y0r = y
+                              while y < H and y < y0r + 8 and lm[y, x] >= 100: y += 1
+                              while y < H and near_rim[y, x] and (lm[y, x] < 120 or (ar is not None and ar[y, x] > 0.5 and not ar_sheet[y, x])): y += 1
+                              if y >= y0r + 8 and lm[min(H - 1, y), x] >= 100 and not (lm[y0r:y, x] < 100).any(): y = y0r + 8
+                              if abs(x - cx) < 0.05 * lw: ycont = max(ycont, y)
+                              a[y + 1:yhi, x] = 0; cleared[y + 1:yhi, x] = True
+                          else:                                                     # beside the lens: the shadow's tails
+                              ya = max(ylo, int(yb - 0.012 * H))
+                              keep_px = (lm[ya:yhi, x] < 45) | ((ar[ya:yhi, x] > 0.5) & ~ar_sheet[ya:yhi, x] if ar is not None else False)
+                              keep_px &= near_rim[ya:yhi, x]                        # only the rim itself, not a shadow beside it
+                              a[ya:yhi, x] = np.where(keep_px, a[ya:yhi, x], 0); cleared[ya:yhi, x] |= ~keep_px
+                      shadows.append((cx, ycont, lw))
+                  inlens = np.zeros((H, W), np.uint8)
+                  for i in range(1, nl + 1):
+                      ys_, xs_ = np.where(labl == i)
+                      hull = cv2.convexHull(np.stack([xs_, ys_], 1).astype(np.int32)); cv2.fillPoly(inlens, [hull], 1)
+                  inlens = ndimage.binary_erosion(inlens.astype(bool), iterations=3)
+                  lt, nt = ndimage.label(inlens & (lm < 70))
+                  for j in range(1, nt + 1):
+                      c = lt == j
+                      if c.sum() < 0.0004 * H * W: continue
+                      yy, xx = np.where(c)
+                      if (yy.max() - yy.min()) < 0.12 * H: continue                 # not an arm: a pad holder or a speck
+                      ty = int(yy.max()); low = yy >= ty - 6; tx = float(xx[low].mean()); tw = float(xx[low].max() - xx[low].min() + 1)
+                      keepc = ndimage.binary_dilation(c, iterations=3)
+                      box = np.zeros((H, W), bool)
+                      box[max(0, ty - 3):min(H, int(ty + 0.035 * H)), max(0, int(tx - 0.05 * W)):min(W, int(tx + 0.05 * W))] = True
+                      gone_ = box & ~keepc & (lm >= 45) & inlens
+                      a[gone_] = 0; cleared |= gone_
+                      shadows.append((tx, ty, max(tw * 1.6, 0.012 * W) / SHADOW_LEN * 0.5))
+              # faint marks (sheet grain, the studio's back edge) fade out; loose specks not joined to the frame go
+              t = np.clip((a - 0.15) / 0.35, 0, 1); a = np.where(a >= 0.5, a, 0.5 * t * t * (3 - 2 * t))
+              if ar is not None:
+                  a = np.where((ar > 0.5) & ~lens & ~cleared, np.maximum(a, ar), a)  # never thinner than the robot's own frame
+              labs, ns = ndimage.label(a > 0.02)
+              if ns:
+                  sz = ndimage.sum(np.ones_like(a), labs, range(1, ns + 1)); small = np.where(sz < 0.00025 * H * W)[0] + 1
+                  a[np.isin(labs, small)] = 0
+              a = cv2.GaussianBlur(a.astype(np.float32), (0, 0), 0.5)
+              out = p + (1 - a)[..., None] * (255 - bg)
+              out[a <= 0.001] = 255
+              if shadows:
+                  Y, X = np.mgrid[:H, :W].astype(np.float32); d = np.zeros((H, W), np.float32)
+                  for cx, yc, lw in shadows:
+                      d = np.maximum(d, SHADOW_DARK * np.exp(-((X - cx) / (SHADOW_LEN * lw)) ** 2) * np.exp(-((Y - yc - 1) / max(1.2, 0.0022 * H)) ** 2))
+                  sh = a <= 0.001
+                  out[sh] = out[sh] * (1 - d[sh][:, None])
+              # a supra or rimless lens: its thin edge drawn lightly so the lens shape still shows on white (as on the cut-outs)
+              if edge is not None and edge.shape == (H, W) and edge.any():
+                  e = cv2.GaussianBlur(edge.astype(np.float32), (0, 0), 0.7)
+                  e = np.clip(e / max(1e-6, float(e.max())), 0, 1) * 0.30
+                  out = out * (1 - e[..., None]) + np.minimum(out, 150) * e[..., None]
+              return np.clip(np.round(out), 0, 255).astype(np.uint8), a
+
+
+          def smooth_view_rims(rgba):
+              """2026-10-07r: the bottom rim of both lenses of a 30-degree picture made smooth and even (see above)."""
+              try:
+                  b = io.BytesIO(); Image.fromarray(rgba, "RGBA").save(b, "PNG")
+                  fit = angle_anchors(b.getvalue())
+                  if not fit:
+                      return rgba, "bottom rim: lenses not found, left as is"
+                  out, notes = smooth_view_bottoms(rgba, [fit["near"], fit["far"]])
+                  return out, "bottom rim smoothed: " + ("; ".join(notes) if notes else "nothing to do")
+              except Exception as ex:
+                  return rgba, "bottom rim left as is (%s)" % str(ex)[:60]
+
 
           def _lens_shape_ring(a, colour_rgb, lens_mask, rim_alpha=0.72):
               """
@@ -3800,26 +4647,12 @@ jobs:
 
 
           def apply_reading(p, reading):
-              """Fill the boxes the shop left empty. Never overwrite a choice."""
-              filled = []
-              was_auto = set(p.get("autoFields") or [])
-              def put(field, value, sure=True):
-                  if not value: return
-                  if p.get(field) and field not in was_auto: return
-                  if p.get(field) == value: return
-                  p[field] = value; was_auto.add(field); filled.append(field + ("" if sure else "?"))
-              col = reading.get("colour") or {}
-              geo = reading.get("geometry") or {}
-              if col:
-                  put("colour", col.get("top"), True)
-                  if col.get("twoTone"): put("colour2", col.get("bottom"), False)
-              if geo:
-                  put("shape", geo.get("shape"), geo.get("shapeSure", False))
-                  put("rim", geo.get("rim"), geo.get("rimSure", False))
-                  put("material", geo.get("material"), False)
-              p["autoFields"] = sorted(was_auto)
+              """d17.86 / 08d (shop, 8 Oct: "staff decide shape, colour, material, rim -- no robot guesses"). The robot
+              still reads them and keeps the reading for later, but it never fills a box: on VG-1019 (a round frame) it said
+              Browline once and Wayfarer once, both "sure". Staff choose with the frame in hand."""
               p["robotRead"] = reading
-              return filled
+              p["autoFields"] = []
+              return []
 
 
           def sheet_colour(rgb):
@@ -4593,6 +5426,7 @@ jobs:
               half_ring = None; half_regions = []; tint_mask = None; edge_mask = None
               _half_keep = None; _a_half = None                    # the supra's own edge and nose pads (protected, 2 Oct)
               LAST_SOURCE[0] = None
+              LAST_WHITE[0] = None
               if front and rim_kind == "full":
                   # FULL RIM (typed in admin): never the half-rim path. If the
                   # model kept the glass solid, the traced outline is used only to
@@ -4659,6 +5493,7 @@ jobs:
               lens_ran = False
               lens_mask = None
               LAST_VIEW_GLASS[0] = None
+              VIEW_ROBOT_CLEAN[0] = False
               if (front and lens_fix) or angled:
                   # step 5z (LENS STEP): lens openings found from the photo's own
                   # edges and cleared. Only frames in LENS_FIX_IDS, or a test-lens run.
@@ -5102,6 +5937,16 @@ jobs:
                           log("    lens edge drawn the old way (%s)" % str(_ex)[:60])
                           rgba[edge_mask, 0] = 242; rgba[edge_mask, 1] = 245; rgba[edge_mask, 2] = 250
                           rgba[edge_mask, 3] = int(round(LENS_EDGE * 255))
+              if angled:
+                  rgba, _hn = heal_view_rims(rgba)          # 2026-10-07: rims whole on the 30-degree pictures
+                  log("    " + _hn)
+                  rgba, _cn = clean_view_lenses(rgba)       # 2026-10-07: nothing seen through the lenses; no double bridge
+                  log("    " + _cn)
+                  rgba, _sn = smooth_view_rims(rgba)        # 2026-10-07r: bottom rim smooth and even, no zigzag
+                  log("    " + _sn)
+                  rgba, _pn = restore_pads_view(rgba, np.asarray(colour_img))   # 2026-10-07s: the nose pads back from the photo
+                  log("    " + _pn)
+                  VIEW_ROBOT_CLEAN[0] = True
               ys, xs = np.where(a > 0.02)
               if ys.size:
                   pad = 4
@@ -5126,6 +5971,25 @@ jobs:
                   LAST_SOURCE[0] = _sb.getvalue()          # never inside nums: nums is saved as JSON
               except Exception as _ex:
                   log("    source picture could not be kept: %s" % str(_ex)[:60])
+              # THE SHOP PHOTO ON WHITE (2026-10-08, shop): the same photo with only the background made white, the demo lens
+              # clear and one light shadow under the lenses and temple tips -- the frame's own pixels as photographed. Made from
+              # the photo and this cut's own frame mask (a), so it works for every frame: metal, TR, acetate, clear, supra,
+              # rimless. A margin of white is kept round the frame.
+              if front:
+                  try:
+                      _ph = np.asarray(colour_img.convert("RGB"))
+                      if _ph.shape[:2] == a.shape:
+                          _em = edge_mask if (edge_mask is not None and getattr(edge_mask, "shape", None) == a.shape) else None
+                          _wh, _wa = white_front(_ph, a, _em)
+                          if ys.size:
+                              _fw = int(x1 - x0); _fh = int(y1 - y0)
+                              _mx = int(_fw * 0.10); _my = int(max(_fh * 0.35, _fw * 0.12))
+                              _wh = _wh[max(0, y0 - _my):min(a.shape[0], y1 + _my), max(0, x0 - _mx):min(a.shape[1], x1 + _mx)]
+                          _wb = io.BytesIO(); Image.fromarray(_wh, "RGB").save(_wb, "JPEG", quality=92)
+                          LAST_WHITE[0] = _wb.getvalue()
+                          log("    shop photo on white made (%dx%d)" % (_wh.shape[1], _wh.shape[0]))
+                  except Exception as _ex:
+                      log("    shop photo on white could not be made: %s" % str(_ex)[:70])
               return buf.getvalue(), nums
 
 
@@ -5630,6 +6494,8 @@ jobs:
                       p[field] = cloudinary_upload(png2, "tryon-" + field + "-" + pid, cname, cpreset)
                       # 45-degree fit points for the try-on (1 Oct): bridge and lens openings in this cut-out
                       _fit = angle_anchors(png2) if angled else None
+                      if _fit and VIEW_ROBOT_CLEAN[0]:
+                          _fit["robotClean"] = "07s"            # the page does not clean this picture again (it would cut the pads)
                       p[field.replace("Url", "Fit")] = _fit
                       if not angled:
                           pass
@@ -5920,6 +6786,58 @@ jobs:
                   log("    views for hand-published frames stopped: %s" % str(_ex)[:100])
 
 
+          def make_white(products, recut):
+              """white:<frames or all> -- the shop photo on white for frames already on the shop (see the note inside)."""
+              # SHOP PHOTO ON WHITE (2026-10-08): for frames already on the shop -- white:<id or code> (one frame first),
+              # then white:all. The front photo is cut again only to know exactly which pixels are frame; the cut-out on the
+              # shop is NOT changed. A frame that is live gets the new photo as "waiting in TO CHECK": it shows on the shop
+              # only after APPROVE (or a new frame's APPROVE).
+              want = [x.strip() for x in recut.split(":", 1)[1].split(",") if x.strip()]
+              cname, cpreset = cloudinary_probe(products)
+              done_n = 0
+              for p in products:
+                  pid = str(p.get("id"))
+                  if "all" not in want and not any(frame_matches(p, w) for w in want):
+                      continue
+                  if not p.get("tryOnUrl") or p.get("deleted") or p.get("draft"):
+                      continue
+                  if "all" in want and p.get("whiteUrl"):
+                      continue                                   # done in an earlier run
+                  if out_of_time():
+                      log("Time is up; run white:all again to finish the rest.")
+                      break
+                  log("--- %s : %s" % (pid, (p.get("name") or "")[:40]))
+                  try:
+                      rim_txt = str(p.get("rim") or p.get("rimType") or "").lower()
+                      rk = rim_kind_of(rim_txt) if pid in NEW_METHOD_IDS else ""
+                      old_hint = None if rk else any(k in rim_txt for k in ("half", "supra", "semi", "rimless"))
+                      src = front_photo(p)
+                      colour_src = None
+                      if not is_metal(p):
+                          colour_src = no_enhancement(src)
+                          if colour_src == src:
+                              colour_src = None
+                      lf = pid in LENS_FIX_IDS or (LENS_FOR_ALL and lens_ok(p))
+                      png, nums = cut(download(src), front=True, rim_kind=rk, half_rim_hint=old_hint,
+                                      colour_bytes=download(colour_src) if colour_src else None, lens_fix=lf, size=p.get("size"))
+                      if not LAST_WHITE[0]:
+                          log("    no shop photo on white could be made -- left as it is")
+                          continue
+                      p["whiteUrl"] = cloudinary_upload(LAST_WHITE[0], "white-" + pid, cname, cpreset)
+                      if not p.get("awaitingCheck"):
+                          pv = list(p.get("pendingViews") or [])
+                          if "white" not in pv:
+                              pv.append("white")
+                          p["pendingViews"] = pv
+                      save_product(p)
+                      done_n += 1
+                      log("    shop photo on white: %s%s" % (p["whiteUrl"], "" if p.get("awaitingCheck") else " -- waiting in TO CHECK, shows after APPROVE"))
+                  except Exception as ex:
+                      log("    shop photo on white failed: %s" % str(ex)[:90])
+              log("  Shop photos on white made for %d frame(s)." % done_n)
+              return 0
+
+
           def main():
               if not SUPABASE_URL or not SUPABASE_KEY:
                   log("STOP: SUPABASE_URL or SUPABASE_KEY is missing from the repository secrets.")
@@ -5969,6 +6887,9 @@ jobs:
                               fit = angle_anchors(download(url))
                           except Exception as ex:
                               log("--- %s: %s could not be read: %s" % (p.get("name") or p.get("id"), label, str(ex)[:60])); continue
+                          _old = p.get(field.replace("Url", "Fit"))
+                          if fit and isinstance(_old, dict) and _old.get("robotClean"):
+                              fit["robotClean"] = _old["robotClean"]     # 07s: still a robot-cleaned picture
                           p[field.replace("Url", "Fit")] = fit
                           changed = True
                           log("--- %s: %s fit points %s" % (p.get("name") or p.get("id"), label,
@@ -6037,6 +6958,8 @@ jobs:
                       save_product(p)
                       log("    cleared %s (%s): try-on taken down, waiting for a new photo" % (p.get("id"), (p.get("name") or "")[:30]))
                   return 0
+              if recut.lower().startswith("white:"):
+                  return make_white(products, recut)
               if recut.lower().startswith("views:"):
                   # VIEWS (2026-09-26): cut the 45 left, 45 right and 90 side views of
                   # frames already on the shop, on white. The front cut-out is not
@@ -6402,6 +7325,12 @@ jobs:
                       p.pop("tryOnDraft", None)
                       p["tryOnUrl"] = url
                       p["tryOnReady"] = True
+                      if LAST_WHITE[0]:
+                          try:
+                              p["whiteUrl"] = cloudinary_upload(LAST_WHITE[0], "white-" + str(pid), cname, cpreset)
+                              log("    shop photo on white: " + p["whiteUrl"])
+                          except Exception as _ex:
+                              log("    shop photo on white could not be kept: %s" % str(_ex)[:60])
                       # READY TO CHECK (2026-09-27, shop): a fresh cut is not put live by
                       # the robot any more -- a person looks at it in admin and approves it
                       p["awaitingCheck"] = True
@@ -6506,7 +7435,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-07j (as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-08d (robot reads shape/colour/material/rim but never fills them -- staff decide; as 08c, plus: the white shop photo ignores background patches and table shadow the cut-out took in, and keeps no grey halo; as 08a, plus: the shop photo on plain white -- frame untouched, demo lens clear, light shadows -- made with every front cut, and white:<frame> for frames already on the shop; as 07s, plus: the 30-degree rim healing and bottom smoothing only where the lens really has a rim along its bottom -- a supra or rimless lens edge is left as it is; the smoothed bottom keeps the frame's own colours and pattern; as 07r, plus: the nose pads (arm, holder and the clear silicone pad) put back on the 30-degree pictures from the photo, the grey patch under the bridge removed, and the try-on told not to clean these pictures again; as 07q, plus: the bottom rim of the 30-degree pictures made smooth and even -- no zigzag; as 07p, plus: the nose pads stay; the table shadow under the bottom rim is removed; as 07n, plus: the far temple keeps its first 5-6 mm behind the hinge, fading out; as 07m, plus: on 30-degree pictures everything seen through the lenses is cleared -- the far temple across the demo, solid glass in its top -- and the far temple behind the bridge (double bridge) is removed; as 07k, plus: the rim on 30-degree pictures is healed -- small breaks closed with the photo's own pixels, glare dots beside the rim removed, nose-pad side and hinge left alone; as 07j, plus: 30-degree fit points found on thin metal rims too -- a softer rim edge, small breaks closed, a lens cut short by solid glass gets its real height; as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
