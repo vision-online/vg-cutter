@@ -1,9 +1,89 @@
-Run 4641  Sat Oct 24 11:44:41 UTC 2026
+Run 4642  Sat Oct 24 11:59:56 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-10-08d (robot reads shape/colour/material/rim but never fills them -- staff decide; as 08c, plus: the white shop photo ignores background patches and table shadow the cut-out took in, and keeps no grey halo; as 08a, plus: the shop photo on plain white -- frame untouched, demo lens clear, light shadows -- made with every front cut, and white:<frame> for frames already on the shop; as 07s, plus: the 30-degree rim healing and bottom smoothing only where the lens really has a rim along its bottom -- a supra or rimless lens edge is left as it is; the smoothed bottom keeps the frame's own colours and pattern; as 07r, plus: the nose pads (arm, holder and the clear silicone pad) put back on the 30-degree pictures from the photo, the grey patch under the bridge removed, and the try-on told not to clean these pictures again; as 07q, plus: the bottom rim of the 30-degree pictures made smooth and even -- no zigzag; as 07p, plus: the nose pads stay; the table shadow under the bottom rim is removed; as 07n, plus: the far temple keeps its first 5-6 mm behind the hinge, fading out; as 07m, plus: on 30-degree pictures everything seen through the lenses is cleared -- the far temple across the demo, solid glass in its top -- and the far temple behind the bridge (double bridge) is removed; as 07k, plus: the rim on 30-degree pictures is healed -- small breaks closed with the photo's own pixels, glare dots beside the rim removed, nose-pad side and hinge left alone; as 07j, plus: 30-degree fit points found on thin metal rims too -- a softer rim edge, small breaks closed, a lens cut short by solid glass gets its real height; as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::Frames: 10. Waiting: 0. Rejected: 0.
+::notice::Frames: 10. Waiting: 6. Rejected: 0.
 
 --- what the robot did ---
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:448: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    rim type: not set (0 clean lens holes)
+    lens step skipped, nothing changed: could not find both lenses
+    sheet-ring peel (local wall colour): 63 px taken off the edge
+    size check: frame works out at 1413 mm (typed 51 + 18 -> about 139 mm expected)
+    SIZE CHECK: 917% away from the typed numbers -> kept off the website
+    the frame is SIDEWAYS in the photo (338 wide x 909 tall) -> REJECTED, re-shoot
+    arms above the frame: 19.4% -> REJECTED, re-shoot (nothing was cut)
+    shop photo on white made (416x1400)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792842987/yamqchqm1yxc4xsqlr4p.png
+  pmvmbe9rn2 REJECTED, kept off the website: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.
+--- pmvmbguu66 : Vincent Carlo Ferero
+    rim type: not set (0 clean lens holes)
+    lens step skipped, nothing changed: the two lenses are not a pair even after trimming (556 vs 222 px)
+    sheet-ring peel (local wall colour): 122 px taken off the edge
+    size check: frame works out at 1615 mm (typed 51 + 22 -> about 143 mm expected)
+    SIZE CHECK: 1030% away from the typed numbers -> kept off the website
+    the frame is SIDEWAYS in the photo (343 wide x 960 tall) -> REJECTED, re-shoot
+    arms above the frame: 15.8% -> REJECTED, re-shoot (nothing was cut)
+    shop photo on white made (423x1400)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792843022/elrdfwdsdxcnnsdr6au8.png
+  pmvmbguu66 REJECTED, kept off the website: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.
+--- pmvmbi7pa33 : Vincent Carlo Ferero
+    rim type: not set (0 clean lens holes)
+    lens step skipped, nothing changed: could not find both lenses
+    sheet-ring peel (local wall colour): 114 px taken off the edge
+    size check: frame works out at 1620 mm (typed 51 + 22 -> about 143 mm expected)
+    SIZE CHECK: 1033% away from the typed numbers -> kept off the website
+    the frame is SIDEWAYS in the photo (344 wide x 956 tall) -> REJECTED, re-shoot
+    arms above the frame: 25.2% -> REJECTED, re-shoot (nothing was cut)
+    shop photo on white made (424x1400)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792843057/szhor1qs23csqqa9pgib.png
+  pmvmbi7pa33 REJECTED, kept off the website: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.
+--- pmvmbj7g740 : Vincent Carlo Ferero
+    rim type: not set (0 clean lens holes)
+    lens step skipped, nothing changed: could not find both lenses
+    sheet-ring peel (local wall colour): 11 px taken off the edge
+    size check: frame works out at 1021 mm (typed 47 + 22 -> about 135 mm expected)
+    SIZE CHECK: 656% away from the typed numbers -> kept off the website
+    the frame is SIDEWAYS in the photo (318 wide x 907 tall) -> REJECTED, re-shoot
+    arms above the frame: 8.4% -> REJECTED, re-shoot (nothing was cut)
+    shop photo on white made (392x1400)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792843092/yzobvesn6usqo5s61ot6.png
+  pmvmbj7g740 REJECTED, kept off the website: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.
+--- pmvmbk5mp91 : Vincent Carlo Ferero
+    rim type: not set (0 clean lens holes)
+    lens step skipped, nothing changed: could not find both lenses
+    sheet-ring peel (local wall colour): 1813 px taken off the edge
+    size check: frame works out at 1728 mm (typed 52 + 23 -> about 146 mm expected)
+    SIZE CHECK: 1083% away from the typed numbers -> kept off the website
+    the frame is SIDEWAYS in the photo (334 wide x 948 tall) -> REJECTED, re-shoot
+    arms above the frame: 20.6% -> REJECTED, re-shoot (nothing was cut)
+    shop photo on white made (412x1400)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792843123/ceifqbuowf3wcntdpi0h.png
+  pmvmbk5mp91 REJECTED, kept off the website: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.
+--- pmvmbkywh91 : Vincent Carlo Ferero
+    rim type: not set (0 clean lens holes)
+    lens step skipped, nothing changed: could not find both lenses
+    sheet-ring peel (local wall colour): 1889 px taken off the edge
+    size check: frame works out at 1675 mm (typed 52 + 23 -> about 146 mm expected)
+    SIZE CHECK: 1047% away from the typed numbers -> kept off the website
+    the frame is SIDEWAYS in the photo (335 wide x 948 tall) -> REJECTED, re-shoot
+    arms above the frame: 12.5% -> REJECTED, re-shoot (nothing was cut)
+    shop photo on white made (413x1400)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792843154/tsbh0wv1mloylqegbpr8.png
+  pmvmbkywh91 REJECTED, kept off the website: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.
+--- pmvmbm44o49 : Vincent Carlo Ferero
+    rim type: not set (0 clean lens holes)
+    lens step skipped, nothing changed: could not find both lenses
+    sheet-ring peel (local wall colour): 140 px taken off the edge
+    size check: frame works out at 1864 mm (typed 51 + 22 -> about 143 mm expected)
+    SIZE CHECK: 1204% away from the typed numbers -> kept off the website
+    the frame is SIDEWAYS in the photo (332 wide x 956 tall) -> REJECTED, re-shoot
+    arms above the frame: 15.4% -> REJECTED, re-shoot (nothing was cut)
+    shop photo on white made (410x1400)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792843191/pdnybd4ffwi9qzbplr4m.png
+  pmvmbm44o49 REJECTED, kept off the website: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.
+  Why they were held back: 7 arms above the frame
+  Finished. Cut 0, failed 0, rejected 7, still waiting 7.  Rejected: Vincent Carlo Ferero: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.; Vincent Carlo Ferero: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.; Vincent Carlo Ferero: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.; Vincent Carlo Ferero: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.; Vincent Carlo Ferero: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.
