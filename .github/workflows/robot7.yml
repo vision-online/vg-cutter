@@ -5080,6 +5080,21 @@ jobs:
               dist = cv2.distanceTransform(free, cv2.DIST_L2, 5)
               def border(i):
                   return st[i][0] == 0 or st[i][1] == 0 or st[i][0] + st[i][2] == W or st[i][1] + st[i][3] == H
+              # NOT GLASS (24 Oct 2026, Good Days half-rim at 30 degrees: the flat matte black ARM has no edges inside it, so it
+              # read as a big "lens opening" and was cleared -- only its outline was left). A lens opening shows the sheet through
+              # clear glass: it is never long and narrow like an arm, and on an angled view it is never solid dark material.
+              sheet_g = float(np.median(g[outside[y0:y1, x0:x1]])) if outside[y0:y1, x0:x1].any() else 255.0
+              _med = {}
+              def glassy(i):
+                  x_, y_, w_, h_, a_ = st[i]
+                  if w_ > 3.2 * h_:
+                      return False                                  # long and narrow: an arm, never a lens opening
+                  if angled:
+                      if i not in _med:
+                          _med[i] = float(np.median(g[lab == i]))
+                      if _med[i] < 0.5 * sheet_g:
+                          return False                              # solid dark material (an arm's body), not glass
+                  return True
               big_a, thin_a, deep = 3000 * s * s, 2000 * s * s, 30 * s
               rims = [i for i in range(1, n) if st[i][2] > 0.6 * W and not border(i)]
               how = "rim line"
@@ -5095,7 +5110,7 @@ jobs:
                   # lens-shaped openings standing side by side at the same height.
                   rim = -1
                   cands = sorted([i for i in range(1, n) if st[i][4] >= big_a and not border(i)
-                                  and dist[lab == i].max() >= deep], key=lambda i: -st[i][4])[:2]
+                                  and dist[lab == i].max() >= deep and glassy(i)], key=lambda i: -st[i][4])[:2]
                   if len(cands) < 2:
                       if angled and rims:
                           rim = max(rims, key=lambda i: st[i][4]); mid = st[rim][0] + st[rim][2] / 2.0
@@ -5120,7 +5135,7 @@ jobs:
                           mid = (st[a_][0] + st[a_][2] + st[b_][0]) / 2.0
                           how = "two openings"
               def ok(i):
-                  return i != rim and not border(i) and not (st[i][0] < mid < st[i][0] + st[i][2])
+                  return i != rim and not border(i) and not (st[i][0] < mid < st[i][0] + st[i][2]) and glassy(i)
               sides = {"L": [], "R": []}
               for i in range(1, n):
                   if st[i][4] >= big_a and ok(i) and dist[lab == i].max() >= deep:
@@ -7435,7 +7450,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-08d (robot reads shape/colour/material/rim but never fills them -- staff decide; as 08c, plus: the white shop photo ignores background patches and table shadow the cut-out took in, and keeps no grey halo; as 08a, plus: the shop photo on plain white -- frame untouched, demo lens clear, light shadows -- made with every front cut, and white:<frame> for frames already on the shop; as 07s, plus: the 30-degree rim healing and bottom smoothing only where the lens really has a rim along its bottom -- a supra or rimless lens edge is left as it is; the smoothed bottom keeps the frame's own colours and pattern; as 07r, plus: the nose pads (arm, holder and the clear silicone pad) put back on the 30-degree pictures from the photo, the grey patch under the bridge removed, and the try-on told not to clean these pictures again; as 07q, plus: the bottom rim of the 30-degree pictures made smooth and even -- no zigzag; as 07p, plus: the nose pads stay; the table shadow under the bottom rim is removed; as 07n, plus: the far temple keeps its first 5-6 mm behind the hinge, fading out; as 07m, plus: on 30-degree pictures everything seen through the lenses is cleared -- the far temple across the demo, solid glass in its top -- and the far temple behind the bridge (double bridge) is removed; as 07k, plus: the rim on 30-degree pictures is healed -- small breaks closed with the photo's own pixels, glare dots beside the rim removed, nose-pad side and hinge left alone; as 07j, plus: 30-degree fit points found on thin metal rims too -- a softer rim edge, small breaks closed, a lens cut short by solid glass gets its real height; as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-24a (an ARM is never taken for glass on a 30-degree photo: a long, narrow or solid dark area is not a lens opening -- the Good Days half-rim arm was hollowed out; as 08d, plus earlier: robot reads shape/colour/material/rim but never fills them -- staff decide; as 08c, plus: the white shop photo ignores background patches and table shadow the cut-out took in, and keeps no grey halo; as 08a, plus: the shop photo on plain white -- frame untouched, demo lens clear, light shadows -- made with every front cut, and white:<frame> for frames already on the shop; as 07s, plus: the 30-degree rim healing and bottom smoothing only where the lens really has a rim along its bottom -- a supra or rimless lens edge is left as it is; the smoothed bottom keeps the frame's own colours and pattern; as 07r, plus: the nose pads (arm, holder and the clear silicone pad) put back on the 30-degree pictures from the photo, the grey patch under the bridge removed, and the try-on told not to clean these pictures again; as 07q, plus: the bottom rim of the 30-degree pictures made smooth and even -- no zigzag; as 07p, plus: the nose pads stay; the table shadow under the bottom rim is removed; as 07n, plus: the far temple keeps its first 5-6 mm behind the hinge, fading out; as 07m, plus: on 30-degree pictures everything seen through the lenses is cleared -- the far temple across the demo, solid glass in its top -- and the far temple behind the bridge (double bridge) is removed; as 07k, plus: the rim on 30-degree pictures is healed -- small breaks closed with the photo's own pixels, glare dots beside the rim removed, nose-pad side and hinge left alone; as 07j, plus: 30-degree fit points found on thin metal rims too -- a softer rim edge, small breaks closed, a lens cut short by solid glass gets its real height; as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
