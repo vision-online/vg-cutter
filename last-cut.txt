@@ -1,122 +1,44 @@
-Run 4650  Sat Oct 24 13:18:33 UTC 2026
+Run 4843  Sun Oct 25 20:34:49 UTC 2026
 
-    ring: thin dark-wire frame (the line is about 5 px wide) -- the wire repair is used, not the plastic-rim one
-    ring: 5 px of the dark line brought back from the photo (304 directions had lost it)
-    ring: 6941 px of pale fill taken away (outside the line, and the extra-wide pale band inside it)
-    rim check after closing the ring: saved picture 30% | repaired pixels counted as solid 30%
-    note: the rim under the lenses is 31% as thick as the rest of its own ring (shown only, not a rejection; a frame with a heavy top rim reads low by nature)
-    RIM CHECK: left rim only 30% of the other side near the bridge side -> kept off the website
-    arms above the frame: 3.2% -> REJECTED, re-shoot (nothing was cut)
-    shop photo on white made (1152x668)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792847334/dxrpu8uw37fptjr1xc0c.png
-  pmvmei8ot6 REJECTED, kept off the website: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.
---- pmvmek30660 : Daniel Hunter
-    end pieces: 52 px of bright metal the edge finishing dropped put back
-    rim type: not set (0 clean lens holes)
-half-rim: 41 enclosed pieces, 0 candidates, rejected {'size': 41, 'shape': 0, 'place': 0, 'solid': 0, 'touch': 0}
-half-rim: 0 lens piece(s) kept after the shadow trim -- need 2
-    the frame fills 58% of the photo's width
-    shop photo on white made (989x515)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792847387/bk1itwken48dr2rbsor9.jpg
-    angled lens step skipped, nothing changed: no rim line and no two lens openings found
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree left cut too (glass not found -- the shop keeps the photo for this view)
-    angled lens step skipped, nothing changed: no rim line and no two lens openings found
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree right cut too (glass not found -- the shop keeps the photo for this view)
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1792847386/dem1hfwl9g2spoiox8oa.png
---- pmvmem4up88 : Skechers
-    thin dark rim: about 9 px thick, edge band 3 px (was 15) so the line keeps a solid core
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 65140 + 68417 px (found by rim line, SAM: +772 px of glass); 129688 pixels of glass cleared
-    sheet-ring peel (local wall colour): 3027 px taken off the edge
-    levelled: the frame was -2.8 degrees off, turned straight
-    size check: frame works out at 137 mm (typed 52 + 18 -> about 141 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 60% of the photo's width
-    RIM CHECK: both rims match (thinnest spot 82% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (1049x545)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792847533/stqksgdg4lxjt0wk2vim.jpg
-    angled lens step skipped, nothing changed: could not find both lenses
-    rim heal: 282 break pixels closed, 72 faint rim pixels made solid, 0 glare dots removed, 228 shadow pixels under the rim removed
-    lens clean: 617 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: rim 24.1 px, 2783 px evened
-    nose pads: rim 21 px thick (not a thin metal rim) -- nothing put back
-    45 degree left fit points: bridge at (628,162), lens height 249 px, near lens on the left
-    45 degree left cut too
-    angled lens step: lenses 27737 + 9314 px (found by rim line, SAM: nothing to add); 34371 pixels of glass cleared
-    rim heal: 28 break pixels closed, 145 faint rim pixels made solid, 0 glare dots removed, 21999 shadow pixels under the rim removed
-    lens clean: 4053 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: no rim along the bottom (supra / rimless): left as is
-    nose pads: rim 31 px thick (not a thin metal rim) -- nothing put back
-    45 degree right fit points: bridge at (261,119), lens height 216 px, near lens on the left
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1792847532/nhmjdann1uug6c3voqnh.png
---- pmvmeoljc30 : Good Days
-    end pieces: 1 px of bright metal the edge finishing dropped put back
-    rim type: not set (0 clean lens holes)
-half-rim: 33 enclosed pieces, 3 candidates, rejected {'size': 29, 'shape': 1, 'place': 0, 'solid': 0, 'touch': 0}
-    supra: 8017 px of the lens edge and nose pads put back after the clean-ups
-    lens edge line drawn (half-rim / rimless): 5682 px at 80%
-    a little tint left on the demo (half-rim / rimless): 143197 px
-    levelled: the frame was -2.1 degrees off, turned straight
-    size check: frame works out at 132 mm (typed 58 + 17 -> about 152 mm expected)
-    the frame fills 59% of the photo's width
-    demo edge copied from the photo (half-rim / rimless)
-    shop photo on white made (1037x481)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792847672/hgm8as23x32tdgtthhd1.jpg
-    angled lens step skipped, nothing changed: the two biggest openings overlap sideways
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree left cut too
-    angled lens step: lenses 46891 + 23411 px (found by two openings, SAM: nothing to add); 33089 pixels of glass cleared
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1792847671/myslunog1wt9zjtmw0u4.png
---- pmvmepo6222 : Fusion-X
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 72005 + 73248 px (found by rim line, SAM: nothing to add); 139722 pixels of glass cleared
-    sheet-ring peel (local wall colour): 1643 px taken off the edge
-    levelled: the frame was -3.0 degrees off, turned straight
-    size check: frame works out at 143 mm (typed 54 + 19 -> about 146 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 63% of the photo's width
-    RIM CHECK: both rims match (thinnest spot 93% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (1106x518)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792847816/hw15fxctnhpfnd9dmh5e.jpg
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:448: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000149011612.
+Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
+Catalogue: 7 frames. Waiting for a cut-out: 1.
+Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
+--- pmvmei8ot6 : Virgin
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Model loaded: ZhengPeng7/BiRefNet at 1024 px
+    thin dark rim: about 4 px thick, edge band 2 px (was 15) so the line keeps a solid core
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:448: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
-    angled lens step: lenses 141296 + 44595 px (found by two openings, SAM: nothing to add); 107247 pixels of glass cleared
-    rim heal: 350 break pixels closed, 525 faint rim pixels made solid, 269 glare dots removed, 399 shadow pixels under the rim removed
-    lens clean: 2681 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree left cut too
-    angled lens step: lenses 45087 + 54153 px (found by two openings, SAM: nothing to add); 88389 pixels of glass cleared
-    rim heal: 362 break pixels closed, 1059 faint rim pixels made solid, 228 glare dots removed, 441 shadow pixels under the rim removed
-    lens clean: 1048 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: rim 14.7 px, 3278 px evened; rim 13.5 px, 1509 px evened
-    nose pads: rim 14 px thick (not a thin metal rim) -- nothing put back
-    45 degree right fit points: bridge at (273,139), lens height 250 px, near lens on the right
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1792847815/cm4ldwwzdhwj3t1naelo.png
-  Why they were held back: 1 arms above the frame
-  Finished. Cut 4, failed 0, rejected 1, still waiting 1.  Rejected: Virgin: Please re-take this photo: the arms show above the frame, so the camera was a little high. Hold the phone at the same height as the frame, keep it straight, and take it again.
+    rim type: not set (0 clean lens holes)
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_5m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_11m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_11m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_384 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_384. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_512 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_512. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/mobile_sam/build_sam.py:91: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  state_dict = torch.load(f)
+    MobileSAM ready
+    lens step: lenses 94726 + 96524 px (found by two openings, left lens: glass cut off by an arm joined (+15772 px), SAM: nothing to add); 181235 pixels of glass cleared
+    sheet-ring peel (local wall colour): 1278 px taken off the edge
+    levelled: the frame was -1.0 degrees off, turned straight
+    size check: frame works out at 134 mm (typed 53 + 21 -> about 146 mm expected)
+    glass check: the demo is clear (0.0% left)
+    the frame fills 67% of the photo's width
+    ring: thin dark-wire frame (the line is about 4 px wide) -- the wire repair is used, not the plastic-rim one
+    ring: no dark pixels to bring back (the line was not lost, or the photo shows none there)
+    ring: 5972 px of pale fill taken away (outside the line, and the extra-wide pale band inside it)
+    rim check after closing the ring: saved picture 29% | repaired pixels counted as solid 29%
+    note: the rim under the lenses is 27% as thick as the rest of its own ring (shown only, not a rejection; a frame with a heavy top rim reads low by nature)
+    RIM CHECK: left rim only 29% of the other side near the top -> kept off the website
+    arms above the frame: 0.0% (below 2.5%, no note)
+    shop photo on white made (1152x668)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1792960482/ve1zutl4xk3hbqtvqnod.png
+  pmvmei8ot6 REJECTED, kept off the website: Robot check: the rim came out thinner on the left lens (top, 29% of the other side). Not published -- needs a look, the photo is not the problem.
+  Why they were held back: 1 rim damaged
+  Finished. Cut 0, failed 0, rejected 1, still waiting 1.  Rejected: Virgin: Robot check: the rim came out thinner on the left lens (top, 29% of the other side). Not published -- needs a look, the photo is not the problem.
