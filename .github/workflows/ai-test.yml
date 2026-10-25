@@ -1,0 +1,242 @@
+# Vision Gallery -- AI TEST (only when you press Run workflow; it never runs by itself). Nothing on the shop changes.
+# WHITE PHOTOS: for the newest frames (or the frame ids you type) the free AI (BiRefNet, MIT licence -- the same one the cut-out
+#   robot uses) marks what is frame in the FRONT, 30-degree LEFT and 30-degree RIGHT photos.
+# TRY-ON: for the newest frames that have try-on pictures, the same AI looks at the robot's own source crop of the FRONT,
+#   30-degree LEFT and 30-degree RIGHT try-on pictures; Admin then shows ROBOT next to ROBOT + AI CLEAN-UP (the robot's picture
+#   with whatever the AI sees as not frame taken away: a table reflection, a shadow, a smudge).
+# The marks are saved as pictures and listed for Admin -> TO CHECK -> ROBOT vs AI (TEST).
+# Needs the same secrets as the cut-out robot: SUPABASE_KEY (and CLOUDINARY_NAME / CLOUDINARY_PRESET if the robot uses them).
+name: AI test
+on:
+  workflow_dispatch:
+    inputs:
+      count:
+        description: 'How many frames (newest first, up to 60)'
+        required: false
+        default: '15'
+      frames:
+        description: 'Or frame ids, separated by commas (leave empty for the newest)'
+        required: false
+        default: ''
+      what:
+        description: 'What to test'
+        required: false
+        type: choice
+        options:
+          - both
+          - white
+          - tryon
+        default: both
+permissions:
+  contents: read
+concurrency:
+  group: ai-test
+  cancel-in-progress: false
+jobs:
+  ai:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 170
+    env:
+      SUPABASE_URL: https://oscpunukbyosckrmopeh.supabase.co
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      CLOUDINARY_NAME: ${{ secrets.CLOUDINARY_NAME }}
+      CLOUDINARY_PRESET: ${{ secrets.CLOUDINARY_PRESET }}
+      COUNT: ${{ github.event.inputs.count }}
+      FRAMES: ${{ github.event.inputs.frames }}
+      WHAT: ${{ github.event.inputs.what }}
+      TIME_LIMIT_MIN: '150'
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the AI (free)
+        run: pip install --extra-index-url https://download.pytorch.org/whl/cpu torch==2.4.1 torchvision==0.19.1 transformers==4.44.2 timm==1.0.9 einops==0.8.0 kornia==0.7.3 pillow==10.4.0 numpy==1.26.4 requests==2.32.3
+      - name: Keep the AI between runs (the same store as the cut-out robot)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/.cache/mobile_sam.pt
+          key: birefnet-cache-v2
+      - name: Make the AI frame marks
+        run: |
+          cat > ai_test.py <<'PYEOF'
+          import os, io, json, time, datetime, re, sys
+          import numpy as np, requests
+          from PIL import Image, ImageOps, ImageFilter
+          URL = os.environ["SUPABASE_URL"].rstrip("/"); KEY = (os.environ.get("SUPABASE_KEY") or "").strip()
+          if not KEY:
+              print("::error::STOP: the SUPABASE_KEY secret is missing (the same one the cut-out robot uses)."); sys.exit(1)
+          H = {"apikey": KEY, "Authorization": "Bearer " + KEY, "Content-Type": "application/json"}
+          T0 = time.time()
+          LIMIT = float(os.environ.get("TIME_LIMIT_MIN") or 140) * 60      # stop starting new pictures after this; what is made is kept
+          WHAT = (os.environ.get("WHAT") or "both").strip().lower()
+          DO_WHITE = WHAT in ("both", "white", "")
+          DO_TRY = WHAT in ("both", "tryon", "try-on", "try on")
+          def get(path):
+              r = requests.get(URL + path, headers=H, timeout=60); r.raise_for_status(); return r.json()
+          def setting(key):
+              try:
+                  rows = get("/rest/v1/products?select=id,data&id=eq.__" + key)
+                  return rows[0]["data"] if rows and isinstance(rows[0].get("data"), dict) else {}
+              except Exception:
+                  return {}
+          def save_setting(key, value):
+              body = [{"id": "__" + key, "data": value, "updated_at": datetime.datetime.utcnow().isoformat() + "Z"}]
+              r = requests.post(URL + "/rest/v1/products?on_conflict=id", headers=dict(H, Prefer="resolution=merge-duplicates,return=minimal"), data=json.dumps(body), timeout=60)
+              r.raise_for_status()
+          # the frames (newest first)
+          rows, off = [], 0
+          while True:
+              page = get("/rest/v1/products?select=id,data,updated_at&order=updated_at.desc&limit=200&offset=%d" % off)
+              rows += page; off += len(page)
+              if len(page) < 200 or off > 20000: break
+          CLD = re.compile(r"^https://res\.cloudinary\.com/")
+          # the try-on pictures the cut-out robot made, and the same crop of the plain photo it keeps beside each one
+          TRY_VIEWS = (("front", "tryOnUrl", "tryOnSource"), ("angle", "tryOnAngleUrl", "tryOnAngleSource"), ("angle-right", "tryOnAngleRUrl", "tryOnAngleRSource"))
+          def live(p): return isinstance(p, dict) and not str(p.get("id", "")).startswith("__") and not p.get("deleted")
+          def has_white(p): return bool(CLD.match(str(p.get("url") or "")))
+          def has_try(p): return any(CLD.match(str(p.get(u) or "")) and CLD.match(str(p.get(s) or "")) for _, u, s in TRY_VIEWS)
+          want = [x.strip() for x in (os.environ.get("FRAMES") or "").split(",") if x.strip()]
+          allp = [r["data"] for r in rows if live(r.get("data"))]
+          try: n = max(1, min(60, int(os.environ.get("COUNT") or 15)))
+          except Exception: n = 15
+          if want:
+              pick = [p for p in allp if str(p.get("id")) in want or str(p.get("name", "")) in want]
+              white_p, try_p = [p for p in pick if has_white(p)], [p for p in pick if has_try(p)]
+          else:
+              white_p, try_p = [p for p in allp if has_white(p)][:n], [p for p in allp if has_try(p)][:n]
+          if not DO_WHITE: white_p = []
+          if not DO_TRY: try_p = []
+          print("Frames: %d for the white photos, %d for the try-on pictures" % (len(white_p), len(try_p)))
+          if not white_p and not try_p:
+              print("::error::No frames to test" + (" -- none of these ids or names was found: " + ", ".join(want) if want else "") + (" (try-on: no frame has a try-on picture with its source picture yet)" if DO_TRY and not DO_WHITE else "")); sys.exit(1)
+          # where pictures are kept (the same as the robot: the secret, the shop settings, or the photos' own cloud)
+          names, presets = [], []
+          def add(lst, v):
+              v = (v or "").strip()
+              if v and v not in lst: lst.append(v)
+          add(names, os.environ.get("CLOUDINARY_NAME")); add(presets, os.environ.get("CLOUDINARY_PRESET"))
+          for k in ("settings", "cloudinary", "shop"):
+              st = setting(k); c = st.get("cloudinary") if isinstance(st.get("cloudinary"), dict) else st
+              if isinstance(c, dict): add(names, c.get("name")); add(presets, c.get("preset"))
+          for p in white_p + try_p:
+              m = re.search(r"res\.cloudinary\.com/([^/]+)/", str(p.get("url") or p.get("tryOnUrl") or ""))
+              if m: add(names, m.group(1)); break
+          GOOD = [None]
+          def upload(png, hint):
+              pairs = [GOOD[0]] if GOOD[0] else [(n, pr) for n in names for pr in presets]
+              last = ""
+              for nm, pr in pairs:
+                  try:
+                      r = requests.post("https://api.cloudinary.com/v1_1/%s/image/upload" % nm, data={"upload_preset": pr}, files={"file": (hint + ".png", png, "image/png")}, timeout=180)
+                      if r.ok and (r.json().get("secure_url")):
+                          GOOD[0] = (nm, pr); return r.json()["secure_url"]
+                      last = "%s %s" % (r.status_code, r.text[:120])
+                  except Exception as e:
+                      last = str(e)[:120]
+              raise RuntimeError("Cloudinary refused the picture: " + last)
+          # the AI
+          import torch
+          from torchvision import transforms
+          from transformers import AutoModelForImageSegmentation
+          MODEL = "ZhengPeng7/BiRefNet"
+          model = AutoModelForImageSegmentation.from_pretrained(MODEL, trust_remote_code=True); model.eval()
+          torch.set_grad_enabled(False); torch.set_num_threads(4)
+          prep = transforms.Compose([transforms.Resize((1024, 1024)), transforms.ToTensor(), transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+          def ai_mask(img):
+              """The AI's opinion of what is frame: a grey picture the size of the photo (white = frame)."""
+              pred = model(prep(img).unsqueeze(0))[-1].sigmoid().cpu()[0, 0].numpy()
+              return Image.fromarray((pred * 255).clip(0, 255).astype(np.uint8)).resize(img.size, Image.BILINEAR)
+          def png(im):
+              buf = io.BytesIO(); im.save(buf, "PNG", optimize=True); return buf.getvalue()
+          def fetch(url):
+              r = requests.get(url, timeout=90); r.raise_for_status(); return Image.open(io.BytesIO(r.content))
+          def out_of_time(): return time.time() - T0 > LIMIT
+          def views(p):
+              out = [("front", p.get("url"))]
+              seen = set(["front"])
+              for g in (p.get("gallery") or []):
+                  if isinstance(g, dict) and g.get("view") in ("angle", "angle-right") and g.get("view") not in seen and CLD.match(str(g.get("url") or "")):
+                      out.append((g["view"], g["url"])); seen.add(g["view"])
+              return out
+          def sheet_pad(img, frac=0.15):
+              """The robot's try-on crop is tight round the frame; like the robot (pad_with_sheet) the AI gets a margin of sheet colour,
+              a little more above and below so the picture is about as wide as a photo (16:9), as the AI saw it in the robot."""
+              a = np.asarray(img)
+              edge = np.concatenate([a[0], a[-1], a[:, 0], a[:, -1]])
+              col = tuple(int(v) for v in np.median(edge, 0))
+              W, Hh = img.size; px, py = int(W * frac), int(Hh * frac)
+              py = max(py, int(((W + 2 * px) / 1.78 - Hh) / 2))
+              out = Image.new("RGB", (W + 2 * px, Hh + 2 * py), col); out.paste(img, (px, py))
+              return out, px, py
+          def cleanup_pct(robot, mask, grow):
+              """ROBOT + AI CLEAN-UP = the robot's cut-out, with whatever the AI sees as NOT frame taken away (a table reflection, a
+              shadow, a smudge). The AI's frame is first grown by a few px, so the robot's own soft edge is never touched. Returns how
+              much of the robot's solid picture goes (the page makes the picture itself, the same way)."""
+              g = np.asarray(mask.filter(ImageFilter.MaxFilter(2 * grow + 1))).astype(np.float32) / 255
+              g = np.clip(g * 1.5, 0, 1)
+              al = np.asarray(robot)[..., 3].astype(np.float32) / 255
+              na = al * g
+              solid = int((al > 0.5).sum())
+              return round(100.0 * int(((al > 0.5) & (na <= 0.5)).sum()) / max(1, solid), 2)
+          prev = setting("aicompare")
+          items, tryon, fails, made, saved_at = [], [], [], 0, [0]
+          def save(final):
+              now = datetime.datetime.utcnow().isoformat() + "Z"
+              out = dict(prev) if isinstance(prev, dict) else {}
+              out.update({"model": MODEL, "failed": fails[:30], "seconds": int(time.time() - T0)})
+              if DO_WHITE: out.update({"made": now, "items": items, "frames": len(white_p)})
+              if DO_TRY: out.update({"tryMade": now, "tryon": tryon, "tryFrames": len(try_p)})
+              if not final: out["partial"] = True
+              else: out.pop("partial", None)
+              save_setting("aicompare", out); saved_at[0] = made
+          def save_now_and_then():          # so a run that is stopped half-way still leaves its pictures
+              if made - saved_at[0] >= 15:
+                  try: save(False)
+                  except Exception as e: print("  (could not save yet: %s)" % str(e)[:80])
+          for p in white_p:
+              if out_of_time(): fails.append("time is up: stopped before " + str(p.get("id"))); break
+              for view, url in views(p):
+                  try:
+                      img = ImageOps.exif_transpose(fetch(url)).convert("RGB")
+                      t = time.time()
+                      mask = ai_mask(img)
+                      murl = upload(png(mask), "aimask-%s-%s" % (p["id"], view))
+                      items.append({"id": str(p["id"]), "name": str(p.get("name") or p["id"])[:60], "view": view, "photo": url, "mask": murl, "w": img.size[0], "h": img.size[1]})
+                      made += 1
+                      print("  white   %-28s %-12s %.1f s" % (str(p.get("name") or p["id"])[:28], view, time.time() - t), flush=True)
+                  except Exception as e:
+                      fails.append("%s %s: %s" % (p.get("id"), view, str(e)[:120])); print("  could not:", fails[-1], flush=True)
+              save_now_and_then()
+          for p in try_p:
+              if out_of_time(): fails.append("time is up: stopped before " + str(p.get("id"))); break
+              for view, uk, sk in TRY_VIEWS:
+                  u, s = str(p.get(uk) or ""), str(p.get(sk) or "")
+                  if not (CLD.match(u) and CLD.match(s)): continue
+                  try:
+                      robot = fetch(u).convert("RGBA"); src = fetch(s).convert("RGB")
+                      if robot.size != src.size:
+                          raise RuntimeError("its source picture is %dx%d but the try-on picture %dx%d (cut again to compare)" % (src.size + robot.size))
+                      big, px, py = sheet_pad(src)
+                      t = time.time()
+                      mask = ai_mask(big).crop((px, py, px + src.width, py + src.height))
+                      grow = max(2, int(round(max(src.size) / 350.0)))
+                      pct = cleanup_pct(robot, mask, grow)
+                      murl = upload(png(mask), "aitry-%s-%s" % (p["id"], view))
+                      tryon.append({"id": str(p["id"]), "name": str(p.get("name") or p["id"])[:60], "view": view, "robot": u, "source": s, "mask": murl,
+                                    "w": src.width, "h": src.height, "grow": grow, "removed": pct})
+                      made += 1
+                      print("  try-on  %-28s %-12s %.1f s  AI clean-up takes away %.2f%%" % (str(p.get("name") or p["id"])[:28], view, time.time() - t, pct), flush=True)
+                  except Exception as e:
+                      fails.append("%s try-on %s: %s" % (p.get("id"), view, str(e)[:120])); print("  could not:", fails[-1], flush=True)
+              save_now_and_then()
+          if not items and not tryon:
+              print("::error::No AI pictures were made. " + ("; ".join(fails[:3]))); sys.exit(1)
+          save(True)
+          parts = ([("%d white-photo pictures" % len(items))] if DO_WHITE else []) + ([("%d try-on pictures" % len(tryon))] if DO_TRY else [])
+          msg = "AI test done: %s in %d s%s. Open Admin -> TO CHECK -> ROBOT vs AI (TEST)." % (" and ".join(parts), time.time() - T0, (", %d could not be made" % len(fails)) if fails else "")
+          print("::notice::" + msg)
+          with open(os.environ.get("GITHUB_STEP_SUMMARY", "/dev/null"), "a") as f: f.write("### " + msg + "\n")
+          PYEOF
+          python ai_test.py
