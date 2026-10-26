@@ -779,6 +779,120 @@ jobs:
               return out
 
 
+          AI_EDGE = [True]      # 2026-10-26 (shop): the AI's own outer edge on every full-rim cut -- smooth, no dots; the
+                                # robot still clears the glass. A 'stages:' run shows the picture before and after this step.
+
+
+          def ai_outer_edge(a, ai, photo=None, K=None):
+              """THE AI'S OUTER EDGE (26 Oct 2026, shop: "the AI makes the outer rim better than the robot -- add the AI to the
+              robot"). The edge finishing (matting) leaves the frame's outline dotted: specks of sheet beside the rim, small
+              bites out of it, pin-holes inside an arm, a grey line through the rim. The AI model's own mask of the frame has a
+              clean, smooth outline. So along the OUTER edge only -- the frame against the sheet round it -- the AI's mask is
+              used, a few pixels either side of the robot's edge; everything else stays the robot's:
+                * the lens openings and their edges (the AI keeps the glass solid; the robot clears it),
+                * any stretch where the AI and the robot disagree by more than a few pixels -- the arms the front cut takes
+                  off, a nose pad or thin metal the AI misses, the far temple the robot removed: there the robot is kept,
+                * pin-holes inside the frame are closed only where the AI sees frame; specks out on the sheet that the AI does
+                  not see as frame are cleared.
+              The photo has the last word (when given): the AI may only ADD a pixel that looks like the frame next to it (a
+              bite back), never a grey table shadow or reflection; and may only TAKE AWAY a pixel that looks like the sheet (a
+              dot, a pale fringe), never a pixel of the frame's own colour. Where the frame's colour is close to the sheet's
+              (a clear or white frame) nothing is changed.
+              Returns the new alpha and a few numbers for the log."""
+              import cv2
+              from scipy import ndimage
+              a = np.asarray(a, dtype=np.float32); p = np.clip(np.asarray(ai, dtype=np.float32), 0.0, 1.0)
+              if p.shape != a.shape:
+                  raise ValueError("AI mask %s does not match the cut %s" % (p.shape, a.shape))
+              H, W = a.shape
+              if K is None:
+                  K = int(max(3, min(6, round(max(H, W) / 250.0))))
+              R = a > 0.5
+              if R.sum() < 500:
+                  return a, {"skipped": "almost nothing cut"}
+              bg = ~R
+              lab, n = ndimage.label(bg)
+              edge_ids = np.unique(np.r_[lab[0], lab[-1], lab[:, 0], lab[:, -1]])
+              edge_ids = edge_ids[edge_ids > 0]
+              O = np.isin(lab, edge_ids)                                   # the sheet round the frame (not the lens openings)
+              specks = np.zeros(a.shape, bool)
+              if n:
+                  sizes = ndimage.sum(bg, lab, range(1, n + 1))
+                  on_edge = set(edge_ids.tolist())
+                  tiny = [i + 1 for i, sz in enumerate(sizes) if sz <= 40 and (i + 1) not in on_edge]
+                  if tiny:
+                      specks = np.isin(lab, tiny)                          # pin-holes: a few pixels, closed all round by frame
+                      lab_s, n_s = ndimage.label(specks)
+                      ring_lab = ndimage.grey_dilation(lab_s, size=(5, 5)) * (~specks)
+                      solid = np.asarray(ndimage.mean(R.astype(np.float32), labels=ring_lab, index=np.arange(1, n_s + 1)))
+                      keep = np.r_[False, np.nan_to_num(solid) >= 0.9]
+                      specks = keep[lab_s]
+              holes = bg & ~O & ~specks                                    # the lens openings
+              dR = cv2.distanceTransform((~R).astype(np.uint8), cv2.DIST_L2, 5)     # sheet pixels: how far from the frame
+              dO = cv2.distanceTransform((~O).astype(np.uint8), cv2.DIST_L2, 5)     # frame pixels: how far from the sheet
+              if holes.any():
+                  dH = cv2.distanceTransform((~holes).astype(np.uint8), cv2.DIST_L2, 5)
+              else:
+                  dH = np.full(a.shape, 1e6, np.float32)
+              band = (O & (dR <= K)) | (R & (dO <= K))
+              out_far = O & (dR > K) & (p > 0.5)                           # the AI sees frame well beyond the robot's edge
+              bites = np.zeros(a.shape, bool)
+              lab_f, n_f = ndimage.label(out_far)
+              if n_f:
+                  # a shallow piece (at most 3K deep) is a bite out of the rim -- the AI puts it back (the photo checks it
+                  # below); a deep one is an arm the front cut took off, or the far temple: the robot's cut is kept there
+                  deep = np.asarray(ndimage.maximum(dR, lab_f, index=np.arange(1, n_f + 1)))
+                  bites = np.r_[False, deep <= 3 * K][lab_f]
+                  out_far &= ~bites
+                  band |= bites
+              in_far = R & (dO > K) & (p < 0.5) & (dH > K)                 # the AI misses frame well inside the robot's edge
+              k2 = 2 * K + 5
+              Z = cv2.dilate((out_far | in_far).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k2, k2))) > 0
+              use = band & (~Z | bites) & (dH > 1.5)                       # never at a lens opening's own edge
+              fill = specks & (p > 0.5)
+              dots = O & (dR > K) & (p < 0.3) & (a > 0.0)                  # specks and haze out on the sheet, not frame to the AI
+              target = a.copy()
+              target[use] = p[use]
+              target[fill] = np.maximum(target[fill], p[fill])
+              target[dots] = 0.0
+              blocked = 0
+              firmed = 0
+              if photo is not None:
+                  rgb = np.asarray(photo, dtype=np.float32)[..., :3]
+                  if rgb.shape[:2] != a.shape:
+                      raise ValueError("photo %s does not match the cut %s" % (rgb.shape[:2], a.shape))
+                  def local(mask, sigma):                                  # the colour of `mask` pixels nearby, per pixel
+                      w = cv2.GaussianBlur(mask.astype(np.float32), (0, 0), sigma)
+                      c = cv2.GaussianBlur(rgb * mask[..., None], (0, 0), sigma)
+                      return c / np.maximum(w, 1e-4)[..., None], w
+                  sheet_c, ws = local(O & (dR > K + 2) & (a < 0.05), 10.0)          # the sheet just outside
+                  frame_c, wf = local(R & (p > 0.95) & (dH > 2), 6.0)               # the frame just inside (robot and AI agree)
+                  fs = frame_c - sheet_c
+                  n2 = (fs * fs).sum(-1)
+                  t = ((rgb - sheet_c) * fs).sum(-1) / np.maximum(n2, 1.0)          # 0 = sheet's colour, 1 = frame's colour
+                  t = np.clip(t, 0.0, 1.0)
+                  known = (ws > 0.01) & (wf > 0.01) & (n2 >= 40.0 ** 2)             # both colours seen and clearly different
+                  up0 = target > a + 1e-3
+                  solid_new = R | (up0 & known & (t >= 0.6) & (target > 0.5))      # frame after the AI (photo agreeing)
+                  near = cv2.dilate(solid_new.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
+                  add_ok = known & ((t >= 0.6) | (near & (t >= 0.35)))              # a mixed pixel only right at the edge
+                  cut_ok = known & (t < 0.5)
+                  firm = R & (a < 0.95) & (p > 0.9) & known & (t >= 0.6) & (dH > 2) & ~Z   # see-through patches inside a solid rim
+                  target = np.where(firm, np.maximum(target, p), target)
+                  up = target > a + 1e-3
+                  down = target < a - 1e-3
+                  stay = (up & ~add_ok) | (down & ~cut_ok & ~dots)               # a speck far out on the sheet always goes
+                  blocked = int((stay & (np.abs(target - a) > 0.3)).sum())
+                  target = np.where(stay, a, target)
+                  target = np.where(up & add_ok, np.minimum(target, np.maximum(a, np.where(t >= 0.6, 1.0, t))), target)
+                  firmed = int((firm & (target > a + 0.3)).sum())
+              new = target.astype(np.float32)
+              info = {"band": int(band.sum()), "ai": int(use.sum()), "robot": int((band & ~use).sum()),
+                      "pinholes": int((fill & (new > a + 0.3)).sum()), "dots": int((dots & (a > 0.1) & (new < 0.05)).sum()),
+                      "K": K, "photo_said_no": blocked, "firmed": firmed, "changed": int((np.abs(new - a) > 0.3).sum())}
+              return new.astype(np.float32), info
+
+
           def lens_holes(alpha):
               """The enclosed openings inside the rim -- i.e. the two lenses."""
               from scipy import ndimage
@@ -5332,7 +5446,7 @@ jobs:
 
 
           def cut(photo_bytes, front=True, rim_kind="", half_rim_hint=None, colour_bytes=None,
-                  front_crop=False, lens_fix=False, size=None, angled=False):
+                  front_crop=False, lens_fix=False, size=None, angled=False, ai_edge=True):
               """One photo in, one transparent PNG (and its numbers) out.
               rim_kind comes from the rim type typed in admin (see rim_kind_of).
               rim_kind == "" is the OLD method (the one that cut Sizzler well on
@@ -5671,9 +5785,34 @@ jobs:
                   except Exception as _ex:
                       log("    the demo tint could not be added: %s" % str(_ex)[:70])
 
+              # THE AI'S OUTER EDGE (26 Oct 2026, shop): the AI model's own clean outline along the outside of the frame --
+              # no dots, no bites, no grey line through the rim. Full-rim frames, front and 30-degree pictures; the lens
+              # openings stay the robot's. Not on a half-rim, supra or rimless frame (there the outline is the lens edge,
+              # which the robot draws). The shop photo on white keeps the robot's own mask, exactly as before.
+              a_robot = None
+              if AI_EDGE[0] and ai_edge and half_ring is None and not half_rim_hint and "rimless" not in str(rim_kind).lower() \
+                      and "half" not in str(rim_kind).lower():
+                  try:
+                      _a_ai, _ai = ai_outer_edge(a, m, np.asarray(img.convert("RGB")))
+                      if "skipped" in _ai:
+                          log("    AI outer edge: skipped (%s)" % _ai["skipped"])
+                      else:
+                          a_robot = a
+                          a = _a_ai
+                          log("    AI outer edge: %d px of the outline from the AI, %d px kept the robot's (they disagree there), "
+                              "%d px kept because the photo disagreed, %d see-through rim px made solid, %d pin-holes closed, "
+                              "%d specks on the sheet cleared, %d px changed"
+                              % (_ai["ai"], _ai["robot"], _ai["photo_said_no"], _ai["firmed"], _ai["pinholes"], _ai["dots"], _ai["changed"]))
+                          _stage("6b AI outer edge", img, a)
+                  except Exception as _ex:
+                      a_robot = None
+                      log("    AI outer edge could not run (the robot's edge is kept): %s" % str(_ex)[:90])
+
               # the margin comes off again
               H, W = a.shape
               a = a[py:H - py, px:W - px]
+              if a_robot is not None:
+                  a_robot = a_robot[py:H - py, px:W - px]
               img = img.crop((px, py, W - px, H - py))
               if lens_mask is not None and lens_mask.shape != a.shape:
                   lens_mask = lens_mask[py:H - py, px:W - px]    # the glass check measures the same picture
@@ -5701,6 +5840,8 @@ jobs:
                               _rot = lambda arr, fill: np.asarray(Image.fromarray(arr).rotate(
                                   _tilt, resample=Image.BICUBIC, expand=True, fillcolor=fill))
                               a = _rot((a * 255).astype(np.uint8), 0).astype(np.float32) / 255.0
+                              if a_robot is not None:
+                                  a_robot = _rot((np.clip(a_robot, 0, 1) * 255).astype(np.uint8), 0).astype(np.float32) / 255.0
                               img = Image.fromarray(_rot(_rgb.astype(np.uint8), (255, 255, 255)))
                               if lens_mask is not None:
                                   lens_mask = _rot(lens_mask.astype(np.uint8) * 255, 0) > 127
@@ -5995,7 +6136,8 @@ jobs:
                       _ph = np.asarray(colour_img.convert("RGB"))
                       if _ph.shape[:2] == a.shape:
                           _em = edge_mask if (edge_mask is not None and getattr(edge_mask, "shape", None) == a.shape) else None
-                          _wh, _wa = white_front(_ph, a, _em)
+                          _aw = a_robot if (a_robot is not None and a_robot.shape == a.shape) else a     # the robot's own mask, as before
+                          _wh, _wa = white_front(_ph, _aw, _em)
                           if ys.size:
                               _fw = int(x1 - x0); _fh = int(y1 - y0)
                               _mx = int(_fw * 0.10); _my = int(max(_fh * 0.35, _fw * 0.12))
@@ -6505,7 +6647,9 @@ jobs:
                   if p.get(field) and not fresh:
                       continue
                   try:
-                      png2, _ = cut(download(no_enhancement(src)), front=False, angled=angled)
+                      _rim_t = str(p.get("rim") or p.get("rimType") or "").lower()
+                      _ai_ok = not any(k in _rim_t for k in ("half", "supra", "semi", "rimless", "3 piece", "three piece"))
+                      png2, _ = cut(download(no_enhancement(src)), front=False, angled=angled, ai_edge=_ai_ok)
                       p[field] = cloudinary_upload(png2, "tryon-" + field + "-" + pid, cname, cpreset)
                       # 45-degree fit points for the try-on (1 Oct): bridge and lens openings in this cut-out
                       _fit = angle_anchors(png2) if angled else None
@@ -7450,7 +7594,7 @@ jobs:
           RECUT: ${{ github.event.inputs.recut }}
         run: |
           set +e
-          echo "Robot build 2026-10-24a (an ARM is never taken for glass on a 30-degree photo: a long, narrow or solid dark area is not a lens opening -- the Good Days half-rim arm was hollowed out; as 08d, plus earlier: robot reads shape/colour/material/rim but never fills them -- staff decide; as 08c, plus: the white shop photo ignores background patches and table shadow the cut-out took in, and keeps no grey halo; as 08a, plus: the shop photo on plain white -- frame untouched, demo lens clear, light shadows -- made with every front cut, and white:<frame> for frames already on the shop; as 07s, plus: the 30-degree rim healing and bottom smoothing only where the lens really has a rim along its bottom -- a supra or rimless lens edge is left as it is; the smoothed bottom keeps the frame's own colours and pattern; as 07r, plus: the nose pads (arm, holder and the clear silicone pad) put back on the 30-degree pictures from the photo, the grey patch under the bridge removed, and the try-on told not to clean these pictures again; as 07q, plus: the bottom rim of the 30-degree pictures made smooth and even -- no zigzag; as 07p, plus: the nose pads stay; the table shadow under the bottom rim is removed; as 07n, plus: the far temple keeps its first 5-6 mm behind the hinge, fading out; as 07m, plus: on 30-degree pictures everything seen through the lenses is cleared -- the far temple across the demo, solid glass in its top -- and the far temple behind the bridge (double bridge) is removed; as 07k, plus: the rim on 30-degree pictures is healed -- small breaks closed with the photo's own pixels, glare dots beside the rim removed, nose-pad side and hinge left alone; as 07j, plus: 30-degree fit points found on thin metal rims too -- a softer rim edge, small breaks closed, a lens cut short by solid glass gets its real height; as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-26a (the AI's own outer edge on full-rim cuts, front and 30-degree: along the outside of the frame the AI model's clean outline is used -- no dots beside the rim, no bites, no grey line through it, pin-holes in an arm closed; the lens openings, the arms the front cut takes off and any place the AI and the robot disagree stay the robot's; half-rim, supra and rimless unchanged; the shop photo on white unchanged; as 10-24a, plus: an ARM is never taken for glass on a 30-degree photo: a long, narrow or solid dark area is not a lens opening -- the Good Days half-rim arm was hollowed out; as 08d, plus earlier: robot reads shape/colour/material/rim but never fills them -- staff decide; as 08c, plus: the white shop photo ignores background patches and table shadow the cut-out took in, and keeps no grey halo; as 08a, plus: the shop photo on plain white -- frame untouched, demo lens clear, light shadows -- made with every front cut, and white:<frame> for frames already on the shop; as 07s, plus: the 30-degree rim healing and bottom smoothing only where the lens really has a rim along its bottom -- a supra or rimless lens edge is left as it is; the smoothed bottom keeps the frame's own colours and pattern; as 07r, plus: the nose pads (arm, holder and the clear silicone pad) put back on the 30-degree pictures from the photo, the grey patch under the bridge removed, and the try-on told not to clean these pictures again; as 07q, plus: the bottom rim of the 30-degree pictures made smooth and even -- no zigzag; as 07p, plus: the nose pads stay; the table shadow under the bottom rim is removed; as 07n, plus: the far temple keeps its first 5-6 mm behind the hinge, fading out; as 07m, plus: on 30-degree pictures everything seen through the lenses is cleared -- the far temple across the demo, solid glass in its top -- and the far temple behind the bridge (double bridge) is removed; as 07k, plus: the rim on 30-degree pictures is healed -- small breaks closed with the photo's own pixels, glare dots beside the rim removed, nose-pad side and hinge left alone; as 07j, plus: 30-degree fit points found on thin metal rims too -- a softer rim edge, small breaks closed, a lens cut short by solid glass gets its real height; as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
