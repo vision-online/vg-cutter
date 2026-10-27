@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       recut:
-        description: 'first / a frame id / stages:<code> (picture of every step, nothing saved) / reset / all / test:<id or fullrim> / test-lens:<ids, names or all> / guard / guard:save:<ids or all> / adopt-lens:<ids or all> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids> / views:<frame> / white:<frame or all> (shop photo on white)'
+        description: 'check:<frame> (ROBOT CHECKS on one frame) / first / a frame id / stages:<code> (picture of every step, nothing saved) / reset / all / test:<id or fullrim> / test-lens:<ids, names or all> / guard / guard:save:<ids or all> / adopt-lens:<ids or all> / test-plain:<id> / test-colour:<id> / recolour:<ids or all> / adopt:<ids or all> / restore:<ids or all> / clear:<ids> / views:<frame> / white:<frame or all> (shop photo on white)'
         required: false
         default: ''
 
@@ -577,6 +577,9 @@ jobs:
           GLASS_LEFT = 0.02                # more than 2% of a lens still solid = the glass did not clear
           GLASS_REASON = ("Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the "
                           "customer would see it over their eye. Not published, needs a look.")
+          LENS_FIND_REASON = ("Robot check: the demo lenses of this rimless / half-rim frame could not be found, so they would "
+                              "show solid white on a face. Not published -- draw the lens edge with TRACE DEMO, or re-take the "
+                              "photo with the lens edges showing clearly.")
           RIM_MIN = 0.75                   # rim thinner than 75% of the other side's (mirrored) = not published
           ARMS_SIDE_REASON = ("Please re-take this photo: an arm shows beside the frame, so the phone was held "
                               "at an angle. Hold the phone straight in front of the frame, at the same height, "
@@ -1835,6 +1838,214 @@ jobs:
               except Exception:
                   pass
               return []
+
+
+          def _rl_sheet(rgb):
+              """The sheet's own brightness at each place (dark lines closed over), and the photo's brightness."""
+              import cv2
+              g = rgb @ np.array([0.299, 0.587, 0.114], np.float32)
+              k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (31, 31))
+              return cv2.GaussianBlur(cv2.morphologyEx(g, cv2.MORPH_CLOSE, k), (0, 0), 7), g
+
+
+          def _rl_solid(rgb):
+              """The frame's own SOLID parts on the photo: dark or coloured, and thicker than a line -- arms, end pieces, the
+              bridge, gold. The lens's own polished edge is a thin line and is never counted (it is what is traced)."""
+              import cv2
+              sheet, g = _rl_sheet(rgb)
+              mx = rgb.max(-1); mn = rgb.min(-1); sat = (mx - mn) / np.maximum(mx, 1)
+              solid = (((sheet - g) > 45) | ((sat > 0.22) & ((sheet - g) > 15))).astype(np.uint8)
+              solid = cv2.morphologyEx(solid, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
+              return cv2.dilate(solid, np.ones((5, 5), np.uint8)) > 0
+
+
+          def _rl_sides(S):
+              """The AI's region split into its left and right lens (the bridge between them dropped)."""
+              import cv2
+              from scipy import ndimage
+              ys, xs = np.where(S)
+              fx0, fx1 = xs.min(), xs.max()
+              xc = (fx0 + fx1) / 2.0; gap = 0.03 * (fx1 - fx0)
+              L = S.copy(); L[:, int(xc - gap):] = False
+              R = S.copy(); R[:, :int(xc + gap)] = False
+              k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
+              out = []
+              for M in (L, R):
+                  M = cv2.morphologyEx(M.astype(np.uint8), cv2.MORPH_OPEN, k) > 0
+                  lab, n = ndimage.label(M)
+                  if not n:
+                      return []
+                  sz = ndimage.sum(M, lab, range(1, n + 1))
+                  out.append(lab == (int(np.argmax(sz)) + 1))
+              return out
+
+
+          def _rl_profile(M, solid):
+              """A lens shape from the AI's region of one lens: its top and bottom edge per column, left and right edge per
+              row. An arm rising over the top and a ragged bite or blob along the bottom are narrow, so a 1-D opening and
+              closing takes them out; the edges are then smoothed into one plain line."""
+              import cv2
+              from scipy import ndimage
+              H, W = M.shape
+              # the frame's solid parts that reach the outline (an arm, an end piece) are not lens -- the arm is taken out
+              # whole, also where it crosses the glass; what that leaves as a notch is filled below like any bite
+              edge_band = M & ~ndimage.binary_erosion(M, iterations=6)
+              lab_s, n_s = ndimage.label(solid & M)
+              if n_s:
+                  hit = np.unique(lab_s[edge_band & (lab_s > 0)])
+                  m = M & ~np.isin(lab_s, hit[hit > 0])
+              else:
+                  m = M.copy()
+              m = ndimage.binary_fill_holes(m)
+              lab_m, n_m = ndimage.label(m)
+              if n_m > 1:
+                  sz_m = ndimage.sum(m, lab_m, range(1, n_m + 1)); m = lab_m == (int(np.argmax(sz_m)) + 1)
+              ys, xs = np.where(m)
+              if ys.size < 500:
+                  return None
+              x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
+              lw, lh = x1 - x0 + 1, y1 - y0 + 1
+              sub = m[y0:y1 + 1, x0:x1 + 1]
+              has, hasr = sub.any(0), sub.any(1)
+              top = np.where(has, sub.argmax(0), np.nan).astype(float)
+              bot = np.where(has, lh - 1 - sub[::-1].argmax(0), np.nan).astype(float)
+              lef = np.where(hasr, sub.argmax(1), np.nan).astype(float)
+              rig = np.where(hasr, lw - 1 - sub[:, ::-1].argmax(1), np.nan).astype(float)
+              def fill(v):
+                  idx = np.arange(len(v)); ok = ~np.isnan(v)
+                  return np.interp(idx, idx[ok], v[ok]) if ok.any() else v
+              top, bot, lef, rig = fill(top), fill(bot), fill(lef), fill(rig)
+              wx = max(5, int(0.14 * lw)) | 1; wy = max(5, int(0.14 * lh)) | 1
+              top = ndimage.grey_closing(top, size=wx, mode='nearest')
+              top = ndimage.grey_opening(top, size=wx, mode='nearest')
+              bot = ndimage.grey_opening(bot, size=wx, mode='nearest')
+              bot = ndimage.grey_closing(bot, size=wx, mode='nearest')
+              lef = ndimage.grey_opening(ndimage.grey_closing(lef, size=wy, mode='nearest'), size=wy, mode='nearest')
+              rig = ndimage.grey_closing(ndimage.grey_opening(rig, size=wy, mode='nearest'), size=wy, mode='nearest')
+              sm = lambda v, s: ndimage.gaussian_filter1d(v, max(0.5, s), mode='nearest')
+              top, bot = sm(top, 0.02 * lw), sm(bot, 0.02 * lw)
+              lef, rig = sm(lef, 0.02 * lh), sm(rig, 0.02 * lh)
+              yy, xx = np.mgrid[0:lh, 0:lw]
+              reg = (yy >= top[None, :]) & (yy <= bot[None, :]) & (xx >= lef[:, None]) & (xx <= rig[:, None])
+              reg = cv2.morphologyEx(reg.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))) > 0
+              reg = cv2.GaussianBlur(reg.astype(np.float32), (0, 0), 2.0) > 0.5
+              out = np.zeros((H, W), bool)
+              out[y0:y1 + 1, x0:x1 + 1] = reg
+              return out
+
+
+          def _rl_snap(rgb, region, solid, NT=720, band_in=3, band_out=8, beta=0.3, sig=3.0):
+              """The lens shape moved onto the photo's own lens edge: along each of 720 rays from the lens's middle the edge
+              is looked for within a band round the shape, and one smooth closed line is chosen through the strongest edge
+              (it may not jump more than a pixel from one ray to the next). The frame's solid parts never count as edge."""
+              import cv2
+              from scipy import ndimage
+              H, W = region.shape
+              ys, xs = np.where(region)
+              cy, cx = ys.mean(), xs.mean()
+              g = cv2.GaussianBlur(rgb @ np.array([0.299, 0.587, 0.114], np.float32), (0, 0), 1.0)
+              gx = cv2.Sobel(g, cv2.CV_32F, 1, 0, ksize=3); gy = cv2.Sobel(g, cv2.CV_32F, 0, 1, ksize=3)
+              med = cv2.medianBlur(np.clip(g, 0, 255).astype(np.uint8), 11).astype(np.float32)
+              line = np.abs(g - med)
+              th = np.linspace(0, 2 * np.pi, NT, endpoint=False)
+              R0 = float(np.sqrt(((ys - cy) ** 2 + (xs - cx) ** 2).max())) + band_out + 4
+              rr = np.arange(0, R0, 1.0)
+              X = cx + np.outer(np.cos(th), rr); Y = cy + np.outer(np.sin(th), rr)
+              inside = (X >= 0) & (X < W - 1) & (Y >= 0) & (Y < H - 1)
+              Xi = np.clip(np.round(X).astype(int), 0, W - 1); Yi = np.clip(np.round(Y).astype(int), 0, H - 1)
+              Rg = region[Yi, Xi] & inside
+              rH = np.array([rr[np.where(Rg[i])[0].max()] if Rg[i].any() else 0 for i in range(NT)])
+              sol = (cv2.dilate(solid.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0)[Yi, Xi]   # an arm's own outline is no lens edge
+              def nz(E):
+                  v = E[inside & ~sol]
+                  q = np.percentile(v[v > 0], 97) if (v > 0).any() else 1.0
+                  return np.minimum(E / max(q, 1e-3), 1.2)
+              ex, ey = np.cos(th)[:, None], np.sin(th)[:, None]
+              E = np.maximum(nz(np.abs(gx[Yi, Xi] * ex + gy[Yi, Xi] * ey)), nz(line[Yi, Xi]))
+              E[sol | ~inside] = 0
+              allowed = (rr[None, :] >= rH[:, None] - band_in) & (rr[None, :] <= rH[:, None] + band_out)
+              cost = -E + beta * np.abs(rr[None, :] - rH[:, None]) / max(1.0, band_in)
+              cost[~allowed] = 1e3
+              T = int(NT * 1.5); nr = len(rr)
+              D = np.zeros((T, nr), np.float32); B = np.zeros((T, nr), np.int8); D[0] = cost[0]
+              for t in range(1, T):
+                  prev = D[t - 1]; best = np.full(nr, 1e9, np.float32); arg = np.zeros(nr, np.int8)
+                  for d in (-1, 0, 1):
+                      sh = np.roll(prev, d)
+                      if d > 0:
+                          sh[:d] = 1e9
+                      elif d < 0:
+                          sh[d:] = 1e9
+                      bt = sh < best; best = np.where(bt, sh, best); arg = np.where(bt, d, arg)
+                  D[t] = best + cost[t % NT]; B[t] = arg
+              path = np.zeros(T, int); path[-1] = int(np.argmin(D[-1]))
+              for t in range(T - 1, 0, -1):
+                  path[t - 1] = path[t] - B[t, path[t]]
+              keep = path[NT // 4: NT // 4 + NT]
+              order = np.arange(NT // 4, NT // 4 + NT) % NT
+              r_t = np.zeros(NT); r_t[order] = rr[keep]
+              rs = ndimage.gaussian_filter1d(r_t, sig * NT / 360.0, mode='wrap')
+              pts = np.column_stack([cx + rs * np.cos(th), cy + rs * np.sin(th)]).astype(np.int32)
+              reg = np.zeros((H, W), np.uint8)
+              cv2.fillPoly(reg, [pts], 1)
+              return reg > 0
+
+
+          def _rl_smooth(region, frac=0.02):
+              """One plain line: the outline's points smoothed along the outline (about 2% of its length), refilled."""
+              import cv2
+              from scipy import ndimage
+              cs, _ = cv2.findContours(region.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+              if not cs:
+                  return region
+              c = max(cs, key=cv2.contourArea)[:, 0, :].astype(np.float64)
+              if len(c) < 30:
+                  return region
+              sg = max(2.0, frac * len(c))
+              xs = ndimage.gaussian_filter1d(c[:, 0], sg, mode='wrap'); ys = ndimage.gaussian_filter1d(c[:, 1], sg, mode='wrap')
+              out = np.zeros(region.shape, np.uint8)
+              cv2.fillPoly(out, [np.column_stack([xs, ys]).round().astype(np.int32)], 1)
+              return out > 0
+
+
+          def rimless_lens_regions(img, alpha):
+              """RIMLESS / HALF-RIM LENSES FROM THE AI'S OWN SHAPE (27 Oct 2026, shop: Independent ID5047 went to TO CHECK with
+              both lenses solid white and the printing on them -- the photo's lens edge was too faint for the tracer above, so
+              nothing was cleared). When the tracer finds no lenses, the AI's region of the frame is used instead: split into
+              its two lenses, the arms rising over the top and the ragged bottom taken out, the edges smoothed into one plain
+              line, and that line moved onto the photo's own lens edge. Returns [left, right], or [] when the two shapes do not
+              look like a pair of lenses (then the frame is held back -- never published with solid lenses)."""
+              from scipy import ndimage
+              rgb = np.asarray(img.convert("RGB")).astype(np.float32)
+              S = ndimage.binary_fill_holes(np.asarray(alpha) > 0.5)
+              if S.sum() < 2000:
+                  return [], "almost nothing cut"
+              solid = _rl_solid(rgb)
+              sides = _rl_sides(S)
+              if len(sides) != 2:
+                  return [], "the frame did not split into two lenses"
+              regs = []
+              for M in sides:
+                  r0 = _rl_profile(M, solid)
+                  if r0 is None:
+                      return [], "a lens shape could not be made"
+                  regs.append(_rl_smooth(_rl_snap(rgb, r0, solid)))
+              ys, xs = np.where(S)
+              fh = float(ys.max() - ys.min() + 1)
+              a0, a1 = float(regs[0].sum()), float(regs[1].sum())
+              h = [float(np.ptp(np.where(r)[0]) + 1) if r.any() else 0.0 for r in regs]
+              w = [float(np.ptp(np.where(r)[1]) + 1) if r.any() else 0.0 for r in regs]
+              if min(a0, a1) < 0.6 * max(a0, a1):
+                  return [], "the two lenses came out different sizes (%d / %d px)" % (a0, a1)
+              if min(h) < 0.45 * fh:
+                  return [], "a lens came out too low (%.0f%% of the frame's height)" % (100 * min(h) / fh)
+              if min(w) < 0.6 * max(w):
+                  return [], "the two lenses came out different widths"
+              if (regs[0] & regs[1]).any():
+                  return [], "the two lenses overlap"
+              if regs[0][:, :].any() and np.where(regs[0])[1].mean() > np.where(regs[1])[1].mean():
+                  regs = regs[::-1]
+              return regs, "2 lenses, %d and %d px" % (a0, a1)
 
 
           def apply_half_rim(img, alpha, regions):
@@ -5553,6 +5764,7 @@ jobs:
               # hole, so trace the lens edge from the photograph instead; its ring is
               # made solid for the moment so every rule below sees a proper opening.
               half_ring = None; half_regions = []; tint_mask = None; edge_mask = None
+              _rl_used = False                                     # the lenses came from the AI's shape (27 Oct): a drawn edge line
               _half_keep = None; _a_half = None                    # the supra's own edge and nose pads (protected, 2 Oct)
               LAST_SOURCE[0] = None
               LAST_WHITE[0] = None
@@ -5578,6 +5790,14 @@ jobs:
                   # traced the wrong outline and spoiled the corners and hinges.
                   if half_rim_hint or (rim_kind and h_n < 2):
                       half_regions = half_rim_lenses(img, a)
+                      if not half_regions and half_rim_hint:
+                          # 27 Oct 2026: the photo's lens edge was too faint to trace (Independent ID5047) -- the AI's shape
+                          try:
+                              half_regions, _rln = rimless_lens_regions(img, a)
+                          except Exception as _ex:
+                              half_regions, _rln = [], "could not run: %s" % str(_ex)[:80]
+                          log("    half-rim / rimless: lens edge not traced on the photo; lenses from the AI's shape: %s" % _rln)
+                          _rl_used = bool(half_regions)
                       if half_regions:
                           # the bar along the top of each lens, as the cut had it BEFORE the lens is cleared: the traced lens can
                           # reach a few pixels up into a thin bar, and clearing the lens must not take the bar with it (2 Oct,
@@ -5601,6 +5821,40 @@ jobs:
                           a, half_ring = apply_half_rim(img, a, half_regions)
                           if _bar_keep.any():
                               a = np.where(_bar_keep, np.maximum(a, _a_pre_half), a).astype(np.float32)
+                          if _rl_used:
+                              # lenses from the AI's shape (27 Oct): the AI's region also held sheet round the lenses; of a
+                              # rimless frame only the lenses, the metal (bridge, end pieces, arms) and the nose pads stay
+                              try:
+                                  from scipy import ndimage as _ndr
+                                  _lens_all = np.zeros(a.shape, bool)
+                                  for _hr in half_regions:
+                                      _lens_all |= _hr
+                                  _rgb_r = np.asarray(img.convert("RGB")).astype(np.float32)
+                                  _metal = _rl_solid(_rgb_r)
+                                  _pads = LAST_PADS[0] if LAST_PADS[0] is not None else np.zeros(a.shape, bool)
+                                  _stay = _ndr.binary_dilation(_lens_all, iterations=2) | _metal | _ndr.binary_dilation(_pads, iterations=2)
+                                  # the nose pads hang between the lenses, partly beyond the glass: that zone is kept as cut
+                                  _yl, _xl = np.where(half_regions[0]); _yr, _xr = np.where(half_regions[1])
+                                  if _yl.size and _yr.size:
+                                      _wl = float(_xl.max() - _xl.min()); _wr = float(_xr.max() - _xr.min())
+                                      _ty = min(_yl.min(), _yr.min()); _hh = float(max(_yl.max(), _yr.max()) - _ty)
+                                      _nz = np.zeros(a.shape, bool)
+                                      _nz[int(_ty + 0.05 * _hh):int(_ty + 0.85 * _hh),
+                                          int(_xl.max() - 0.15 * _wl):int(_xr.min() + 0.15 * _wr) + 1] = True
+                                      # in that zone only what is not sheet: the clear pads show their edges and shine
+                                      _sh, _gg = _rl_sheet(_rgb_r)
+                                      _mx = _rgb_r.max(-1); _mn = _rgb_r.min(-1)
+                                      _ns = (np.abs(_gg - _sh) > 10) | ((_mx - _mn) / np.maximum(_mx, 1) > 0.15)
+                                      _ns = _ndr.binary_closing(_ns & _nz, iterations=3)
+                                      _ns = _ndr.binary_fill_holes(_ns)
+                                      _ns = _ndr.binary_opening(_ns, iterations=2)
+                                      _stay |= _ndr.binary_dilation(_ns, iterations=1) & _nz
+                                  _gone = (a > 0) & ~_stay
+                                  a = np.where(_gone, np.float32(0.0), a).astype(np.float32)
+                                  log("    rimless: %d px of sheet round the lenses cleared (only lenses, metal and nose pads stay)"
+                                      % int(_gone.sum()))
+                              except Exception as _ex:
+                                  log("    rimless: the sheet round the lenses could not be cleared: %s" % str(_ex)[:80])
                           # THE SUPRA'S OWN PARTS ARE PROTECTED (2 Oct 2026; a second review found it, VG-1012 confirms it): the
                           # later clean-ups -- lens hull clearing (3c), inner-lens clearing (3d), the half-rim whisker trim --
                           # were made for full rims and cut what this step keeps: on VG-1012 the nose pads went from 2,697 px to
@@ -5910,6 +6164,10 @@ jobs:
                       log("    GLASS CHECK: %.1f%% of the lens is still solid -> kept off the website" % (left * 100))
                   else:
                       log("    glass check: the demo is clear (%.1f%% left)" % (left * 100))
+              if front and half_rim_hint and half_ring is None and not nums.get("reject"):
+                  # 27 Oct 2026 (shop): a rimless / half-rim frame whose lenses were not found is never sent on with solid lenses
+                  nums["reject"] = LENS_FIND_REASON
+                  log("    LENS CHECK: the demo lenses of this rimless / half-rim frame were not found -> kept off the website")
               if front and lens_mask is None and not nums.get("reject") and not half_rim_hint and half_ring is None:
                   # the lens step could not run: then the finished frame must still
                   # enclose two openings, or the demo lenses are solid (the "999"
@@ -6082,6 +6340,10 @@ jobs:
               if edge_mask is not None and edge_mask.shape == a.shape and edge_mask.any():
                   rgba = rgba.copy() if not rgba.flags.writeable else rgba
                   try:
+                      if _rl_used:
+                          # the photo's own edge was too faint to trace, so copying it would show it beside the traced line:
+                          # one plain drawn line instead (27 Oct 2026)
+                          raise RuntimeError("lenses from the AI's shape -- one drawn line")
                       rgba = copy_lens_edge(rgba, a, edge_mask, tint_mask, colour_img)
                       log("    demo edge copied from the photo (half-rim / rimless)")
                   except Exception as _ex0:
@@ -7584,17 +7846,228 @@ jobs:
           requests==2.32.3
           git+https://github.com/ChaoningZhang/MobileSAM.git
           PYEOF
-          echo "robot unpacked: $(wc -l < vg_look.py) + $(wc -l < vg_cut.py) lines"
+          cat > vg_check.js <<'JSEOF'
+          /* Vision Gallery robot -- ROBOT CHECKS (d17.192, shop 27 Oct: "make it work without Admin open")
+
+             After the cutter, the robot runs the checks of Admin -> TO CHECK by itself: it signs in to the shop account the same
+             way the website's passcode sign-in does (a sign-in made with the robot's own database key -- no e-mail, no passcode,
+             nothing new to set up), opens the live Admin page in a hidden browser and lets that page do exactly what it does on a
+             phone: touch-up, rim, inside the lenses, arms, picture reader, colour and shape, AUTO-LIVE. Same code, same result.
+
+             It runs only when Admin -> TO CHECK -> ROBOT CHECKS is ON, or for one frame when the robot is started by hand with
+             check:<frame name>. When nothing in TO CHECK changed since the last check (and that was less than an hour ago) it
+             does not open the browser at all.
+
+             Needs: SUPABASE_URL, SUPABASE_KEY (the robot's key, already there). Optional: SITE (default https://visiongallery.me),
+             RECUT (check:<frame>), SHOP_EMAIL. */
+          'use strict';
+          const crypto = require('crypto');
+
+          const SITE = () => (process.env.SITE || 'https://visiongallery.me').replace(/\/+$/, '');
+          const KEY_PRINT = 'robotcheck_print', KEY_SESSION = 'robotsession', AGAIN_MS = 60 * 60e3;
+
+          function say(s){ console.log(s); }
+
+          async function rest(o, path, init){
+            init = init || {};
+            const headers = Object.assign({ apikey: o.key, Authorization: 'Bearer ' + o.key, 'Content-Type': 'application/json' }, init.headers || {});
+            const r = await fetch(o.url + path, Object.assign({}, init, { headers }));
+            let body = null; try { body = await r.json(); } catch(e){}
+            return { ok: r.ok, status: r.status, body };
+          }
+          function pendingOf(p){ return Array.isArray(p && p.pendingViews) ? p.pendingViews.filter(v => v !== 'side' && v !== 'side2') : []; }
+          function problemsOf(p){ const o = (p && p.viewProblems && typeof p.viewProblems === 'object') ? Object.assign({}, p.viewProblems) : {}; delete o.side; delete o.side2; return o; }
+          function isToCheck(p){                                   /* the same rule as Admin */
+            if (!p || !p.tryOnReady || !p.tryOnUrl || p.draft || p.deleted) return false;
+            return !!p.awaitingCheck || pendingOf(p).length > 0 || Object.keys(problemsOf(p)).length > 0;
+          }
+          function matches(p, only){
+            const o = String(only || '').trim().toLowerCase(); if (!o) return true;
+            return String(p.id).toLowerCase() === o || String(p.name || '').toLowerCase() === o || String(p.name || '').toLowerCase().indexOf(o) >= 0;
+          }
+          /* everything the checks look at -- when none of it changed, a new run would find nothing new */
+          function fingerprint(frames, set){
+            const pick = p => {
+              const v = {}; ['tryOnUrl', 'tryOnSource', 'tryOnAngleUrl', 'tryOnAngleSource', 'tryOnAngleRUrl', 'tryOnAngleRSource', 'url', 'colour', 'colour2', 'shape', 'rim',
+                'awaitingCheck', 'tryOnLocked', 'tryOnAngleFit', 'tryOnAngleRFit'].forEach(k => { v[k] = p[k] === undefined ? null : p[k]; });
+              v.pend = pendingOf(p); v.prob = problemsOf(p); v.hide = p.hideViews || null; v.locks = p.tryOnViewLocks || null; v.auto = p.autoLive || null; v.det = p.detailsOk || null;
+              const fors = o => o && typeof o === 'object' ? Object.keys(o).sort().map(k => [k, o[k] && o[k].for, o[k] && o[k].v, o[k] && o[k].good, o[k] && o[k].url, o[k] && o[k].undone]) : null;
+              v.rc = fors(p.rimCheck); v.rf = fors(p.rimFix); v.cc = fors(p.cutCheck); v.at = fors(p.autoTouch);
+              v.ic = p.insideCheck ? [p.insideCheck.for, p.insideCheck.v] : null; v.ifx = p.insideFix ? [p.insideFix.url, p.insideFix.undone] : null;
+              return [p.id, v];
+            };
+            const s = JSON.stringify({ f: frames.map(pick).sort((a, b) => String(a[0]).localeCompare(String(b[0]))), live: !!(set && set.autoLive === true) });
+            return crypto.createHash('sha256').update(s).digest('hex').slice(0, 24);
+          }
+          async function readState(o){
+            const rows = await rest(o, '/rest/v1/products?select=id,data&id=not.like.__*&limit=5000');
+            if (!rows.ok || !Array.isArray(rows.body)) throw new Error('could not read the frames (' + rows.status + ')');
+            const shop = await rest(o, '/rest/v1/products?select=id,data&id=eq.__shop');
+            const set = (shop.ok && Array.isArray(shop.body) && shop.body[0] && shop.body[0].data && shop.body[0].data.shop) || {};
+            const frames = rows.body.map(r => Object.assign({ id: r.id }, r.data || {}));
+            return { frames, set };
+          }
+          async function readPrint(o){
+            const r = await rest(o, '/rest/v1/shop_private?select=data&id=eq.' + KEY_PRINT);
+            return (r.ok && Array.isArray(r.body) && r.body[0] && r.body[0].data) || null;
+          }
+          async function savePrint(o, data){
+            await rest(o, '/rest/v1/shop_private?on_conflict=id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+              body: JSON.stringify([{ id: KEY_PRINT, data, updated_at: new Date().toISOString() }]) });
+          }
+
+          /* should the browser be opened at all? */
+          async function plan(o){
+            const recut = String(o.recut || '').trim();
+            const m = /^check:(.+)$/i.exec(recut);
+            const only = m ? m[1].trim() : '';
+            const st = await readState(o);
+            const todo = st.frames.filter(isToCheck).filter(p => matches(p, only));
+            if (only){
+              if (!st.frames.some(p => matches(p, only))) return { go: false, reason: 'ROBOT CHECKS: no frame called "' + only + '"' };
+              return { go: true, only, reason: 'ROBOT CHECKS: test on one frame -- ' + only + (todo.length ? '' : ' (it is not in TO CHECK -- looked at anyway)'), st, todo };
+            }
+            if (st.set.robotChecks !== true) return { go: false, reason: 'ROBOT CHECKS are off (Admin -> TO CHECK -> ROBOT CHECKS). Nothing checked here.' };
+            if (!todo.length) return { go: false, reason: 'ROBOT CHECKS: nothing in TO CHECK.', st, todo };
+            const print = fingerprint(todo, st.set), last = await readPrint(o);
+            if (last && last.print === print && Date.now() - Date.parse(last.at || 0) < AGAIN_MS)
+              return { go: false, reason: 'ROBOT CHECKS: ' + todo.length + ' frame(s) in TO CHECK, nothing changed since the last check (' + String(last.at).slice(11, 16) + ' UTC).', st, todo, print };
+            return { go: true, only: '', reason: 'ROBOT CHECKS: ' + todo.length + ' frame(s) in TO CHECK -- checking now.', st, todo, print };
+          }
+
+          /* the shop account: looked up by its e-mail on every page of accounts (customers who sign in to My Orders have accounts
+             too, so it is not always on the first page). Otherwise the one account with an e-mail, once every page was seen. */
+          async function shopUser(o){
+            const want = String(o.shopEmail || process.env.SHOP_EMAIL || 'visionviewoptic@gmail.com').toLowerCase();
+            const withMail = []; let all = false;
+            for (let page = 1; page <= 50; page++){
+              const u = await rest(o, '/auth/v1/admin/users?page=' + page + '&per_page=200');
+              if (!u.ok) break;
+              const list = u.body ? (Array.isArray(u.body) ? u.body : (u.body.users || [])) : [];
+              const hit = list.find(x => x && x.email && String(x.email).toLowerCase() === want);
+              if (hit) return hit;
+              list.forEach(x => { if (x && x.email) withMail.push(x); });
+              if (list.length < 200){ all = true; break; }
+            }
+            if (all && withMail.length === 1) return withMail[0];             /* the one account with an e-mail, every page seen */
+            throw new Error('the shop account was not found');
+          }
+          /* a sign-in for the shop account, made with the robot's key (the same way the website's passcode sign-in makes one).
+             The robot keeps ONE sign-in of its own and renews it each run, so sign-ins do not pile up. */
+          async function shopSession(o){
+            const saved = await rest(o, '/rest/v1/shop_private?select=data&id=eq.' + KEY_SESSION);
+            const rt = saved.ok && Array.isArray(saved.body) && saved.body[0] && saved.body[0].data && saved.body[0].data.rt;
+            let sess = null;
+            if (rt){
+              const r = await rest(o, '/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: JSON.stringify({ refresh_token: rt }) });
+              if (r.ok && r.body && r.body.access_token) sess = r.body;
+            }
+            if (!sess){
+              const hit = await shopUser(o);
+              const g = await rest(o, '/auth/v1/admin/generate_link', { method: 'POST', body: JSON.stringify({ type: 'magiclink', email: hit.email }) });
+              if (!g.ok || !g.body) throw new Error('the shop account did not answer (' + g.status + ')');
+              const p = g.body.properties || g.body, tries = [];
+              if (p.hashed_token) tries.push({ type: p.verification_type || 'magiclink', token_hash: p.hashed_token });
+              if (p.hashed_token && (p.verification_type || 'magiclink') !== 'magiclink') tries.push({ type: 'magiclink', token_hash: p.hashed_token });
+              if (p.email_otp) tries.push({ type: 'email', email: hit.email, token: p.email_otp });
+              for (const t of tries){
+                const v = await rest(o, '/auth/v1/verify', { method: 'POST', body: JSON.stringify(t) });
+                if (v.ok && v.body && v.body.access_token){ sess = v.body; break; }
+              }
+              if (!sess) throw new Error('the shop account did not hand over a sign-in');
+            }
+            if (sess.refresh_token) await rest(o, '/rest/v1/shop_private?on_conflict=id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+              body: JSON.stringify([{ id: KEY_SESSION, data: { rt: sess.refresh_token, at: new Date().toISOString() }, updated_at: new Date().toISOString() }]) });
+            return sess;
+          }
+
+          const KIT = require('path').join(require('os').tmpdir(), 'vg-check-kit');      /* outside the repository folder */
+          async function browserKit(){
+            let pw = null;
+            for (const name of ['playwright-core', 'playwright', require('path').join(KIT, 'node_modules', 'playwright-core')]){ try { pw = require(name); break; } catch(e){} }
+            if (!pw){
+              say('installing the hidden browser driver ...');
+              require('child_process').execSync('npm install --no-save --silent --no-audit --no-fund --prefix "' + KIT + '" playwright-core@1.56.0', { stdio: 'inherit', timeout: 180e3 });
+              pw = require(require('path').join(KIT, 'node_modules', 'playwright-core'));
+            }
+            return pw;
+          }
+          async function launch(pw, o){
+            if (o.launch) return o.launch(pw);
+            try { return await pw.chromium.launch({ channel: 'chrome', headless: true }); }          /* Google Chrome is on the GitHub computer */
+            catch(e){
+              say('Chrome not found -- fetching the browser once ...');
+              require('child_process').execSync('npx --yes playwright-core@1.56.0 install chromium', { stdio: 'inherit', timeout: 300e3, cwd: require('os').tmpdir() });
+              return pw.chromium.launch({ headless: true });
+            }
+          }
+
+          async function run(o){
+            const p = await plan(o);
+            say(p.reason);
+            if (!p.go) return { skipped: true, reason: p.reason };
+            const sess = await shopSession(o);
+            const shaped = { access_token: sess.access_token, refresh_token: '', expires_at: Date.now() + (Number(sess.expires_in) || 3600) * 1000,   /* the page never gets the renewal key */
+              email: (sess.user && sess.user.email) || '', user_id: (sess.user && sess.user.id) || '' };
+            const pw = await browserKit(), browser = await launch(pw, o);
+            const budgetMs = Number(o.budgetMs || process.env.CHECK_MINUTES * 60e3) || 6 * 60e3;
+            let result = null; const errs = [];
+            try {
+              const ctx = await browser.newContext({ viewport: { width: 1100, height: 900 }, serviceWorkers: 'block' });
+              await ctx.addInitScript(({ s, robot, sync, origin }) => {
+                if (location.origin !== origin) return;                          /* the shop's own pages only -- never another site or frame */
+                try { localStorage.setItem('vg_session', JSON.stringify(s)); if (sync) localStorage.setItem('vg_sync', JSON.stringify(sync)); } catch(e){}
+                window.VG_ROBOT = robot;
+              }, { s: shaped, robot: { run: true, only: p.only || '', budgetMs }, sync: o.publicKey ? { url: o.url, key: o.publicKey } : null, origin: new URL(SITE()).origin });
+              const page = await ctx.newPage();
+              page.on('pageerror', e => errs.push(String(e && e.message || e).slice(0, 160)));
+              page.on('dialog', d => d.dismiss().catch(() => {}));                 /* nothing may wait for a tap */
+              if (o.setupPage) await o.setupPage(page, ctx);
+              await page.goto(SITE() + '/admin.html', { waitUntil: 'load', timeout: 90e3 });
+              /* the live Admin starts its robot run at once -- an older website build (before d17.192) cannot */
+              try { await page.waitForFunction(() => window.VG_ROBOT && window.VG_ROBOT.result, null, { timeout: 60e3, polling: 500 }); }
+              catch(e){ throw new Error('the live website is an older build without ROBOT CHECKS -- upload the website zip (d17.192 or newer) first'); }
+              try { await page.waitForFunction(() => window.VG_ROBOT && window.VG_ROBOT.done === true, null, { timeout: budgetMs + 90e3, polling: 1000 }); }
+              catch(e){ say('::warning::ROBOT CHECKS: the page did not finish in time -- what it did so far is below'); }
+              result = await page.evaluate(() => window.VG_ROBOT.result).catch(() => null);
+              if (result && !result.ended) result.timeUp = true;
+            } finally { await browser.close().catch(() => {}); }
+            /* the report in the robot's log */
+            if (result){
+              if (result.error) say('::warning::ROBOT CHECKS stopped: ' + result.error);
+              (result.steps || []).forEach(s => say('  did: ' + s));
+              (result.frames || []).forEach(f => say('  ' + f.name + ': ' + f.state));
+              if ((result.went || []).length) say('::notice::Went live by itself: ' + result.went.join(', '));
+            }
+            if (errs.length) say('  page notes: ' + errs.slice(0, 5).join(' | '));
+            /* what was looked at, so the next run can skip when nothing changed -- only when every check had its answer */
+            const finished = result && !result.error && !result.timeUp && !(result.frames || []).some(f => /^still checking/.test(f.state));
+            if (!p.only && finished){
+              try { const st = await readState(o); await savePrint(o, { print: fingerprint(st.frames.filter(isToCheck), st.set), at: new Date().toISOString() }); } catch(e){}
+            }
+            return { result, errs };
+          }
+
+          async function main(){
+            const o = { url: String(process.env.SUPABASE_URL || '').replace(/\/+$/, ''), key: process.env.SUPABASE_KEY || '', recut: process.env.RECUT || '' };
+            if (!o.url || !o.key){ say('ROBOT CHECKS: SUPABASE_URL or SUPABASE_KEY missing -- skipped'); return; }
+            try { await run(o); }
+            catch(e){ say('::warning::ROBOT CHECKS could not run: ' + String(e && e.message || e).slice(0, 200)); }
+          }
+          module.exports = { plan, run, fingerprint, isToCheck, shopSession };
+          if (require.main === module) main().then(() => process.exit(0));
+          JSEOF
+          echo "robot unpacked: $(wc -l < vg_look.py) + $(wc -l < vg_cut.py) + $(wc -l < vg_check.js) lines"
 
       - name: Is anything waiting?
         id: look
         env:
           SUPABASE_URL: https://oscpunukbyosckrmopeh.supabase.co
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          RECUT: ${{ github.event.inputs.recut }}
+          RECUT: ${{ !startsWith(github.event.inputs.recut, 'check:') && github.event.inputs.recut || '' }}
         run: |
           set +e
-          echo "Robot build 2026-10-26a (the AI's own outer edge on full-rim cuts, front and 30-degree: along the outside of the frame the AI model's clean outline is used -- no dots beside the rim, no bites, no grey line through it, pin-holes in an arm closed; the lens openings, the arms the front cut takes off and any place the AI and the robot disagree stay the robot's; half-rim, supra and rimless unchanged; the shop photo on white unchanged; as 10-24a, plus: an ARM is never taken for glass on a 30-degree photo: a long, narrow or solid dark area is not a lens opening -- the Good Days half-rim arm was hollowed out; as 08d, plus earlier: robot reads shape/colour/material/rim but never fills them -- staff decide; as 08c, plus: the white shop photo ignores background patches and table shadow the cut-out took in, and keeps no grey halo; as 08a, plus: the shop photo on plain white -- frame untouched, demo lens clear, light shadows -- made with every front cut, and white:<frame> for frames already on the shop; as 07s, plus: the 30-degree rim healing and bottom smoothing only where the lens really has a rim along its bottom -- a supra or rimless lens edge is left as it is; the smoothed bottom keeps the frame's own colours and pattern; as 07r, plus: the nose pads (arm, holder and the clear silicone pad) put back on the 30-degree pictures from the photo, the grey patch under the bridge removed, and the try-on told not to clean these pictures again; as 07q, plus: the bottom rim of the 30-degree pictures made smooth and even -- no zigzag; as 07p, plus: the nose pads stay; the table shadow under the bottom rim is removed; as 07n, plus: the far temple keeps its first 5-6 mm behind the hinge, fading out; as 07m, plus: on 30-degree pictures everything seen through the lenses is cleared -- the far temple across the demo, solid glass in its top -- and the far temple behind the bridge (double bridge) is removed; as 07k, plus: the rim on 30-degree pictures is healed -- small breaks closed with the photo's own pixels, glare dots beside the rim removed, nose-pad side and hinge left alone; as 07j, plus: 30-degree fit points found on thin metal rims too -- a softer rim edge, small breaks closed, a lens cut short by solid glass gets its real height; as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
+          echo "Robot build 2026-10-27b (ROBOT CHECKS: when Admin -> TO CHECK -> ROBOT CHECKS is on, after the cutter the robot runs every TO CHECK check itself -- touch-up, rim, inside the lenses, arms, picture reader, colour, AUTO-LIVE -- in the live Admin page, signed in to the shop account; no phone needs Admin open; check:<frame> tests one frame; as 10-27a, plus: RIMLESS / HALF-RIM: when the photo's lens edge is too faint to trace, the lenses are taken from the AI's own shape -- the arms and ragged bits taken out, one plain smooth line -- and then cleared as before: the 17% tint and a thin edge line, the printing and arms seen through the glass gone, the bridge, end pieces and nose pads kept; a rimless or half-rim frame whose lenses still cannot be found is kept off the website with a note (draw them with TRACE DEMO) -- never sent with solid white lenses; as 10-26a, plus: the AI's own outer edge on full-rim cuts, front and 30-degree: along the outside of the frame the AI model's clean outline is used -- no dots beside the rim, no bites, no grey line through it, pin-holes in an arm closed; the lens openings, the arms the front cut takes off and any place the AI and the robot disagree stay the robot's; half-rim, supra and rimless unchanged; the shop photo on white unchanged; as 10-24a, plus: an ARM is never taken for glass on a 30-degree photo: a long, narrow or solid dark area is not a lens opening -- the Good Days half-rim arm was hollowed out; as 08d, plus earlier: robot reads shape/colour/material/rim but never fills them -- staff decide; as 08c, plus: the white shop photo ignores background patches and table shadow the cut-out took in, and keeps no grey halo; as 08a, plus: the shop photo on plain white -- frame untouched, demo lens clear, light shadows -- made with every front cut, and white:<frame> for frames already on the shop; as 07s, plus: the 30-degree rim healing and bottom smoothing only where the lens really has a rim along its bottom -- a supra or rimless lens edge is left as it is; the smoothed bottom keeps the frame's own colours and pattern; as 07r, plus: the nose pads (arm, holder and the clear silicone pad) put back on the 30-degree pictures from the photo, the grey patch under the bridge removed, and the try-on told not to clean these pictures again; as 07q, plus: the bottom rim of the 30-degree pictures made smooth and even -- no zigzag; as 07p, plus: the nose pads stay; the table shadow under the bottom rim is removed; as 07n, plus: the far temple keeps its first 5-6 mm behind the hinge, fading out; as 07m, plus: on 30-degree pictures everything seen through the lenses is cleared -- the far temple across the demo, solid glass in its top -- and the far temple behind the bridge (double bridge) is removed; as 07k, plus: the rim on 30-degree pictures is healed -- small breaks closed with the photo's own pixels, glare dots beside the rim removed, nose-pad side and hinge left alone; as 07j, plus: 30-degree fit points found on thin metal rims too -- a softer rim edge, small breaks closed, a lens cut short by solid glass gets its real height; as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)" > look.txt
           python vg_look.py >> look.txt 2>&1
           code=$?
           cat look.txt
@@ -7622,7 +8095,7 @@ jobs:
           CLOUDINARY_NAME: ${{ secrets.CLOUDINARY_NAME }}
           CLOUDINARY_PRESET: ${{ secrets.CLOUDINARY_PRESET }}
           ALERT_NUMBERS: ${{ secrets.ALERT_NUMBERS }}
-          RECUT: ${{ github.event.inputs.recut }}
+          RECUT: ${{ !startsWith(github.event.inputs.recut, 'check:') && github.event.inputs.recut || '' }}
         run: |
           set +e
           python vg_cut.py > cut.txt 2>&1
@@ -7630,6 +8103,21 @@ jobs:
           cat cut.txt
           { echo "### What the robot did"; echo '```'; sed -E "s/^::(warning|notice|error)::/  /" cut.txt | tail -n 80; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           exit $code
+
+      - name: Check the frames in TO CHECK (ROBOT CHECKS)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        timeout-minutes: 15
+        env:
+          SUPABASE_URL: https://oscpunukbyosckrmopeh.supabase.co
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          RECUT: ${{ github.event.inputs.recut }}
+        run: |
+          set +e
+          node vg_check.js > check.txt 2>&1
+          cat check.txt
+          { echo "### ROBOT CHECKS"; echo '```'; sed -E "s/^::(warning|notice|error)::/  /" check.txt | tail -n 60; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit 0
 
       - name: Write the robot's report into the repo
         if: always()
@@ -7643,11 +8131,14 @@ jobs:
             echo
             echo "--- what the robot did ---"
             { sed -E 's/^::(warning|notice|error)::/  /' cut.txt 2>/dev/null | tail -n 80; } || echo "(the cutter did not run)"
+            echo
+            echo "--- robot checks (TO CHECK) ---"
+            { sed -E 's/^::(warning|notice|error)::/  /' check.txt 2>/dev/null | tail -n 40; } || echo "(the checks did not run)"
           } > robot-log.txt
           if [ -s cut.txt ]; then
             { echo "Run $GITHUB_RUN_NUMBER  $(date -u)"; echo; sed -E 's/^::(warning|notice|error)::/  /' cut.txt | tail -n 120; } > last-cut.txt
           fi
-          rm -f vg_look.py vg_cut.py vg_requirements.txt look.txt cut.txt
+          rm -f vg_look.py vg_cut.py vg_requirements.txt vg_check.js look.txt cut.txt check.txt
           git config user.name  "vg-cutter"
           git config user.email "vg-cutter@users.noreply.github.com"
           git add robot-log.txt
