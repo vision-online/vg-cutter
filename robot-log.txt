@@ -1,4 +1,4 @@
-Run 5209  Wed Oct 28 08:44:14 UTC 2026
+Run 5210  Wed Oct 28 08:54:15 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -12,4 +12,4 @@ Robot build 2026-10-28a (the robot file made smaller -- GitHub runs a workflow f
 --- what the robot did ---
 
 --- robot checks (TO CHECK) ---
-ROBOT CHECKS are off (Admin -> TO CHECK -> ROBOT CHECKS). Nothing checked here.
+ROBOT CHECKS: nothing in TO CHECK.
