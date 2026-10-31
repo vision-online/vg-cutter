@@ -1,21 +1,21 @@
-Run 5613  Sat Oct 31 02:45:35 UTC 2026
+Run 5733  Sat Oct 31 22:15:07 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
 WHITE TEST of VG-1018 Frames (pmuxw4dm183): 3 photo(s). Nothing is saved on the frame or the shop.
     installing the hidden browser driver ...
-    white maker: front.src 1400x788 -> made in 1100 ms
-    white maker: angle.src 1400x788 -> made in 469 ms
-    white maker: angle-right.src 1400x788 -> made in 740 ms
+    white maker: front.src 1400x788 -> made in 1088 ms
+    white maker: angle.src 1400x788 -> made in 686 ms
+    white maker: angle-right.src 1400x788 -> made in 1356 ms
 /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
     front: no Gemini key on GitHub yet (secret GEMINI_KEY)
-    FRONT TEST PICTURE -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1793414689/a7u4pvrg7xmgqhonbmaa.jpg
-  WHITE TEST FRONT picture: https://res.cloudinary.com/jpf6kf5g/image/upload/v1793414689/a7u4pvrg7xmgqhonbmaa.jpg
+    FRONT TEST PICTURE -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1793484840/fgticfdbpuytclncps7b.jpg
+  WHITE TEST FRONT picture: https://res.cloudinary.com/jpf6kf5g/image/upload/v1793484840/fgticfdbpuytclncps7b.jpg
     angle: no Gemini key on GitHub yet (secret GEMINI_KEY)
-    30 LEFT TEST PICTURE -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1793414711/wbwyjyqmwj3fh5yhx1id.jpg
-  WHITE TEST 30 LEFT picture: https://res.cloudinary.com/jpf6kf5g/image/upload/v1793414711/wbwyjyqmwj3fh5yhx1id.jpg
+    30 LEFT TEST PICTURE -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1793484871/vlzeia1sdfqg5bvci40f.jpg
+  WHITE TEST 30 LEFT picture: https://res.cloudinary.com/jpf6kf5g/image/upload/v1793484871/vlzeia1sdfqg5bvci40f.jpg
     angle-right: no Gemini key on GitHub yet (secret GEMINI_KEY)
-    30 RIGHT TEST PICTURE -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1793414733/ceabzlinz5ohk6qihdap.jpg
-  WHITE TEST 30 RIGHT picture: https://res.cloudinary.com/jpf6kf5g/image/upload/v1793414733/ceabzlinz5ohk6qihdap.jpg
+    30 RIGHT TEST PICTURE -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1793484904/mjyymqft8oojquqhtgsz.jpg
+  WHITE TEST 30 RIGHT picture: https://res.cloudinary.com/jpf6kf5g/image/upload/v1793484904/mjyymqft8oojquqhtgsz.jpg
