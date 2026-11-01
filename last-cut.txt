@@ -1,21 +1,43 @@
-Run 5802  Sun Nov  1 09:13:00 UTC 2026
+Run 5868  Sun Nov  1 19:48:14 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), preset vg_uploads (from secret).
-WHITE TEST of VG-1018 Frames (pmuxw4dm183): 3 photo(s). Nothing is saved on the frame or the shop.
-    installing the hidden browser driver ...
-    white maker: front.src 1400x788 -> made in 1042 ms
-    white maker: angle.src 1400x788 -> made in 571 ms
-    white maker: angle-right.src 1400x788 -> made in 1067 ms
+--- pmvrtf66z8 : Michal Jack
 /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    Gemini: this key can use 46 models today; asking gemini-3.8-flash, gemini-robotics-er-2-preview, gemini-2.5-flash
-    front: Gemini (gemini-3.8-flash) marked 7 part(s) as outline points [y,x] + the lenses; the lenses taken off the rims; parts: bridge, right rim, left rim, left arm, right arm, hinge or end piece, hinge or end piece
-    FRONT TEST PICTURE -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1793524184/jol7q3tdh72l7lasmrbl.jpg
-    angle: gemini-3.8-flash no answer in time (HTTPSConnectionPool(host='generativelanguage.googleapis.com'); Gemini (gemini-robotics-er-2-preview) marked 7 part(s) as outline points [y,x] + the lenses; the lenses taken off the rims; parts: left rim, right rim, bridge, arm, arm, nose pad, nose pad
-    30 LEFT TEST PICTURE -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1793524341/vez5nsgpimapxxidf22u.jpg
-    angle-right: Gemini (gemini-robotics-er-2-preview) marked 5 part(s) as outline points [y,x] + the lenses; the lenses taken off the rims; parts: right arm, left arm, right rim, left rim, bridge
-    30 RIGHT TEST PICTURE -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1793524377/pmbbeejlgtra0vok3zwi.jpg
-    PICTURES: open the file test-white.md in the vg-cutter repo (its links open; the links above are hidden by GitHub)
-  WHITE TEST of VG-1018 Frames ready -- open test-white.md in the vg-cutter repo to see the pictures
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_5m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_11m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_11m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_384 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_384. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_512 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_512. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/mobile_sam/build_sam.py:91: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  state_dict = torch.load(f)
+    MobileSAM ready
+    angled lens step: lenses 73400 + 30521 px (found by two openings, SAM: +16335 px of glass); 116091 pixels of glass cleared
+    AI outer edge: 37427 px of the outline from the AI, 0 px kept the robot's (they disagree there), 1346 px kept because the photo disagreed, 936 see-through rim px made solid, 0 pin-holes closed, 80 specks on the sheet cleared, 2041 px changed
+    rim heal: 788 break pixels closed, 27 faint rim pixels made solid, 195 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 3290 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: rim 29.2 px, 4330 px evened
+    nose pads: rim 28 px thick (not a thin metal rim) -- nothing put back
+    45 degree left fit points: bridge at (856,181), lens height 294 px, near lens on the left
+    45 degree left held back until it is approved in TO CHECK
+    45 degree left cut too
+    angled lens step: lenses 28701 + 69916 px (found by two openings, SAM: +15975 px of glass); 110569 pixels of glass cleared
+    AI outer edge: 39522 px of the outline from the AI, 1655 px kept the robot's (they disagree there), 3997 px kept because the photo disagreed, 596 see-through rim px made solid, 0 pin-holes closed, 142 specks on the sheet cleared, 1597 px changed
+    rim heal: 593 break pixels closed, 6 faint rim pixels made solid, 194 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 1056 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: rim 30.5 px, 4245 px evened
+    nose pads: rim 29 px thick (not a thin metal rim) -- nothing put back
+    45 degree right fit points: bridge at (305,174), lens height 286 px, near lens on the right
+    45 degree right held back until it is approved in TO CHECK
+    45 degree right cut too
+    views on white: angle clean, angleR clean
+      tryOnAngleUrl: https://res.cloudinary.com/jpf6kf5g/image/upload/v1793562424/sf3sbzqznzfjgxvvujfi.png
+      tryOnAngleRUrl: https://res.cloudinary.com/jpf6kf5g/image/upload/v1793562487/rvbc577c6m8ukvbus01m.png
+  Views done for 1 frame(s).
