@@ -1,4 +1,4 @@
-Run 6021  Mon Nov  2 20:47:03 UTC 2026
+Run 6022  Mon Nov  2 20:57:27 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -9,4 +9,7 @@ Robot build 2026-11-02b (SAFER ROBOT: the 30-degree try-on pictures of a frame f
 --- what the robot did ---
 
 --- robot checks (TO CHECK) ---
-ROBOT CHECKS: 2 frame(s) in TO CHECK, nothing changed since the last check (19:56 UTC).
+ROBOT CHECKS: 2 frame(s) in TO CHECK -- checking now.
+installing the hidden browser driver ...
+  Visibilla: new picture on a live frame — a person looks
+  Gk: new picture on a live frame — a person looks
