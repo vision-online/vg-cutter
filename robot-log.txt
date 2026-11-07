@@ -1,4 +1,4 @@
-Run 6691  Sat Nov  7 10:55:58 UTC 2026
+Run 6692  Sat Nov  7 11:05:39 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -12,12 +12,4 @@ Robot build 2026-11-02b (SAFER ROBOT: the 30-degree try-on pictures of a frame f
 --- what the robot did ---
 
 --- robot checks (TO CHECK) ---
-ROBOT CHECKS: 7 frame(s) in TO CHECK -- checking now.
-installing the hidden browser driver ...
-  INTACT: NEEDS A LOOK — FRONT picture reader: left in arms left inside both lenses · 30° LEFT picture reader: left in part of far arm inside the left lens, shadow under the bottom rim · 30° RIGHT picture reader: missing part of the inner rim of the right lens
-  UTM EYEWEAR: NEEDS A LOOK — FRONT picture reader: missing small part of bottom rim left and right · left in bits of white background left at the bottom · 30° LEFT arm not like the photo · 30° RIGHT arm not like the photo
-  UTM EYEWEAR: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: left in parts of arm inside left lens and right lens · 30° LEFT arm not like the photo · 30° RIGHT arm not like the photo
-  INTACT: NEEDS A LOOK — FRONT picture reader: missing part of bridge · left in text inside the left lens and logo inside the right lens · 30° LEFT picture reader: missing parts of the left rim, bridge, and top of the right lens frame · 30° RIGHT picture reader: missing top of the right lens frame is cut away · left in bits inside the right lens
-  INTACT: NEEDS A LOOK — FRONT picture reader: left in lens text inside the left lens, sticker inside the right lens · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT picture reader: missing part of left lens rim bottom · left in none
-  UTM EYEWEAR: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: left in text and logo inside the left lens · 30° LEFT arm not like the photo · 30° RIGHT arm not like the photo
-  INTACT: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: left in part of the arm inside the left lens, part of the arm inside the right lens · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+ROBOT CHECKS: 7 frame(s) in TO CHECK, nothing changed since the last check (10:55 UTC).
