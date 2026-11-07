@@ -1,66 +1,12 @@
-Run 6751  Sat Nov  7 20:46:01 UTC 2026
+Run 6752  Sat Nov  7 20:52:25 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-11-02b (SAFER ROBOT: the 30-degree try-on pictures of a frame fixed by hand now wake the robot, which makes them and puts them in TO CHECK; a frame whose pictures were cut short by the time limit is never marked done -- it is finished on the next run; one frame with bad data never stops the others or wakes the robot again and again; a photo-store failure is tried again, not saved as a problem; a frame that cannot be read just before saving is not written (a delete or a staff edit is never undone); ROBOT CHECKS read the frames page by page and see them all (the old filter hid every frame); the upload preset and any Gemini key are kept out of the public report files; the white-test page always says what the run did) -- as 11-01a (GEMINI TEST UPDATED: test-white:<frame> asks Google which Gemini models the key can use today and tries the newest Flash, then the newest Robotics-ER, then 2.5 Flash; reads the outline as points or as a picture mask; what Gemini calls lens is taken off the rims, nose pads and arms kept, and lens glass is never put back; every model's answer is in the report; the test pictures are on test-white.md in the repo with links that open; nothing else changed) -- as 10-30b (SHOP PHOTOS ON WHITE BY THE ROBOT: the front, 30-degree left and 30-degree right shop photos are made on white by the robot itself -- no phone needs Admin open; the website's own white maker runs in a hidden Chrome, then every pixel the white maker turned white inside the frame is looked at: rim, inner edge and nose pads that were cut are put back from the photo, and the whole rim is checked along the frame's outline -- if any of it is still missing the shop shows the photo as taken; a staff choice in Admin is never touched; white:<frame> makes one frame again, white:all every older white photo; test-white:<frame> makes a test picture with Gemini's outline of the frame, nothing saved) -- as 10-28c (RIMLESS LENSES FROM THE PHOTO: on a frame whose rim type says Rimless or 3 piece, each lens edge is traced on the photo itself, the two lenses as mirror images, one smooth line each -- front and 30-degree pictures; when the photo does not clearly show the edge the frame is held for TRACE DEMO; every other frame is cut exactly as before) -- as 10-28a (the robot file made smaller -- GitHub runs a workflow file only if it is 500 KB or less, and 10-27b was 516 KB so no run started; the cutter is now stored packed and unpacked on the runner, byte for byte the same; nothing else changed) -- as 10-27b (ROBOT CHECKS: when Admin -> TO CHECK -> ROBOT CHECKS is on, after the cutter the robot runs every TO CHECK check itself -- touch-up, rim, inside the lenses, arms, picture reader, colour, AUTO-LIVE -- in the live Admin page, signed in to the shop account; no phone needs Admin open; check:<frame> tests one frame; as 10-27a, plus: RIMLESS / HALF-RIM: when the photo's lens edge is too faint to trace, the lenses are taken from the AI's own shape -- the arms and ragged bits taken out, one plain smooth line -- and then cleared as before: the 17% tint and a thin edge line, the printing and arms seen through the glass gone, the bridge, end pieces and nose pads kept; a rimless or half-rim frame whose lenses still cannot be found is kept off the website with a note (draw them with TRACE DEMO) -- never sent with solid white lenses; as 10-26a, plus: the AI's own outer edge on full-rim cuts, front and 30-degree: along the outside of the frame the AI model's clean outline is used -- no dots beside the rim, no bites, no grey line through it, pin-holes in an arm closed; the lens openings, the arms the front cut takes off and any place the AI and the robot disagree stay the robot's; half-rim, supra and rimless unchanged; the shop photo on white unchanged; as 10-24a, plus: an ARM is never taken for glass on a 30-degree photo: a long, narrow or solid dark area is not a lens opening -- the Good Days half-rim arm was hollowed out; as 08d, plus earlier: robot reads shape/colour/material/rim but never fills them -- staff decide; as 08c, plus: the white shop photo ignores background patches and table shadow the cut-out took in, and keeps no grey halo; as 08a, plus: the shop photo on plain white -- frame untouched, demo lens clear, light shadows -- made with every front cut, and white:<frame> for frames already on the shop; as 07s, plus: the 30-degree rim healing and bottom smoothing only where the lens really has a rim along its bottom -- a supra or rimless lens edge is left as it is; the smoothed bottom keeps the frame's own colours and pattern; as 07r, plus: the nose pads (arm, holder and the clear silicone pad) put back on the 30-degree pictures from the photo, the grey patch under the bridge removed, and the try-on told not to clean these pictures again; as 07q, plus: the bottom rim of the 30-degree pictures made smooth and even -- no zigzag; as 07p, plus: the nose pads stay; the table shadow under the bottom rim is removed; as 07n, plus: the far temple keeps its first 5-6 mm behind the hinge, fading out; as 07m, plus: on 30-degree pictures everything seen through the lenses is cleared -- the far temple across the demo, solid glass in its top -- and the far temple behind the bridge (double bridge) is removed; as 07k, plus: the rim on 30-degree pictures is healed -- small breaks closed with the photo's own pixels, glare dots beside the rim removed, nose-pad side and hinge left alone; as 07j, plus: 30-degree fit points found on thin metal rims too -- a softer rim edge, small breaks closed, a lens cut short by solid glass gets its real height; as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::30-degree try-on pictures to make: 1 frame(s) (INTACT) -- new 30-degree pictures wait in TO CHECK for your OK.
-::notice::Frames: 20. Waiting: 1. Rejected: 0.
+::notice::Frames: 20. Waiting: 0. Rejected: 0.
 
 --- what the robot did ---
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 20 frames. Waiting for a cut-out: 0.
-Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
---- pmw61e1zn53 : INTACT (views for a hand-published frame)
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet at 1024 px
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_5m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_11m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_11m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_384 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_384. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_512 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_512. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/build_sam.py:91: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-  state_dict = torch.load(f)
-    MobileSAM ready
-    angled lens step: lenses 88019 + 50525 px (found by two openings, SAM: nothing to add); 132165 pixels of glass cleared
-    AI outer edge: 40308 px of the outline from the AI, 879 px kept the robot's (they disagree there), 4791 px kept because the photo disagreed, 794 see-through rim px made solid, 27 pin-holes closed, 50 specks on the sheet cleared, 3044 px changed
-    rim heal: 194 break pixels closed, 288 faint rim pixels made solid, 0 glare dots removed, 819 shadow pixels under the rim removed
-    lens clean: 387 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: rim 18.0 px, 1667 px evened
-    nose pads: rim 17 px thick (not a thin metal rim) -- nothing put back
-    45 degree left fit points: bridge at (816,160), lens height 304 px, near lens on the left
-    45 degree left held back until it is approved in TO CHECK
-    45 degree left cut too
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:488: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
-  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
-    angled lens step: lenses 41348 + 78374 px (found by two openings, SAM: +1831 px of glass); 116688 pixels of glass cleared
-    AI outer edge: 40770 px of the outline from the AI, 64 px kept the robot's (they disagree there), 4129 px kept because the photo disagreed, 806 see-through rim px made solid, 0 pin-holes closed, 43 specks on the sheet cleared, 3818 px changed
-    rim heal: 476 break pixels closed, 439 faint rim pixels made solid, 0 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 859 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: rim 20.4 px, 2058 px evened
-    nose pads: rim 20 px thick (not a thin metal rim) -- nothing put back
-    45 degree right fit points: bridge at (294,163), lens height 299 px, near lens on the right
-    45 degree right held back until it is approved in TO CHECK
-    45 degree right cut too
-Nothing to do.
 
 --- robot checks (TO CHECK) ---
-ROBOT CHECKS: 1 frame(s) in TO CHECK -- checking now.
-installing the hidden browser driver ...
-  did: touch-up INTACT angle
-  did: touch-up INTACT angleR
-  did: arm INTACT angle
-  did: arm INTACT angle
-  did: arm INTACT angleR
-  did: arm INTACT angleR
-  did: picture reader INTACT angle
-  did: picture reader INTACT angle
-  did: picture reader INTACT angleR
-  did: picture reader INTACT angleR
-  INTACT: new picture on a live frame — a person looks
+ROBOT CHECKS: 1 frame(s) in TO CHECK, nothing changed since the last check (20:46 UTC).
