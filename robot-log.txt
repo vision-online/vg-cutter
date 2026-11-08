@@ -1,4 +1,4 @@
-Run 6796  Sun Nov  8 03:58:02 UTC 2026
+Run 6797  Sun Nov  8 04:08:06 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -9,6 +9,4 @@ Robot build 2026-11-02b (SAFER ROBOT: the 30-degree try-on pictures of a frame f
 --- what the robot did ---
 
 --- robot checks (TO CHECK) ---
-ROBOT CHECKS: 1 frame(s) in TO CHECK -- checking now.
-installing the hidden browser driver ...
-  INTACT: new picture on a live frame — a person looks
+ROBOT CHECKS: 1 frame(s) in TO CHECK, nothing changed since the last check (03:58 UTC).
