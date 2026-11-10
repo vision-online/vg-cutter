@@ -1,132 +1,134 @@
-Run 7125  Tue Nov 10 10:38:08 UTC 2026
+Run 7132  Tue Nov 10 11:33:07 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-11-02b (SAFER ROBOT: the 30-degree try-on pictures of a frame fixed by hand now wake the robot, which makes them and puts them in TO CHECK; a frame whose pictures were cut short by the time limit is never marked done -- it is finished on the next run; one frame with bad data never stops the others or wakes the robot again and again; a photo-store failure is tried again, not saved as a problem; a frame that cannot be read just before saving is not written (a delete or a staff edit is never undone); ROBOT CHECKS read the frames page by page and see them all (the old filter hid every frame); the upload preset and any Gemini key are kept out of the public report files; the white-test page always says what the run did) -- as 11-01a (GEMINI TEST UPDATED: test-white:<frame> asks Google which Gemini models the key can use today and tries the newest Flash, then the newest Robotics-ER, then 2.5 Flash; reads the outline as points or as a picture mask; what Gemini calls lens is taken off the rims, nose pads and arms kept, and lens glass is never put back; every model's answer is in the report; the test pictures are on test-white.md in the repo with links that open; nothing else changed) -- as 10-30b (SHOP PHOTOS ON WHITE BY THE ROBOT: the front, 30-degree left and 30-degree right shop photos are made on white by the robot itself -- no phone needs Admin open; the website's own white maker runs in a hidden Chrome, then every pixel the white maker turned white inside the frame is looked at: rim, inner edge and nose pads that were cut are put back from the photo, and the whole rim is checked along the frame's outline -- if any of it is still missing the shop shows the photo as taken; a staff choice in Admin is never touched; white:<frame> makes one frame again, white:all every older white photo; test-white:<frame> makes a test picture with Gemini's outline of the frame, nothing saved) -- as 10-28c (RIMLESS LENSES FROM THE PHOTO: on a frame whose rim type says Rimless or 3 piece, each lens edge is traced on the photo itself, the two lenses as mirror images, one smooth line each -- front and 30-degree pictures; when the photo does not clearly show the edge the frame is held for TRACE DEMO; every other frame is cut exactly as before) -- as 10-28a (the robot file made smaller -- GitHub runs a workflow file only if it is 500 KB or less, and 10-27b was 516 KB so no run started; the cutter is now stored packed and unpacked on the runner, byte for byte the same; nothing else changed) -- as 10-27b (ROBOT CHECKS: when Admin -> TO CHECK -> ROBOT CHECKS is on, after the cutter the robot runs every TO CHECK check itself -- touch-up, rim, inside the lenses, arms, picture reader, colour, AUTO-LIVE -- in the live Admin page, signed in to the shop account; no phone needs Admin open; check:<frame> tests one frame; as 10-27a, plus: RIMLESS / HALF-RIM: when the photo's lens edge is too faint to trace, the lenses are taken from the AI's own shape -- the arms and ragged bits taken out, one plain smooth line -- and then cleared as before: the 17% tint and a thin edge line, the printing and arms seen through the glass gone, the bridge, end pieces and nose pads kept; a rimless or half-rim frame whose lenses still cannot be found is kept off the website with a note (draw them with TRACE DEMO) -- never sent with solid white lenses; as 10-26a, plus: the AI's own outer edge on full-rim cuts, front and 30-degree: along the outside of the frame the AI model's clean outline is used -- no dots beside the rim, no bites, no grey line through it, pin-holes in an arm closed; the lens openings, the arms the front cut takes off and any place the AI and the robot disagree stay the robot's; half-rim, supra and rimless unchanged; the shop photo on white unchanged; as 10-24a, plus: an ARM is never taken for glass on a 30-degree photo: a long, narrow or solid dark area is not a lens opening -- the Good Days half-rim arm was hollowed out; as 08d, plus earlier: robot reads shape/colour/material/rim but never fills them -- staff decide; as 08c, plus: the white shop photo ignores background patches and table shadow the cut-out took in, and keeps no grey halo; as 08a, plus: the shop photo on plain white -- frame untouched, demo lens clear, light shadows -- made with every front cut, and white:<frame> for frames already on the shop; as 07s, plus: the 30-degree rim healing and bottom smoothing only where the lens really has a rim along its bottom -- a supra or rimless lens edge is left as it is; the smoothed bottom keeps the frame's own colours and pattern; as 07r, plus: the nose pads (arm, holder and the clear silicone pad) put back on the 30-degree pictures from the photo, the grey patch under the bridge removed, and the try-on told not to clean these pictures again; as 07q, plus: the bottom rim of the 30-degree pictures made smooth and even -- no zigzag; as 07p, plus: the nose pads stay; the table shadow under the bottom rim is removed; as 07n, plus: the far temple keeps its first 5-6 mm behind the hinge, fading out; as 07m, plus: on 30-degree pictures everything seen through the lenses is cleared -- the far temple across the demo, solid glass in its top -- and the far temple behind the bridge (double bridge) is removed; as 07k, plus: the rim on 30-degree pictures is healed -- small breaks closed with the photo's own pixels, glare dots beside the rim removed, nose-pad side and hinge left alone; as 07j, plus: 30-degree fit points found on thin metal rims too -- a softer rim edge, small breaks closed, a lens cut short by solid glass gets its real height; as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::Shop photos on white waiting: 18 (the robot makes them now).
-::notice::Frames: 34. Waiting: 5. Rejected: 0.
+::notice::Shop photos on white waiting: 24 (the robot makes them now).
+  2 frame(s): Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.  [TOM & HERRY FUNKY, TOM & HERRY FUNKY]
+  1 frame(s): Robot check: the rim came out thinner on the left lens (bottom, 68% of the other side). Not published -- needs a look, the photo is not the problem.  [KINDLE]
+::notice::Frames: 48. Waiting: 5. Rejected: 3.
 
 --- what the robot did ---
-    AI outer edge: 31644 px of the outline from the AI, 0 px kept the robot's (they disagree there), 828 px kept because the photo disagreed, 558 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 1099 px changed
-    rim heal: 467 break pixels closed, 54 faint rim pixels made solid, 82 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 690 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 38 px thick (not a thin metal rim) -- nothing put back
-    45 degree right fit points: bridge at (191,115), lens height 172 px, near lens on the right
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1794305999/qsnypjubok6gngd6immb.png
---- pmwaik8q943 : KINDLE
-    thin dark rim: about 6 px thick, edge band 2 px (was 15) so the line keeps a solid core
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 62067 + 60673 px (found by rim line, SAM: nothing to add); 118202 pixels of glass cleared
-    sheet-ring peel (local wall colour): 1249 px taken off the edge
-    AI outer edge: 25880 px of the outline from the AI, 0 px kept the robot's (they disagree there), 750 px kept because the photo disagreed, 33 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 296 px changed
-    levelled: the frame was 0.4 degrees off, turned straight
-    size check: frame works out at 118 mm (typed 44 + 17 -> about 124 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 58% of the photo's width
-    RIM CHECK: both rims match (thinnest spot 89% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (1005x493)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1794306188/ljyir7lmcyk1ig1qbvic.jpg
-    angled lens step: lenses 48027 + 33222 px (found by two openings, SAM: nothing to add); 76857 pixels of glass cleared
-    AI outer edge: 27415 px of the outline from the AI, 11374 px kept the robot's (they disagree there), 3017 px kept because the photo disagreed, 473 see-through rim px made solid, 12 pin-holes closed, 0 specks on the sheet cleared, 1538 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
     nose pads: lenses not found, left as is
     45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
     45 degree left cut too
-    angled lens step: lenses 23775 + 37374 px (found by two openings, SAM: nothing to add); 56860 pixels of glass cleared
-    AI outer edge: 30798 px of the outline from the AI, 13319 px kept the robot's (they disagree there), 4628 px kept because the photo disagreed, 520 see-through rim px made solid, 20 pin-holes closed, 0 specks on the sheet cleared, 1997 px changed
+    angled lens step skipped, nothing changed: no rim line and no two lens openings found
     rim heal: lens openings not found -- left as cut
     lens clean: lens openings not found -- left as cut
     bottom rim: lenses not found, left as is
     nose pads: lenses not found, left as is
     45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
     45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1794306186/eri52g5joqlmbzis5dyq.png
-White photos waiting: 21 photo(s) of 7 frame(s) -- 18 made in this run, the rest in the next runs.
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1794309406/b0vrycgrws8jpqxqpn0v.png
+--- pmwak0hgp39 : BLOSSOM
+    end pieces: 2 px of bright metal the edge finishing dropped put back
+    rim type: not set (0 clean lens holes)
+half-rim: 33 enclosed pieces, 2 candidates, rejected {'size': 31, 'shape': 0, 'place': 0, 'solid': 0, 'touch': 0}
+    supra: 2362 px of the lens edge and nose pads put back after the clean-ups
+    lens edge line drawn (half-rim / rimless): 5467 px at 80%
+    a little tint left on the demo (half-rim / rimless): 130313 px
+    levelled: the frame was 0.9 degrees off, turned straight
+    size check: frame works out at 127 mm (typed 52 + 17 -> about 140 mm expected)
+    the frame fills 61% of the photo's width
+    demo edge copied from the photo (half-rim / rimless)
+    shop photo on white made (1049x456)
+    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1794309603/vrqsblqrpz1b9zmdckf1.jpg
+    angled lens step skipped, nothing changed: no rim line and no two lens openings found
+    rim heal: lens openings not found -- left as cut
+    lens clean: lens openings not found -- left as cut
+    bottom rim: lenses not found, left as is
+    nose pads: lenses not found, left as is
+    45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
+    45 degree left cut too
+    angled lens step skipped, nothing changed: could not find both lenses
+    rim heal: lens openings not found -- left as cut
+    lens clean: lens openings not found -- left as cut
+    bottom rim: lenses not found, left as is
+    nose pads: lenses not found, left as is
+    45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
+    45 degree right cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1794309603/g9hgyum7kjxuv884qesb.png
+White photos waiting: 24 photo(s) of 8 frame(s) -- 18 made in this run, the rest in the next runs.
     installing the hidden browser driver ...
-    white maker: pmwaixbo559-front.src 1400x788 -> made in 1284 ms
-    white maker: pmwaixbo559-angle.src 1400x788 -> made in 570 ms
-    white maker: pmwaixbo559-angle-right.src 1400x788 -> made in 984 ms
-    white maker: pmwaiyh3p21-front.src 1400x788 -> made in 583 ms
-    white maker: pmwaiyh3p21-angle.src 1400x788 -> made in 654 ms
-    white maker: pmwaiyh3p21-angle-right.src 1400x788 -> made in 508 ms
-    white maker: pmwaizqlg64-front.src 1400x788 -> made in 308 ms
-    white maker: pmwaizqlg64-angle.src 1400x788 -> made in 364 ms
-    white maker: pmwaizqlg64-angle-right.src 1400x788 -> made in 308 ms
-    white maker: pmwaj15o95-front.src 1400x788 -> made in 248 ms
-    white maker: pmwaj15o95-angle.src 1400x788 -> made in 272 ms
-    white maker: pmwaj15o95-angle-right.src 1400x788 -> made in 251 ms
-    white maker: pmwaj24t21-front.src 1400x788 -> made in 544 ms
-    white maker: pmwaj24t21-angle.src 1400x788 -> made in 305 ms
-    white maker: pmwaj24t21-angle-right.src 1400x788 -> made in 297 ms
-    white maker: pmwaj3cw080-front.src 1400x788 -> made in 350 ms
-    white maker: pmwaj3cw080-angle.src 1400x788 -> made in 322 ms
-    white maker: pmwaj3cw080-angle-right.src 1400x788 -> made in 272 ms
-    VG-1021 Frames front: white -- rim check OK, 4456 px of rim put back from the photo (outer 618, inner 3822, pads 16)
-    VG-1021 Frames angle: white -- rim check OK, 2766 px of rim put back from the photo (outer 247, inner 2492, pads 27)
-    VG-1021 Frames angle-right: white -- rim check OK, 1338 px of rim put back from the photo (outer 256, inner 1010, pads 72)
-    VG-1022 Frames front: white -- rim check OK, 3636 px of rim put back from the photo (outer 473, inner 3115, pads 48)
-    VG-1022 Frames angle: white -- rim check OK, 2069 px of rim put back from the photo (outer 604, inner 1429, pads 36)
-    VG-1022 Frames angle-right: white -- rim check OK, 2286 px of rim put back from the photo (outer 516, inner 1707, pads 63)
-    VG-1023 Frames front: white -- rim check OK, 2199 px of rim put back from the photo (outer 2111, inner 65, pads 23)
-    VG-1023 Frames angle: white -- rim check OK, 1656 px of rim put back from the photo (outer 586, inner 0, pads 1070)
-    VG-1023 Frames angle-right: white -- rim check OK, 230 px of rim put back from the photo (outer 168, inner 37, pads 25)
-    VG-1024 Frames front: photo as taken -- whole-rim check: the rim is still missing along 33.7% of the frame's outline (longest stretch 13.7%) -- the photo as taken is shown
-    VG-1024 Frames angle: photo as taken -- whole-rim check: the rim is still missing along 22.8% of the frame's outline (longest stretch 3.1%) -- the photo as taken is shown
-    VG-1024 Frames angle-right: photo as taken -- whole-rim check: the rim is still missing along 18.6% of the frame's outline (longest stretch 3.6%) -- the photo as taken is shown
-    VG-1025 Frames front: photo as taken -- whole-rim check: the rim is still missing along 20.0% of the frame's outline (longest stretch 4.6%) -- the photo as taken is shown
-    VG-1025 Frames angle: photo as taken -- whole-rim check: the rim is still missing along 15.8% of the frame's outline (longest stretch 2.6%) -- the photo as taken is shown
-    VG-1025 Frames angle-right: photo as taken -- whole-rim check: the rim is still missing along 18.8% of the frame's outline (longest stretch 4.2%) -- the photo as taken is shown
-    VG-1026 Frames front: white -- rim check OK, 2511 px of rim put back from the photo (outer 2007, inner 417, pads 87)
-    VG-1026 Frames angle: white -- rim check OK, 2014 px of rim put back from the photo (outer 1221, inner 26, pads 767)
-    VG-1026 Frames angle-right: white -- rim check OK, 816 px of rim put back from the photo (outer 730, inner 55, pads 31)
+    white maker: pmwak0hgp39-front.src 1400x788 -> made in 1348 ms
+    white maker: pmwak0hgp39-angle.src 1400x788 -> made in 619 ms
+    white maker: pmwak0hgp39-angle-right.src 1400x788 -> made in 925 ms
+    white maker: pmwak1bxr1-front.src 1400x788 -> made in 320 ms
+    white maker: pmwak1bxr1-angle.src 1400x788 -> made in 308 ms
+    white maker: pmwak1bxr1-angle-right.src 1400x788 -> made in 333 ms
+    white maker: pmwak1yf515-front.src 1400x788 -> made in 331 ms
+    white maker: pmwak1yf515-angle.src 1400x788 -> made in 330 ms
+    white maker: pmwak1yf515-angle-right.src 1400x788 -> made in 388 ms
+    white maker: pmwako0sh62-front.src 1400x788 -> made in 601 ms
+    white maker: pmwako0sh62-angle.src 1400x788 -> made in 634 ms
+    white maker: pmwako0sh62-angle-right.src 1400x788 -> made in 638 ms
+    white maker: pmwakp5bb25-front.src 1400x788 -> made in 310 ms
+    white maker: pmwakp5bb25-angle.src 1400x788 -> made in 599 ms
+    white maker: pmwakp5bb25-angle-right.src 1400x788 -> made in 626 ms
+    white maker: pmwakq2cf11-front.src 1400x788 -> made in 625 ms
+    white maker: pmwakq2cf11-angle.src 1400x788 -> made in 596 ms
+    white maker: pmwakq2cf11-angle-right.src 1400x788 -> made in 631 ms
+    BLOSSOM front: photo as taken -- whole-rim check: the rim is still missing along 6.6% of the frame's outline (longest stretch 2.2%) -- the photo as taken is shown
+    BLOSSOM angle: photo as taken -- whole-rim check: the rim is still missing along 6.7% of the frame's outline (longest stretch 3.9%) -- the photo as taken is shown
+    BLOSSOM angle-right: photo as taken -- whole-rim check: the rim is still missing along 14.1% of the frame's outline (longest stretch 4.5%) -- the photo as taken is shown
+    BLOSSOM front: photo as taken -- whole-rim check: the rim is still missing along 24.0% of the frame's outline (longest stretch 9.8%) -- the photo as taken is shown
+    BLOSSOM angle: photo as taken -- whole-rim check: the rim is still missing along 8.3% of the frame's outline (longest stretch 3.9%) -- the photo as taken is shown
+    BLOSSOM angle-right: photo as taken -- whole-rim check: the rim is still missing along 8.4% of the frame's outline (longest stretch 3.5%) -- the photo as taken is shown
+    BLOSSOM front: white -- rim check OK, 1981 px of rim put back from the photo (outer 750, inner 596, pads 635)
+    BLOSSOM angle: white -- rim check OK, 1277 px of rim put back from the photo (outer 0, inner 605, pads 672)
+    BLOSSOM angle-right: white -- rim check OK, 354 px of rim put back from the photo (outer 1, inner 231, pads 122)
+    VG-1025 Frames front: photo as taken -- whole-rim check: the rim is still missing along 3.6% of the frame's outline (longest stretch 1.1%) -- the photo as taken is shown
+    VG-1025 Frames angle: photo as taken -- whole-rim check: the rim is still missing along 4.0% of the frame's outline (longest stretch 3.3%) -- the photo as taken is shown
+    VG-1025 Frames angle-right: photo as taken -- whole-rim check: the rim is still missing along 3.7% of the frame's outline (longest stretch 2.7%) -- the photo as taken is shown
+    VG-1026 Frames front: photo as taken -- whole-rim check: the rim is still missing along 7.5% of the frame's outline (longest stretch 0.9%) -- the photo as taken is shown
+    VG-1026 Frames angle: photo as taken -- whole-rim check: the rim is still missing along 3.9% of the frame's outline (longest stretch 3.2%) -- the photo as taken is shown
+    VG-1026 Frames angle-right: white -- rim check OK, 3630 px of rim put back from the photo (outer 1059, inner 1312, pads 1259)
+    VG-1027 Frames front: white -- rim check OK, 4643 px of rim put back from the photo (outer 990, inner 2051, pads 1602)
+    VG-1027 Frames angle: photo as taken -- whole-rim check: the rim is still missing along 5.1% of the frame's outline (longest stretch 3.7%) -- the photo as taken is shown
+    VG-1027 Frames angle-right: photo as taken -- whole-rim check: the rim is still missing along 3.8% of the frame's outline (longest stretch 3.7%) -- the photo as taken is shown
 White photos: 18 saved.
   Why they were held back: 1 rim damaged
-  Finished. Cut 4, failed 0, rejected 1, still waiting 1.  Rejected: KINDLE: Robot check: the rim came out thinner on the left lens (bottom, 68% of the other side). Not published -- needs a look, the photo is not the problem.
+  Finished. Cut 4, failed 0, rejected 1, still waiting 1.  Rejected: BLOSSOM: Robot check: the rim came out thinner on the right lens (outer side, 27% of the other side). Not published -- needs a look, the photo is not the problem.
 
 --- robot checks (TO CHECK) ---
-  did: picture reader VINCENT CARLO DEMO angle
-  did: picture reader VINCENT CARLO DEMO front
-  did: picture reader VINCENT CARLO DEMO front
-  did: picture reader VINCENT CARLO DEMO angleR
-  did: picture reader VINCENT CARLO DEMO angleR
-  did: picture reader VINCENT CARLO DEMO front
-  did: picture reader VINCENT CARLO DEMO front
-  did: picture reader VINCENT CARLO DEMO angle
-  did: picture reader VINCENT CARLO DEMO angle
-  did: picture reader KINDLE front
-  did: picture reader KINDLE front
-  did: picture reader KINDLE angle
-  did: picture reader KINDLE angle
-  did: picture reader KINDLE angleR
-  did: picture reader KINDLE angleR
-  did: picture reader KINDLE front
-  did: picture reader KINDLE front
-  did: picture reader KINDLE angle
-  did: picture reader KINDLE angle
-  did: picture reader KINDLE angleR
-  did: picture reader KINDLE angleR
-  did: picture reader KINDLE front
-  did: picture reader KINDLE front
-  did: picture reader KINDLE angle
-  did: picture reader KINDLE angle
-  did: picture reader KINDLE angleR
-  did: picture reader KINDLE angleR
-  did: picture reader KINDLE front
-  did: picture reader KINDLE front
-  did: picture reader KINDLE angle
-  did: picture reader KINDLE angle
-  did: picture reader KINDLE angleR
-  did: picture reader KINDLE angleR
-  VINCENT CARLO DEMO: NEEDS A LOOK — 30° RIGHT picture reader: missing part of the far arm inside the left lens and parts of the bottom rims · colour: please check · 2nd colour: please check · shape: please check
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM angleR
+  VINCENT CARLO DEMO: NEEDS A LOOK — 30° RIGHT picture reader: missing part of the far arm inside the left lens and parts of the bottom rims
   VINCENT CARLO DEMO: NEEDS A LOOK — 30° LEFT picture reader: left in sticker on the right lens
   VINCENT CARLO DEMO: NEEDS A LOOK — 30° LEFT arm not like the photo · 30° RIGHT picture reader: left in lens left inside the right lens
   KINDLE: still checking — FRONT picture reader · 30° LEFT picture reader · 30° RIGHT picture reader
   KINDLE: NEEDS A LOOK — 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check
   KINDLE: still checking — FRONT picture reader · 30° LEFT picture reader · 30° RIGHT picture reader
   KINDLE: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  TOM & HERRY FUNKY: still checking — FRONT picture reader · 30° LEFT picture reader · 30° RIGHT picture reader
+  TOM & HERRY FUNKY: NEEDS A LOOK — 30° RIGHT arm not like the photo
+  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT arm not like the photo · 30° RIGHT arm not like the photo
+  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
