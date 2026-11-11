@@ -1,4 +1,4 @@
-Run 7259  Wed Nov 11 08:06:53 UTC 2026
+Run 7260  Wed Nov 11 08:12:57 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -13,30 +13,43 @@ Robot build 2026-11-02b (SAFER ROBOT: the 30-degree try-on pictures of a frame f
 --- what the robot did ---
 
 --- robot checks (TO CHECK) ---
-ROBOT CHECKS: 9 frame(s) in TO CHECK -- checking now.
-installing the hidden browser driver ...
-  did: picture reader TOM & HERRY FUNKY front
-  did: picture reader TOM & HERRY FUNKY angle
-  did: picture reader TOM & HERRY FUNKY angleR
-  did: picture reader TOM & HERRY FUNKY front
-  did: picture reader TOM & HERRY FUNKY angle
-  did: picture reader TOM & HERRY FUNKY angleR
-  did: picture reader TOM & HERRY FUNKY angleR
   did: picture reader BACHELORS front
   did: picture reader BACHELORS front
-  did: picture reader BACHELORS angle
-  did: picture reader BACHELORS angle
-  did: picture reader BACHELORS angleR
+  did: picture reader BLOSSOM front
   did: picture reader BLOSSOM front
   did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angle
   did: picture reader BLOSSOM angleR
-  did: stopped: time is up -- the rest next time
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM angleR
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM front
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angle
+  did: picture reader BLOSSOM angleR
   TOM & HERRY FUNKY: NEEDS A LOOK — FRONT picture reader: left in part of arm inside left lens and right lens, artifacts below bottom rims · 30° LEFT picture reader: left in left lens text left in · 30° RIGHT picture reader: missing part of the tip of the near arm · left in inside the left lens and inside the right lens
   TOM & HERRY FUNKY: NEEDS A LOOK — FRONT picture reader: left in left lens has arm remnant, right lens has arm remnant · 30° LEFT picture reader: missing part of left lens inside · 30° RIGHT picture reader: left in inside the right lens
   BACHELORS: NEEDS A LOOK — 30° LEFT picture reader: missing bridge · left in inside the left lens · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check · colour: please check · shape: please check
   BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: left in text left inside the left lens · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check · colour: please check
-  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check · colour: please check
+  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: missing top bar slightly damaged on the right · left in part of the arm left behind on the top left and top right · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
   BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT arm not like the photo · 30° RIGHT arm not like the photo
-  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check · colour: please check · 2nd colour: please check
+  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
   BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
