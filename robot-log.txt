@@ -1,4 +1,4 @@
-Run 7617  Fri Nov 13 18:56:25 UTC 2026
+Run 7618  Fri Nov 13 19:06:10 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -15,18 +15,18 @@ Robot build 2026-11-13a (FRAME MAP TEST: test-white:<frame> adds two rows to its
 --- what the robot did ---
 
 --- robot checks (TO CHECK) ---
+  did: picture reader COLLINS KNOA angle
+  did: picture reader COLLINS KNOA angleR
+  did: picture reader COLLINS KNOA angleR
   did: picture reader COLLINS KNOA front
   did: picture reader COLLINS KNOA front
   did: picture reader COLLINS KNOA angle
   did: picture reader COLLINS KNOA angle
   did: picture reader COLLINS KNOA angleR
   did: picture reader COLLINS KNOA angleR
-  TOM & HERRY FUNKY: NEEDS A LOOK — FRONT picture reader: left in left lens has arm remnant, right lens has arm remnant · 30° LEFT picture reader: missing part of left lens inside · 30° RIGHT picture reader: left in inside the right lens
-  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: left in text left inside the left lens · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  TOM & HERRY FUNKY: NEEDS A LOOK — FRONT fixed by hand — staff approve it · 30° LEFT picture reader: missing part of left lens inside · 30° RIGHT picture reader: left in inside the right lens
   BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT fixed by hand — staff approve it · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: missing top bar slightly damaged on the right · left in part of the arm left behind on the top left and top right · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
   BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: missing right nose pad · left in part of the left arm inside the left lens · 30° LEFT arm not like the photo · 30° RIGHT arm not like the photo
-  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: missing part of the nose pad and inner rim on the left lens · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
   BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: left in lens text left in inside the left and right lenses · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
   ENCANTO PLUS: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
   ENCANTO PLUS: NEEDS A LOOK — 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT arm could not be measured
