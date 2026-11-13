@@ -1,66 +1,46 @@
-Run 7591  Fri Nov 13 15:37:50 UTC 2026
+Run 7621  Fri Nov 13 19:42:56 UTC 2026
 
-    AI outer edge: 27012 px of the outline from the AI, 10349 px kept the robot's (they disagree there), 2344 px kept because the photo disagreed, 1310 see-through rim px made solid, 0 pin-holes closed, 1016 specks on the sheet cleared, 5510 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
+Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
+Catalogue: 84 frames. Waiting for a cut-out: 0.
+Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
+--- pmwaiyh3p21 : TOM & HERRY FUNKY (views for a hand-published frame)
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Model loaded: ZhengPeng7/BiRefNet at 1024 px
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:488: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_5m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_11m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_11m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_384 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_384. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_512 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_512. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/build_sam.py:91: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  state_dict = torch.load(f)
+    MobileSAM ready
+    angled lens step: lenses 53665 + 22595 px (found by two openings, SAM: nothing to add); 72592 pixels of glass cleared
+    AI outer edge: 33051 px of the outline from the AI, 68 px kept the robot's (they disagree there), 1963 px kept because the photo disagreed, 1442 see-through rim px made solid, 65 pin-holes closed, 5 specks on the sheet cleared, 5029 px changed
+    rim heal: 1253 break pixels closed, 529 faint rim pixels made solid, 212 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 4217 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: rim 15.9 px, 1675 px evened; rim 17.9 px, 1307 px evened
+    nose pads: rim 15 px thick (not a thin metal rim) -- nothing put back
+    45 degree left fit points: bridge at (684,139), lens height 253 px, near lens on the left
     45 degree left cut too
-    angled lens step: lenses 29594 + 61958 px (found by two openings, SAM: nothing to add); 82098 pixels of glass cleared
-    AI outer edge: 31211 px of the outline from the AI, 10588 px kept the robot's (they disagree there), 3028 px kept because the photo disagreed, 1183 see-through rim px made solid, 1 pin-holes closed, 868 specks on the sheet cleared, 5905 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
+    angled lens step: lenses 19820 + 31986 px (found by two openings, SAM: nothing to add); 48134 pixels of glass cleared
+    AI outer edge: 33256 px of the outline from the AI, 378 px kept the robot's (they disagree there), 1417 px kept because the photo disagreed, 1672 see-through rim px made solid, 21 pin-holes closed, 14 specks on the sheet cleared, 4212 px changed
+    rim heal: 147 break pixels closed, 173 faint rim pixels made solid, 140 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 209 pixels seen through the lenses cleared; no bar behind the bridge; far temple kept 25 px behind the hinge
+    bottom rim smoothed: nothing to do
+    nose pads: rim 82 px thick (not a thin metal rim) -- nothing put back
+    45 degree right fit points: bridge at (201,160), lens height 190 px, near lens on the right
     45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1794582901/sqsntz7mfzluuljenome.png
---- pmweycv9s83 : MIGHTY QUEEN
-    thin dark rim: about 6 px thick, edge band 2 px (was 15) so the line keeps a solid core
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 67705 + 67184 px (found by rim line, SAM: nothing to add); 125642 pixels of glass cleared
-    sheet-ring peel (local wall colour): 1654 px taken off the edge
-    AI outer edge: 29341 px of the outline from the AI, 34 px kept the robot's (they disagree there), 1386 px kept because the photo disagreed, 50 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 1743 px changed
-    levelled: the frame was -0.8 degrees off, turned straight
-    size check: frame works out at 141 mm (typed 54 + 17 -> about 144 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 68% of the photo's width
-    RIM CHECK: both rims match (thinnest spot 90% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (1165x489)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1794583123/v7lgmixu5frxuvlxifsa.jpg
-    angled lens step: lenses 38956 + 19682 px (found by two openings, SAM: nothing to add); 51750 pixels of glass cleared
-    AI outer edge: 22544 px of the outline from the AI, 9846 px kept the robot's (they disagree there), 1310 px kept because the photo disagreed, 679 see-through rim px made solid, 0 pin-holes closed, 356 specks on the sheet cleared, 3001 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree left cut too
-    angled lens step: lenses 26767 + 54957 px (found by two openings, SAM: nothing to add); 74501 pixels of glass cleared
-    AI outer edge: 28483 px of the outline from the AI, 14948 px kept the robot's (they disagree there), 998 px kept because the photo disagreed, 801 see-through rim px made solid, 0 pin-holes closed, 26 specks on the sheet cleared, 2551 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1794583121/pjob6ivjybrictcjwzxj.png
---- pmweyev7i7 : MIGHTY QUEEN
-    end pieces: 8 px of bright metal the edge finishing dropped put back
-    rim type: not set (0 clean lens holes)
-half-rim: 46 enclosed pieces, 2 candidates, rejected {'size': 44, 'shape': 0, 'place': 0, 'solid': 0, 'touch': 0}
-    supra: 2174 px of the lens edge and nose pads put back after the clean-ups
-    lens edge line drawn (half-rim / rimless): 5331 px at 80%
-    a little tint left on the demo (half-rim / rimless): 135301 px
-    levelled: the frame was -1.2 degrees off, turned straight
-    size check: frame works out at 121 mm (typed 52 + 16 -> about 139 mm expected)
-    the frame fills 58% of the photo's width
-    demo edge copied from the photo (half-rim / rimless)
-    shop photo on white made (1014x463)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1794583395/t0ibiwtgmpi4uxzzwg4c.jpg
+--- pmwaj24t21 : TOM & HERRY FUNKY (views for a hand-published frame)
     angled lens step skipped, nothing changed: no rim line and no two lens openings found
+    AI outer edge: 27496 px of the outline from the AI, 4386 px kept the robot's (they disagree there), 5347 px kept because the photo disagreed, 526 see-through rim px made solid, 0 pin-holes closed, 1391 specks on the sheet cleared, 3190 px changed
     rim heal: lens openings not found -- left as cut
     lens clean: lens openings not found -- left as cut
     bottom rim: lenses not found, left as is
@@ -68,55 +48,11 @@ half-rim: 46 enclosed pieces, 2 candidates, rejected {'size': 44, 'shape': 0, 'p
     45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
     45 degree left cut too (glass not found -- the shop keeps the photo for this view)
     angled lens step skipped, nothing changed: no rim line and no two lens openings found
+    AI outer edge: 28890 px of the outline from the AI, 3431 px kept the robot's (they disagree there), 5026 px kept because the photo disagreed, 903 see-through rim px made solid, 0 pin-holes closed, 586 specks on the sheet cleared, 3384 px changed
     rim heal: lens openings not found -- left as cut
     lens clean: lens openings not found -- left as cut
     bottom rim: lenses not found, left as is
     nose pads: lenses not found, left as is
     45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
     45 degree right cut too (glass not found -- the shop keeps the photo for this view)
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1794583394/q4lvwiowfqrfsrx05h7e.png
---- pmweyg9sj69 : MIGHTY QUEEN
-    end pieces: 8 px of bright metal the edge finishing dropped put back
-    rim type: not set (0 clean lens holes)
-half-rim: 43 enclosed pieces, 2 candidates, rejected {'size': 41, 'shape': 0, 'place': 0, 'solid': 0, 'touch': 0}
-    supra: 4081 px of the lens edge and nose pads put back after the clean-ups
-    lens edge line drawn (half-rim / rimless): 5364 px at 80%
-    a little tint left on the demo (half-rim / rimless): 139012 px
-    levelled: the frame was -0.5 degrees off, turned straight
-    size check: frame works out at 133 mm (typed 52 + 16 -> about 139 mm expected)
-    the frame fills 65% of the photo's width
-    demo edge copied from the photo (half-rim / rimless)
-    shop photo on white made (1125x494)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1794583659/tn0taqlcnnbaaxsc9q6g.jpg
-    angled lens step: lenses 36747 + 22791 px (found by two openings, SAM: nothing to add); 51298 pixels of glass cleared
-    rim heal: 114 break pixels closed, 0 faint rim pixels made solid, 0 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 3483 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: no rim along the bottom (supra / rimless): left as is; no rim along the bottom (supra / rimless): left as is
-    nose pads: rim 58 px thick (not a thin metal rim) -- nothing put back
-    45 degree left fit points: bridge at (715,148), lens height 185 px, near lens on the left
-    45 degree left cut too
-    angled lens step: lenses 29797 + 56107 px (found by two openings, SAM: nothing to add); 71537 pixels of glass cleared
-    rim heal: 1123 break pixels closed, 1929 faint rim pixels made solid, 0 glare dots removed, 1338 shadow pixels under the rim removed
-    lens clean: 14897 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1794583658/f9vyohcejt5kuqa1gxgt.png
---- pmweykcy470 : TOM HARDY EVEND
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 102360 + 100035 px (found by two openings, SAM: nothing to add); 179554 pixels of glass cleared
-    thin pieces stick out at BOTH ends alike (3.3% left, 2.4% right of the width): the frame's own end pieces, not an arm -- not rejected
-    sheet-ring peel (local wall colour): 2723 px taken off the edge
-    AI outer edge: 28954 px of the outline from the AI, 948 px kept the robot's (they disagree there), 807 px kept because the photo disagreed, 246 see-through rim px made solid, 0 pin-holes closed, 26 specks on the sheet cleared, 2919 px changed
-    size check: frame works out at 142 mm (typed 54 + 18 -> about 145 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 64% of the photo's width
-    RIM CHECK: both rims match (thinnest spot 83% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (1099x576)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1794583911/ec9pbw2b0z91ny4hxdbc.jpg
-    time is up -- this frame's other views are made on the next run
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1794583910/vvkrcqgbznpdwcxhi6l0.png
-Time is up for this run; the rest go in the next one.
-  Finished. Cut 13, failed 0, rejected 0, still waiting 1.
+Nothing to do.
