@@ -1,4 +1,4 @@
-Run 7622  Fri Nov 13 19:46:56 UTC 2026
+Run 7623  Fri Nov 13 19:56:13 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -15,24 +15,28 @@ Robot build 2026-11-14a (APPROVED STAYS APPROVED: the robot read each frame at t
 --- what the robot did ---
 
 --- robot checks (TO CHECK) ---
-  did: picture reader COLLINS KNOA front
-  did: picture reader COLLINS KNOA front
-  did: picture reader COLLINS KNOA angle
-  did: picture reader COLLINS KNOA angle
-  did: picture reader COLLINS KNOA angleR
-  did: picture reader COLLINS KNOA angleR
-  did: picture reader COLLINS KNOA front
-  did: picture reader COLLINS KNOA front
-  did: picture reader COLLINS KNOA angle
-  did: picture reader COLLINS KNOA angle
-  did: picture reader COLLINS KNOA angleR
-  did: picture reader COLLINS KNOA angleR
-  did: picture reader COLLINS KNOA front
-  did: picture reader COLLINS KNOA front
-  did: picture reader COLLINS KNOA angle
-  did: picture reader COLLINS KNOA angle
-  did: picture reader COLLINS KNOA angleR
-  did: picture reader COLLINS KNOA angleR
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE angleR
   TOM & HERRY FUNKY: NEEDS A LOOK — FRONT: the original photo is missing · 30° RIGHT arm not like the photo
   TOM & HERRY FUNKY: NEEDS A LOOK — FRONT fixed by hand — staff approve it · 30° LEFT picture reader: missing part of left lens inside · 30° RIGHT picture reader: left in inside the right lens
   TOM & HERRY FUNKY: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT: the original photo is missing · 30° LEFT arm not like the photo · 30° RIGHT arm not like the photo
@@ -51,7 +55,3 @@ Robot build 2026-11-14a (APPROVED STAYS APPROVED: the robot read each frame at t
   TOM HARDY FSURE: NEEDS A LOOK — 30° LEFT arm could not be measured · 30° RIGHT arm could not be measured
   TOM HARDY FSURE: NEEDS A LOOK — 30° LEFT arm could not be measured · 30° RIGHT fixed by hand — staff approve it
   TOM HARDY FSURE: NEEDS A LOOK — 30° LEFT arm could not be measured · 30° RIGHT arm could not be measured
-  COLLINS KNOA: still checking — FRONT picture reader · 30° LEFT picture reader · 30° RIGHT picture reader
-  COLLINS KNOA: still checking — FRONT picture reader · 30° LEFT picture reader · 30° RIGHT picture reader
-  COLLINS KNOA: NEEDS A LOOK — FRONT fixed by hand — staff approve it
-  COLLINS KNOA: NEEDS A LOOK — 30° side view: tap ON FACE to check · 30° LEFT arm not like the photo · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
