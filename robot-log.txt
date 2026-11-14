@@ -1,4 +1,4 @@
-Run 7679  Sat Nov 14 05:01:24 UTC 2026
+Run 7680  Sat Nov 14 05:13:05 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -15,4 +15,43 @@ Robot build 2026-11-14b (WHOLE-FRAME PIXEL CHECK: on every full-rim front cut th
 --- what the robot did ---
 
 --- robot checks (TO CHECK) ---
-ROBOT CHECKS: 17 frame(s) in TO CHECK, nothing changed since the last check (04:02 UTC).
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE front
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angle
+  did: picture reader TOM HARDY FSURE angleR
+  did: picture reader TOM HARDY FSURE angleR
+  TOM & HERRY FUNKY: NEEDS A LOOK — FRONT: the original photo is missing
+  TOM & HERRY FUNKY: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT: the original photo is missing · 30° LEFT arm not like the photo · 30° RIGHT arm not like the photo
+  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT fixed by hand — staff approve it · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: missing right nose pad · left in part of the left arm inside the left lens · 30° LEFT arm not like the photo · 30° RIGHT arm not like the photo
+  BLOSSOM: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT fixed by hand — staff approve it · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  ENCANTO PLUS: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT fixed by hand — staff approve it · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  ENCANTO PLUS: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT fixed by hand — staff approve it · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  ENCANTO PLUS: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT fixed by hand — staff approve it · 30° LEFT arm could not be measured · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  MIGHTY QUEEN: NEEDS A LOOK — FRONT fixed by hand — staff approve it
+  MIGHTY QUEEN: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT fixed by hand — staff approve it · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  MIGHTY QUEEN: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT fixed by hand — staff approve it · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT arm could not be measured
+  VG-1043 Frames: NEEDS A LOOK — FRONT fixed by hand — staff approve it · 30° RIGHT fixed by hand — staff approve it
+  TOM HARDY EVEND: NEEDS A LOOK — FRONT fixed by hand — staff approve it
+  TOM HARDY FSURE: NEEDS A LOOK — FRONT fixed by hand — staff approve it · 30° LEFT fixed by hand — staff approve it · 30° RIGHT fixed by hand — staff approve it
+  TOM HARDY FSURE: NEEDS A LOOK — 30° LEFT arm could not be measured · 30° RIGHT arm could not be measured
+  TOM HARDY FSURE: NEEDS A LOOK — 30° LEFT arm could not be measured · 30° RIGHT fixed by hand — staff approve it
+  TOM HARDY FSURE: NEEDS A LOOK — 30° LEFT arm could not be measured · 30° RIGHT arm could not be measured
