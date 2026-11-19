@@ -1,4 +1,4 @@
-Run 8520  Thu Nov 19 23:16:22 UTC 2026
+Run 8521  Thu Nov 19 23:25:16 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -13,28 +13,4 @@ Robot build 2026-11-14c (AUTO WHITE PHOTOS: the SHOOT MANY camera now makes ever
 --- what the robot did ---
 
 --- robot checks (TO CHECK) ---
-ROBOT CHECKS: 8 frame(s) in TO CHECK -- checking now.
-installing the hidden browser driver ...
-  did: picture reader ENCANTO PLUS 241436 front -- no answer: the reader’s limit is used up for now
-  did: picture reader ENCANTO PLUS 241436 angle -- no answer: the reader’s limit is used up for now
-  did: picture reader ENCANTO PLUS 241436 angleR -- no answer: the reader’s limit is used up for now
-  did: picture reader ENCANTO PLUS 241435 front -- no answer: the reader’s limit is used up for now
-  did: picture reader ENCANTO PLUS 241435 angle -- no answer: the reader’s limit is used up for now
-  did: picture reader ENCANTO PLUS 241435 angleR -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86005 front -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86005 angle
-  did: picture reader COLLINS KNOA 86005 angleR -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA front -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA angle -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA angleR -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86003 front -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86003 angle -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86003 angleR -- no answer: the reader’s limit is used up for now
-  MIGHTY QUEEN YX052: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 03:34 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  MIGHTY QUEEN 9003: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT fixed by hand — staff approve it · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  ENCANTO PLUS 241422: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: left in lens text left in the left and right lenses · 30° LEFT arm not like the photo · 30° RIGHT arm not like the photo
-  ENCANTO PLUS 241436: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:45 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  ENCANTO PLUS 241435: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:45 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  COLLINS KNOA 86005: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:45 · 30° LEFT arm not like the photo · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  COLLINS KNOA: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:46 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  COLLINS KNOA 86003: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:46 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+ROBOT CHECKS: 8 frame(s) in TO CHECK, nothing changed since the last check (23:16 UTC).
