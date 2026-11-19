@@ -1,132 +1,16 @@
-Run 8432  Thu Nov 19 09:33:08 UTC 2026
+Run 8438  Thu Nov 19 09:39:30 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
 Robot build 2026-11-14c (AUTO WHITE PHOTOS: the SHOOT MANY camera now makes every photo white in the phone -- the sheet measured on the photo itself and brought to white, even from corner to corner, the colour tint taken out; the robot's frame map knew only grey photos and on a white one set its edge line about 10% too high where the frame stands, so faint clear lens edges of half-rim frames could be left out (ENCANTO, BLOSSOM); on a photo whose sheet is white and even all over the line is now 10% lower and the frame map measures the same frame as on the photo as taken; every photo taken before AUTO WHITE (sheet 200-220) is judged exactly as before -- nothing else changed) -- as 11-14b (WHOLE-FRAME PIXEL CHECK: on every full-rim front cut the frame is measured pixel by pixel on the photo -- rim, bridge, end pieces -- and every piece the cut lost is put back from the photo before the rim check, then checked again: nothing of the frame may be missing (COLLINS KNOA lost four pieces of its top bar); arms and printing seen through the lenses stay out. SHOP PHOTO ON WHITE: when the old whole-rim check refuses a white copy, the frame map is used instead of showing the photo as taken -- every frame pixel exactly as photographed, the demo name and printing white (BLOSSOM); white:<frame> makes one frame again this way; printing on the demo lens that touches an arm is found too) -- as 11-14a (APPROVED STAYS APPROVED: the robot read each frame at the start of its run and wrote its TO CHECK marks back whole, so a frame approved while the robot was working came back to TO CHECK; now the robot adds only what it changed itself in this run -- a picture it has just made still waits to be seen, a note it cleared goes, an APPROVE stays; nothing else changed) -- as 11-13a (FRAME MAP TEST: test-white:<frame> adds two rows to its test picture -- 5 the NEW FRAME MAP: the robot follows the photo's own edge lines to measure the whole frame (rim, bridge, nose pads, end pieces, arms) and the lenses, puts every frame pixel back exactly as photographed (pixel check: 0 different), turns the demo name, stickers and printing on the lens white, and leaves the table line under the frame to the white copy; 6 a map of what it measured; the test pictures are also saved in the repo (folder test-white) so they always open; a test only, nothing on the shop or any frame changes, every other robot job exactly as before) -- as 11-02b (SAFER ROBOT: the 30-degree try-on pictures of a frame fixed by hand now wake the robot, which makes them and puts them in TO CHECK; a frame whose pictures were cut short by the time limit is never marked done -- it is finished on the next run; one frame with bad data never stops the others or wakes the robot again and again; a photo-store failure is tried again, not saved as a problem; a frame that cannot be read just before saving is not written (a delete or a staff edit is never undone); ROBOT CHECKS read the frames page by page and see them all (the old filter hid every frame); the upload preset and any Gemini key are kept out of the public report files; the white-test page always says what the run did) -- as 11-01a (GEMINI TEST UPDATED: test-white:<frame> asks Google which Gemini models the key can use today and tries the newest Flash, then the newest Robotics-ER, then 2.5 Flash; reads the outline as points or as a picture mask; what Gemini calls lens is taken off the rims, nose pads and arms kept, and lens glass is never put back; every model's answer is in the report; the test pictures are on test-white.md in the repo with links that open; nothing else changed) -- as 10-30b (SHOP PHOTOS ON WHITE BY THE ROBOT: the front, 30-degree left and 30-degree right shop photos are made on white by the robot itself -- no phone needs Admin open; the website's own white maker runs in a hidden Chrome, then every pixel the white maker turned white inside the frame is looked at: rim, inner edge and nose pads that were cut are put back from the photo, and the whole rim is checked along the frame's outline -- if any of it is still missing the shop shows the photo as taken; a staff choice in Admin is never touched; white:<frame> makes one frame again, white:all every older white photo; test-white:<frame> makes a test picture with Gemini's outline of the frame, nothing saved) -- as 10-28c (RIMLESS LENSES FROM THE PHOTO: on a frame whose rim type says Rimless or 3 piece, each lens edge is traced on the photo itself, the two lenses as mirror images, one smooth line each -- front and 30-degree pictures; when the photo does not clearly show the edge the frame is held for TRACE DEMO; every other frame is cut exactly as before) -- as 10-28a (the robot file made smaller -- GitHub runs a workflow file only if it is 500 KB or less, and 10-27b was 516 KB so no run started; the cutter is now stored packed and unpacked on the runner, byte for byte the same; nothing else changed) -- as 10-27b (ROBOT CHECKS: when Admin -> TO CHECK -> ROBOT CHECKS is on, after the cutter the robot runs every TO CHECK check itself -- touch-up, rim, inside the lenses, arms, picture reader, colour, AUTO-LIVE -- in the live Admin page, signed in to the shop account; no phone needs Admin open; check:<frame> tests one frame; as 10-27a, plus: RIMLESS / HALF-RIM: when the photo's lens edge is too faint to trace, the lenses are taken from the AI's own shape -- the arms and ragged bits taken out, one plain smooth line -- and then cleared as before: the 17% tint and a thin edge line, the printing and arms seen through the glass gone, the bridge, end pieces and nose pads kept; a rimless or half-rim frame whose lenses still cannot be found is kept off the website with a note (draw them with TRACE DEMO) -- never sent with solid white lenses; as 10-26a, plus: the AI's own outer edge on full-rim cuts, front and 30-degree: along the outside of the frame the AI model's clean outline is used -- no dots beside the rim, no bites, no grey line through it, pin-holes in an arm closed; the lens openings, the arms the front cut takes off and any place the AI and the robot disagree stay the robot's; half-rim, supra and rimless unchanged; the shop photo on white unchanged; as 10-24a, plus: an ARM is never taken for glass on a 30-degree photo: a long, narrow or solid dark area is not a lens opening -- the Good Days half-rim arm was hollowed out; as 08d, plus earlier: robot reads shape/colour/material/rim but never fills them -- staff decide; as 08c, plus: the white shop photo ignores background patches and table shadow the cut-out took in, and keeps no grey halo; as 08a, plus: the shop photo on plain white -- frame untouched, demo lens clear, light shadows -- made with every front cut, and white:<frame> for frames already on the shop; as 07s, plus: the 30-degree rim healing and bottom smoothing only where the lens really has a rim along its bottom -- a supra or rimless lens edge is left as it is; the smoothed bottom keeps the frame's own colours and pattern; as 07r, plus: the nose pads (arm, holder and the clear silicone pad) put back on the 30-degree pictures from the photo, the grey patch under the bridge removed, and the try-on told not to clean these pictures again; as 07q, plus: the bottom rim of the 30-degree pictures made smooth and even -- no zigzag; as 07p, plus: the nose pads stay; the table shadow under the bottom rim is removed; as 07n, plus: the far temple keeps its first 5-6 mm behind the hinge, fading out; as 07m, plus: on 30-degree pictures everything seen through the lenses is cleared -- the far temple across the demo, solid glass in its top -- and the far temple behind the bridge (double bridge) is removed; as 07k, plus: the rim on 30-degree pictures is healed -- small breaks closed with the photo's own pixels, glare dots beside the rim removed, nose-pad side and hinge left alone; as 07j, plus: 30-degree fit points found on thin metal rims too -- a softer rim edge, small breaks closed, a lens cut short by solid glass gets its real height; as 05i, plus: cuts the optional 90-degree RIGHT TEMPLE photo (admin tile 5) as tryOnSide2Url; the shop's decisions win -- an approval, a published fix or details changed in admin while the robot is working are never undone; a frame deleted in admin while being cut is never written back; the end pieces bright silver faces the edge finishing dropped are put back; a continuous thin line runs under the copied demo edge so it never has gaps; bar above the lenses never cut; nose pads kept; full-rim and aviator unchanged; stages:<code>; CHECK PHOTO)
 ::notice::Database https://oscpunukbyosckrmopeh.supabase.co, key role: service_role
-::notice::Shop photos on white waiting: 27 (the robot makes them now).
-::notice::Frames: 29. Waiting: 13. Rejected: 0.
+  2 frame(s): Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.  [COLLINS KNOA 86008, COLLINS KNOA 86012]
+  1 frame(s): Robot check: the rim came out thinner on the right lens (bottom, 42% of the other side). Not published -- needs a look, the photo is not the problem.  [COLLINS KNOA 86004]
+  1 frame(s): Robot check: the rim came out thinner on the right lens (outer side, 61% of the other side). Not published -- needs a look, the photo is not the problem.  [COLLINS KNOA 86007]
+  1 frame(s): Robot check: the rim came out thinner on the right lens (outer side, 71% of the other side). Not published -- needs a look, the photo is not the problem.  [COLLINS KNOA 86006]
+::notice::Frames: 29. Waiting: 0. Rejected: 5.
 
 --- what the robot did ---
-    sheet-ring peel (local wall colour): 110 px taken off the edge
-    AI outer edge: 27643 px of the outline from the AI, 0 px kept the robot's (they disagree there), 731 px kept because the photo disagreed, 44 see-through rim px made solid, 0 pin-holes closed, 9 specks on the sheet cleared, 599 px changed
-    levelled: the frame was -1.6 degrees off, turned straight
-    size check: frame works out at 145 mm (typed 56 + 14 -> about 145 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 58% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 45219 px of frame measured on the photo; 1776 px the cut had lost put back from the photo; check: 0 missing
-    RIM CHECK: both rims match (thinnest spot 91% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (1012x549)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795079892/nlqteny7hpp5t4lzfofg.jpg
-    angled lens step skipped, nothing changed: the two biggest openings overlap sideways
-    AI outer edge: 33480 px of the outline from the AI, 0 px kept the robot's (they disagree there), 495 px kept because the photo disagreed, 369 see-through rim px made solid, 0 pin-holes closed, 12 specks on the sheet cleared, 675 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree left cut too
-    angled lens step skipped, nothing changed: the two biggest openings overlap sideways
-    AI outer edge: 34884 px of the outline from the AI, 0 px kept the robot's (they disagree there), 607 px kept because the photo disagreed, 324 see-through rim px made solid, 0 pin-holes closed, 16 specks on the sheet cleared, 676 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795079891/vzbcoyyt05dwjytvy26g.png
---- pmwnaajjh62 : COLLINS KNOA 86012
-    rim type: not set (0 clean lens holes)
-    lens step skipped, nothing changed: no rim line and no two lens openings found
-    sheet-ring peel (local wall colour): 7660 px taken off the edge
-    AI outer edge: 29383 px of the outline from the AI, 14860 px kept the robot's (they disagree there), 1057 px kept because the photo disagreed, 5 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 727 px changed
-    GLASS CHECK: the demo lenses did not clear (openings found: 0) -> kept off the website
-    the frame fills 58% of the photo's width
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (991x506)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795080062/f8et75rrrfmjylayskrd.png
-  pmwnaajjh62 REJECTED, kept off the website: Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.
-White photos waiting: 27 photo(s) of 9 frame(s) -- 18 made in this run, the rest in the next runs.
-    installing the hidden browser driver ...
-    white maker: pmwn9zg9980-front.src 1400x788 -> made in 813 ms
-    white maker: pmwn9zg9980-angle.src 1400x788 -> made in 257 ms
-    white maker: pmwn9zg9980-angle-right.src 1400x788 -> made in 389 ms
-    white maker: pmwna15jw46-front.src 1400x788 -> made in 685 ms
-    white maker: pmwna15jw46-angle.src 1400x788 -> made in 294 ms
-    white maker: pmwna15jw46-angle-right.src 1400x788 -> made in 570 ms
-    white maker: pmwna276v49-front.src 1400x788 -> made in 925 ms
-    white maker: pmwna276v49-angle.src 1400x788 -> made in 300 ms
-    white maker: pmwna276v49-angle-right.src 1400x788 -> made in 308 ms
-    white maker: pmwna3say60-front.src 1400x788 -> made in 460 ms
-    white maker: pmwna3say60-angle.src 1400x788 -> made in 583 ms
-    white maker: pmwna3say60-angle-right.src 1400x788 -> made in 548 ms
-    white maker: pmwna5c8q77-front.src 1400x788 -> made in 571 ms
-    white maker: pmwna5c8q77-angle.src 1400x788 -> made in 248 ms
-    white maker: pmwna5c8q77-angle-right.src 1400x788 -> made in 236 ms
-    white maker: pmwna69cd26-front.src 1400x788 -> made in 456 ms
-    white maker: pmwna69cd26-angle.src 1400x788 -> made in 619 ms
-    white maker: pmwna69cd26-angle-right.src 1400x788 -> made in 535 ms
-    COLLINS KNOA 86004 front: white -- rim check OK, 14277 px of rim put back from the photo (outer 4341, inner 1031, pads 8905)
-    COLLINS KNOA 86004 angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 8.4% of the frame's ou): 94870 px of frame measured, 12204 put back from the photo, 1520 px of demo printing made white; pixel check: 0 different
-    COLLINS KNOA 86004 angle-right: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 7.8% of the frame's ou): 77972 px of frame measured, 6815 put back from the photo, 4039 px of demo printing made white; pixel check: 0 different
-    COLLINS KNOA front: white -- rim check OK, 762 px of rim put back from the photo (outer 0, inner 14, pads 748)
-    COLLINS KNOA angle: white -- rim check OK, 175 px of rim put back from the photo (outer 45, inner 0, pads 130)
-    COLLINS KNOA angle-right: white -- rim check OK, 850 px of rim put back from the photo (outer 117, inner 0, pads 733)
-    COLLINS KNOA 86005 front: white -- rim check OK, 1236 px of rim put back from the photo (outer 156, inner 0, pads 1080)
-    COLLINS KNOA 86005 angle: white -- rim check OK, 2818 px of rim put back from the photo (outer 811, inner 1358, pads 649)
-    COLLINS KNOA 86005 angle-right: white -- rim check OK, 2455 px of rim put back from the photo (outer 659, inner 0, pads 1796)
-    COLLINS KNOA 86007 front: white -- rim check OK, 1421 px of rim put back from the photo (outer 13, inner 126, pads 1282)
-    COLLINS KNOA 86007 angle: white -- rim check OK, 151 px of rim put back from the photo (outer 0, inner 0, pads 151)
-    COLLINS KNOA 86007 angle-right: white -- rim check OK, 679 px of rim put back from the photo (outer 26, inner 8, pads 645)
-    COLLINS KNOA front: white -- rim check OK, 8807 px of rim put back from the photo (outer 2510, inner 700, pads 5597)
-    COLLINS KNOA angle: white -- rim check OK, 2538 px of rim put back from the photo (outer 576, inner 0, pads 1962)
-    COLLINS KNOA angle-right: white -- rim check OK, 5756 px of rim put back from the photo (outer 1518, inner 0, pads 4238)
-    COLLINS KNOA 86006 front: white -- rim check OK, 1118 px of rim put back from the photo (outer 0, inner 0, pads 1118)
-    COLLINS KNOA 86006 angle: white -- rim check OK, 475 px of rim put back from the photo (outer 32, inner 0, pads 443)
-    COLLINS KNOA 86006 angle-right: white -- rim check OK, 729 px of rim put back from the photo (outer 42, inner 0, pads 687)
-White photos: 18 saved.
-  Why they were held back: 3 rim damaged, 2 glass did not clear
-  Finished. Cut 8, failed 0, rejected 5, still waiting 5.  Rejected: COLLINS KNOA 86004: Robot check: the rim came out thinner on the right lens (bottom, 42% of the other side). Not published -- needs a look, the photo is not the problem.; COLLINS KNOA 86007: Robot check: the rim came out thinner on the right lens (outer side, 61% of the other side). Not published -- needs a look, the photo is not the problem.; COLLINS KNOA 86006: Robot check: the rim came out thinner on the right lens (outer side, 71% of the other side). Not published -- needs a look, the photo is not the problem.; COLLINS KNOA 86008: Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.; COLLINS KNOA 86012: Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.
 
 --- robot checks (TO CHECK) ---
-  did: picture reader COLLINS KNOA front -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA front -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA angle -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA angle -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA angleR -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA angleR -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86005 front -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86005 front -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86005 angle -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86005 angle -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86005 angleR -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86005 angleR -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA front -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA front -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA angle -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA angle -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA angleR -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA angleR -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86003 front -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86003 front -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86003 angle -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86003 angle -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86003 angleR -- no answer: the reader’s limit is used up for now
-  did: picture reader COLLINS KNOA 86003 angleR -- no answer: the reader’s limit is used up for now
-  MIGHTY QUEEN XY052: NEEDS A LOOK — FRONT picture reader: missing none · left in text and logo inside the right lens · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT picture reader: missing top of the right lens frame rim
-  MIGHTY QUEEN YX031: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 20:13 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  MIGHTY QUEEN YX052: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader is busy) — asks again at 20:14 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  MIGHTY QUEEN 9003: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader is busy) — asks again at 20:15 · 30° LEFT arm could not be measured · 30° RIGHT arm not like the photo
-  MIGHTY QUEEN 9003: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader is busy) — asks again at 20:15 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  MIGHTY QUEEN YX030: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: missing none · left in inside the left lens and inside the right lens · 30° LEFT arm not like the photo · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  ENCANTO PLUS 241437: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 20:17 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  ENCANTO PLUS 241422: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: left in lens text left in the left and right lenses · 30° LEFT arm not like the photo · 30° RIGHT arm not like the photo
-  ENCANTO PLUS 241436: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 21:01 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  ENCANTO PLUS 241437: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 21:01 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT arm not like the photo
-  ENCANTO PLUS 241436: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 21:02 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  ENCANTO PLUS 241435: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 21:02 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  COLLINS KNOA: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 21:02 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 21:02
-  COLLINS KNOA 86005: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 21:02 · 30° LEFT arm not like the photo · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  COLLINS KNOA: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 21:02 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  COLLINS KNOA 86003: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 21:02 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+ROBOT CHECKS: 16 frame(s) in TO CHECK, nothing changed since the last check (09:33 UTC).
