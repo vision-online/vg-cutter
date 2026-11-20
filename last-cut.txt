@@ -1,122 +1,47 @@
-Run 8432  Thu Nov 19 09:33:08 UTC 2026
+Run 8569  Fri Nov 20 07:29:07 UTC 2026
 
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795079614/sti5ypsq4lz9cm7f5zkk.png
---- pmwna69cd26 : COLLINS KNOA 86006
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 62642 + 64740 px (found by rim line, SAM: +892 px of glass); 123690 pixels of glass cleared
-    sheet-ring peel (local wall colour): 21 px taken off the edge
-    AI outer edge: 28043 px of the outline from the AI, 0 px kept the robot's (they disagree there), 95 px kept because the photo disagreed, 19 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 208 px changed
-    size check: frame works out at 144 mm (typed 51 + 21 -> about 142 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 60% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 64839 px of frame measured on the photo; 4797 px the cut had lost put back from the photo; check: 0 missing
-    ring: right lens -- rim rebuilt round the lens shape: 0 directions open, 12 thinner than the other lens (rim 27-35 px thick there)
-    ring: left lens -- rim whole all round the lens, nothing to rebuild
-    ring: no gap found whose closing makes a lens a closed ring
-    ring: 16 px of hairline cracks in the rim sealed
-    ring: 1393 px added along the outer edge of the lower rim (the cut ended inside the rim)
-    rim check after closing the ring: saved picture 71% | repaired pixels counted as solid 71%
-    trim of pale bits skipped: it would have broken or thinned the lower rim below the approval limit
-    RIM CHECK: right rim only 71% of the other side near the outer side -> kept off the website
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (1027x544)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795079794/zyoe4jyrxragzfgdoy4w.png
-  pmwna69cd26 REJECTED, kept off the website: Robot check: the rim came out thinner on the right lens (outer side, 71% of the other side). Not published -- needs a look, the photo is not the problem.
---- pmwna7rky65 : COLLINS KNOA 86008
-    rim type: not set (0 clean lens holes)
-    lens step skipped, nothing changed: could not find both lenses
-    sheet-ring peel (local wall colour): 8282 px taken off the edge
-    AI outer edge: 27728 px of the outline from the AI, 14053 px kept the robot's (they disagree there), 564 px kept because the photo disagreed, 9 see-through rim px made solid, 0 pin-holes closed, 12 specks on the sheet cleared, 323 px changed
-    GLASS CHECK: the demo lenses did not clear (openings found: 0) -> kept off the website
-    the frame fills 60% of the photo's width
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (1022x496)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795079843/j0bmuupez0hfdqj4fk00.png
-  pmwna7rky65 REJECTED, kept off the website: Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.
---- pmwna95bl63 : COLLINS KNOA 86003
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 70957 + 69086 px (found by rim line, SAM: +1416 px of glass); 136835 pixels of glass cleared
-    sheet-ring peel (local wall colour): 110 px taken off the edge
-    AI outer edge: 27643 px of the outline from the AI, 0 px kept the robot's (they disagree there), 731 px kept because the photo disagreed, 44 see-through rim px made solid, 0 pin-holes closed, 9 specks on the sheet cleared, 599 px changed
-    levelled: the frame was -1.6 degrees off, turned straight
-    size check: frame works out at 145 mm (typed 56 + 14 -> about 145 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 58% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 45219 px of frame measured on the photo; 1776 px the cut had lost put back from the photo; check: 0 missing
-    RIM CHECK: both rims match (thinnest spot 91% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (1012x549)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795079892/nlqteny7hpp5t4lzfofg.jpg
-    angled lens step skipped, nothing changed: the two biggest openings overlap sideways
-    AI outer edge: 33480 px of the outline from the AI, 0 px kept the robot's (they disagree there), 495 px kept because the photo disagreed, 369 see-through rim px made solid, 0 pin-holes closed, 12 specks on the sheet cleared, 675 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree left cut too
-    angled lens step skipped, nothing changed: the two biggest openings overlap sideways
-    AI outer edge: 34884 px of the outline from the AI, 0 px kept the robot's (they disagree there), 607 px kept because the photo disagreed, 324 see-through rim px made solid, 0 pin-holes closed, 16 specks on the sheet cleared, 676 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795079891/vzbcoyyt05dwjytvy26g.png
---- pmwnaajjh62 : COLLINS KNOA 86012
-    rim type: not set (0 clean lens holes)
-    lens step skipped, nothing changed: no rim line and no two lens openings found
-    sheet-ring peel (local wall colour): 7660 px taken off the edge
-    AI outer edge: 29383 px of the outline from the AI, 14860 px kept the robot's (they disagree there), 1057 px kept because the photo disagreed, 5 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 727 px changed
-    GLASS CHECK: the demo lenses did not clear (openings found: 0) -> kept off the website
-    the frame fills 58% of the photo's width
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (991x506)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795080062/f8et75rrrfmjylayskrd.png
-  pmwnaajjh62 REJECTED, kept off the website: Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.
-White photos waiting: 27 photo(s) of 9 frame(s) -- 18 made in this run, the rest in the next runs.
+Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
+Catalogue: 35 frames. Waiting for a cut-out: 0.
+Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
+White photos waiting: 18 photo(s) of 6 frame(s).
     installing the hidden browser driver ...
-    white maker: pmwn9zg9980-front.src 1400x788 -> made in 813 ms
-    white maker: pmwn9zg9980-angle.src 1400x788 -> made in 257 ms
-    white maker: pmwn9zg9980-angle-right.src 1400x788 -> made in 389 ms
-    white maker: pmwna15jw46-front.src 1400x788 -> made in 685 ms
-    white maker: pmwna15jw46-angle.src 1400x788 -> made in 294 ms
-    white maker: pmwna15jw46-angle-right.src 1400x788 -> made in 570 ms
-    white maker: pmwna276v49-front.src 1400x788 -> made in 925 ms
-    white maker: pmwna276v49-angle.src 1400x788 -> made in 300 ms
-    white maker: pmwna276v49-angle-right.src 1400x788 -> made in 308 ms
-    white maker: pmwna3say60-front.src 1400x788 -> made in 460 ms
-    white maker: pmwna3say60-angle.src 1400x788 -> made in 583 ms
-    white maker: pmwna3say60-angle-right.src 1400x788 -> made in 548 ms
-    white maker: pmwna5c8q77-front.src 1400x788 -> made in 571 ms
-    white maker: pmwna5c8q77-angle.src 1400x788 -> made in 248 ms
-    white maker: pmwna5c8q77-angle-right.src 1400x788 -> made in 236 ms
-    white maker: pmwna69cd26-front.src 1400x788 -> made in 456 ms
-    white maker: pmwna69cd26-angle.src 1400x788 -> made in 619 ms
-    white maker: pmwna69cd26-angle-right.src 1400x788 -> made in 535 ms
-    COLLINS KNOA 86004 front: white -- rim check OK, 14277 px of rim put back from the photo (outer 4341, inner 1031, pads 8905)
-    COLLINS KNOA 86004 angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 8.4% of the frame's ou): 94870 px of frame measured, 12204 put back from the photo, 1520 px of demo printing made white; pixel check: 0 different
-    COLLINS KNOA 86004 angle-right: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 7.8% of the frame's ou): 77972 px of frame measured, 6815 put back from the photo, 4039 px of demo printing made white; pixel check: 0 different
-    COLLINS KNOA front: white -- rim check OK, 762 px of rim put back from the photo (outer 0, inner 14, pads 748)
-    COLLINS KNOA angle: white -- rim check OK, 175 px of rim put back from the photo (outer 45, inner 0, pads 130)
-    COLLINS KNOA angle-right: white -- rim check OK, 850 px of rim put back from the photo (outer 117, inner 0, pads 733)
-    COLLINS KNOA 86005 front: white -- rim check OK, 1236 px of rim put back from the photo (outer 156, inner 0, pads 1080)
-    COLLINS KNOA 86005 angle: white -- rim check OK, 2818 px of rim put back from the photo (outer 811, inner 1358, pads 649)
-    COLLINS KNOA 86005 angle-right: white -- rim check OK, 2455 px of rim put back from the photo (outer 659, inner 0, pads 1796)
-    COLLINS KNOA 86007 front: white -- rim check OK, 1421 px of rim put back from the photo (outer 13, inner 126, pads 1282)
-    COLLINS KNOA 86007 angle: white -- rim check OK, 151 px of rim put back from the photo (outer 0, inner 0, pads 151)
-    COLLINS KNOA 86007 angle-right: white -- rim check OK, 679 px of rim put back from the photo (outer 26, inner 8, pads 645)
-    COLLINS KNOA front: white -- rim check OK, 8807 px of rim put back from the photo (outer 2510, inner 700, pads 5597)
-    COLLINS KNOA angle: white -- rim check OK, 2538 px of rim put back from the photo (outer 576, inner 0, pads 1962)
-    COLLINS KNOA angle-right: white -- rim check OK, 5756 px of rim put back from the photo (outer 1518, inner 0, pads 4238)
-    COLLINS KNOA 86006 front: white -- rim check OK, 1118 px of rim put back from the photo (outer 0, inner 0, pads 1118)
-    COLLINS KNOA 86006 angle: white -- rim check OK, 475 px of rim put back from the photo (outer 32, inner 0, pads 443)
-    COLLINS KNOA 86006 angle-right: white -- rim check OK, 729 px of rim put back from the photo (outer 42, inner 0, pads 687)
+    white maker: pmwon9tyr50-front.src 1400x788 -> made in 491 ms
+    white maker: pmwon9tyr50-angle.src 1400x788 -> made in 635 ms
+    white maker: pmwon9tyr50-angle-right.src 1400x788 -> made in 294 ms
+    white maker: pmwonc6bw47-front.src 1400x788 -> made in 266 ms
+    white maker: pmwonc6bw47-angle.src 1400x788 -> made in 232 ms
+    white maker: pmwonc6bw47-angle-right.src 1400x788 -> made in 228 ms
+    white maker: pmwondlss8-front.src 1400x788 -> made in 237 ms
+    white maker: pmwondlss8-angle.src 1400x788 -> made in 228 ms
+    white maker: pmwondlss8-angle-right.src 1400x788 -> made in 240 ms
+    white maker: pmwoneyvm98-front.src 1400x788 -> made in 235 ms
+    white maker: pmwoneyvm98-angle.src 1400x788 -> made in 470 ms
+    white maker: pmwoneyvm98-angle-right.src 1400x788 -> made in 296 ms
+    white maker: pmwonfvtq94-front.src 1400x788 -> made in 721 ms
+    white maker: pmwonfvtq94-angle.src 1400x788 -> made in 280 ms
+    white maker: pmwonfvtq94-angle-right.src 1400x788 -> made in 520 ms
+    white maker: pmwongxcy24-front.src 1400x788 -> made in 234 ms
+    white maker: pmwongxcy24-angle.src 1400x788 -> made in 250 ms
+    white maker: pmwongxcy24-angle-right.src 1400x788 -> made in 247 ms
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Model loaded: ZhengPeng7/BiRefNet at 1024 px
+    VG-1020 Frames front: white -- rim check OK, 2584 px of rim put back from the photo (outer 588, inner 20, pads 1976)
+    VG-1020 Frames angle: white -- rim check OK, 2144 px of rim put back from the photo (outer 272, inner 0, pads 1872)
+    VG-1020 Frames angle-right: white -- rim check OK, 2781 px of rim put back from the photo (outer 363, inner 0, pads 2418)
+    VG-1021 Frames front: white -- rim check OK, 6762 px of rim put back from the photo (outer 845, inner 0, pads 5917)
+    VG-1021 Frames angle: white -- rim check OK, 1971 px of rim put back from the photo (outer 426, inner 0, pads 1545)
+    VG-1021 Frames angle-right: white -- rim check OK, 2588 px of rim put back from the photo (outer 166, inner 4, pads 2418)
+    VG-1022 Frames front: white -- rim check OK, 3255 px of rim put back from the photo (outer 543, inner 19, pads 2693)
+    VG-1022 Frames angle: white -- rim check OK, 2385 px of rim put back from the photo (outer 998, inner 32, pads 1355)
+    VG-1022 Frames angle-right: white -- rim check OK, 2568 px of rim put back from the photo (outer 45, inner 0, pads 2523)
+    VG-1023 Frames front: white -- rim check OK, 3449 px of rim put back from the photo (outer 537, inner 8, pads 2904)
+    VG-1023 Frames angle: white -- rim check OK, 2931 px of rim put back from the photo (outer 320, inner 0, pads 2611)
+    VG-1023 Frames angle-right: white -- rim check OK, 2150 px of rim put back from the photo (outer 205, inner 0, pads 1945)
+    VG-1024 Frames front: white -- rim check OK, 5013 px of rim put back from the photo (outer 599, inner 12, pads 4402)
+    VG-1024 Frames angle: white -- rim check OK, 2510 px of rim put back from the photo (outer 470, inner 0, pads 2040)
+    VG-1024 Frames angle-right: white -- rim check OK, 2574 px of rim put back from the photo (outer 313, inner 16, pads 2245)
+    VG-1025 Frames front: white -- rim check OK, 2483 px of rim put back from the photo (outer 540, inner 50, pads 1893)
+    VG-1025 Frames angle: white -- rim check OK, 2331 px of rim put back from the photo (outer 310, inner 0, pads 2021)
+    VG-1025 Frames angle-right: white -- rim check OK, 2580 px of rim put back from the photo (outer 255, inner 0, pads 2325)
 White photos: 18 saved.
-  Why they were held back: 3 rim damaged, 2 glass did not clear
-  Finished. Cut 8, failed 0, rejected 5, still waiting 5.  Rejected: COLLINS KNOA 86004: Robot check: the rim came out thinner on the right lens (bottom, 42% of the other side). Not published -- needs a look, the photo is not the problem.; COLLINS KNOA 86007: Robot check: the rim came out thinner on the right lens (outer side, 61% of the other side). Not published -- needs a look, the photo is not the problem.; COLLINS KNOA 86006: Robot check: the rim came out thinner on the right lens (outer side, 71% of the other side). Not published -- needs a look, the photo is not the problem.; COLLINS KNOA 86008: Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.; COLLINS KNOA 86012: Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.
