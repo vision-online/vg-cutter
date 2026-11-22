@@ -1,4 +1,4 @@
-Run 8893  Sun Nov 22 12:17:20 UTC 2026
+Run 8894  Sun Nov 22 12:27:51 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -15,14 +15,9 @@ Robot build 2026-11-14c (AUTO WHITE PHOTOS: the SHOOT MANY camera now makes ever
 --- what the robot did ---
 
 --- robot checks (TO CHECK) ---
-  did: picture reader MICHAL JACK FINK 8293 C6 front -- no answer: the reader’s limit is used up for now
-  did: picture reader MICHAL JACK FINK 8293 C6 angle -- no answer: the reader’s limit is used up for now
-  did: picture reader MICHAL JACK FINK 8293 C6 angle -- no answer: the reader’s limit is used up for now
-  MICHAL JACK FINK 8293 C12: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:38 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  MICHAL JACK FINK 8293 C6: NEEDS A LOOK — FRONT fixed by hand — staff approve it · 30° LEFT fixed by hand — staff approve it · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:38
-  MICHAL JACK FINK TR032 C6: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:38 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:38 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:38
-  MICHAL JACK FINK TR058 C7: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:38 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  MICHAL JACK FINK 8293 C8: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 02:05 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 02:06 · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+ROBOT CHECKS: 33 frame(s) in TO CHECK -- checking now.
+installing the hidden browser driver ...
+  MICHAL JACK FINK TR058 C7: NEEDS A LOOK — FRONT fixed by hand — staff approve it · 30° LEFT fixed by hand — staff approve it · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
   MICHAL JACK FINK TR055 C8: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 02:06 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 02:06 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 02:06
   MICHAL JACK FINK 8293 C12: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 02:06 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
   MICHAL JACK FINK TR055 C12: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 02:06 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 02:06 · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
