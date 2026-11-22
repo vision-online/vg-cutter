@@ -1,29 +1,122 @@
-Run 8863  Sun Nov 22 07:27:56 UTC 2026
+Run 8864  Sun Nov 22 07:54:12 UTC 2026
 
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 80 frames. Waiting for a cut-out: 0.
-Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
-White photos waiting: 9 photo(s) of 3 frame(s).
+    arms above the frame: 1.6% (below 2.5%, no note)
+    shop photo on white made (956x409)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795333117/zbsvpttblttsnbjlzfbo.png
+  pmwrifd3594 REJECTED, kept off the website: Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.
+--- pmwrig64f76 : LEE BIRD 35003
+    thin dark rim: about 8 px thick, edge band 2 px (was 15) so the line keeps a solid core
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 69750 + 71379 px (found by two openings, SAM: nothing to add); 125155 pixels of glass cleared
+    sheet-ring peel (local wall colour): 46 px taken off the edge
+    AI outer edge: 24928 px of the outline from the AI, 0 px kept the robot's (they disagree there), 189 px kept because the photo disagreed, 6 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 273 px changed
+    size check: frame works out at 130 mm (typed 52 + 17 -> about 140 mm expected)
+    glass check: the demo is clear (0.0% left)
+    the frame fills 56% of the photo's width
+    WHOLE-FRAME PIXEL CHECK: 31939 px of frame measured on the photo; 12218 px the cut had lost put back from the photo; check: 0 missing
+    RIM CHECK: both rims match (thinnest spot 96% of the other side)
+    arms above the frame: 0.0% (below 2.5%, no note)
+    shop photo on white made (951x435)
+    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795333156/pgma33lb5uxwdrpsk8gz.jpg
+    angled lens step: lenses 25563 + 16262 px (found by two openings, SAM: nothing to add); 39269 pixels of glass cleared
+    AI outer edge: 32045 px of the outline from the AI, 0 px kept the robot's (they disagree there), 374 px kept because the photo disagreed, 171 see-through rim px made solid, 0 pin-holes closed, 9 specks on the sheet cleared, 650 px changed
+    rim heal: 183 break pixels closed, 12 faint rim pixels made solid, 120 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 464 pixels seen through the lenses cleared; far temple behind the bridge removed (4 bars)
+    bottom rim smoothed: nothing to do
+    nose pads: rim 84 px thick (not a thin metal rim) -- nothing put back
+    45 degree left fit points: bridge at (696,159), lens height 193 px, near lens on the left
+    45 degree left cut too
+    angled lens step: lenses 16576 + 24836 px (found by two openings, SAM: nothing to add); 38818 pixels of glass cleared
+    AI outer edge: 32898 px of the outline from the AI, 0 px kept the robot's (they disagree there), 321 px kept because the photo disagreed, 377 see-through rim px made solid, 0 pin-holes closed, 58 specks on the sheet cleared, 832 px changed
+    rim heal: 68 break pixels closed, 6 faint rim pixels made solid, 106 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 335 pixels seen through the lenses cleared; far temple behind the bridge removed (2 bars)
+    bottom rim smoothed: nothing to do
+    nose pads: rim 93 px thick (not a thin metal rim) -- nothing put back
+    45 degree right fit points: bridge at (189,166), lens height 167 px, near lens on the right
+    45 degree right cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795333155/gpvbkaguvflcpcxwrphq.png
+--- pmwrigv6933 : LEE BIRD 35017
+    thin dark rim: about 6 px thick, edge band 2 px (was 15) so the line keeps a solid core
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 58069 + 60048 px (found by two openings, left lens: glass cut off by an arm joined (+6321 px), SAM: nothing to add); 109105 pixels of glass cleared
+    sheet-ring peel (local wall colour): 616 px taken off the edge
+    AI outer edge: 24236 px of the outline from the AI, 32 px kept the robot's (they disagree there), 642 px kept because the photo disagreed, 21 see-through rim px made solid, 6 pin-holes closed, 0 specks on the sheet cleared, 276 px changed
+    levelled: the frame was 0.5 degrees off, turned straight
+    size check: frame works out at 125 mm (typed 52 + 17 -> about 140 mm expected)
+    glass check: the demo is clear (0.0% left)
+    the frame fills 53% of the photo's width
+    WHOLE-FRAME PIXEL CHECK: 25330 px of frame measured on the photo; 6256 px the cut had lost put back from the photo; check: 0 missing
+    RIM CHECK: both rims match (thinnest spot 88% of the other side)
+    arms above the frame: 0.0% (below 2.5%, no note)
+    shop photo on white made (913x423)
+    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795333323/r5sdhrf1yab7rmrzzgw3.jpg
+    angled lens step: lenses 36416 + 18712 px (found by two openings, SAM: nothing to add); 52187 pixels of glass cleared
+    AI outer edge: 30564 px of the outline from the AI, 427 px kept the robot's (they disagree there), 1464 px kept because the photo disagreed, 1765 see-through rim px made solid, 35 pin-holes closed, 2 specks on the sheet cleared, 4932 px changed
+    rim heal: 277 break pixels closed, 189 faint rim pixels made solid, 0 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 2771 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: rim 19.9 px, 2010 px evened
+    nose pads: rim 19 px thick (not a thin metal rim) -- nothing put back
+    45 degree left fit points: bridge at (675,129), lens height 226 px, near lens on the left
+    45 degree left cut too
+    angled lens step: lenses 16086 + 24206 px (found by two openings, SAM: nothing to add); 37721 pixels of glass cleared
+    AI outer edge: 30057 px of the outline from the AI, 298 px kept the robot's (they disagree there), 1861 px kept because the photo disagreed, 1117 see-through rim px made solid, 68 pin-holes closed, 22 specks on the sheet cleared, 4073 px changed
+    rim heal: 180 break pixels closed, 81 faint rim pixels made solid, 0 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 364 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: nothing to do
+    nose pads: rim 68 px thick (not a thin metal rim) -- nothing put back
+    45 degree right fit points: bridge at (187,149), lens height 178 px, near lens on the right
+    45 degree right cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795333322/qph3mu77tkvj9yvqyvju.png
+--- pmwrii2ox75 : LEE BIRD 35001
+    rim type: not set (0 clean lens holes)
+    lens step skipped, nothing changed: no rim line and no two lens openings found
+    sheet-ring peel (local wall colour): 8117 px taken off the edge
+    AI outer edge: 27488 px of the outline from the AI, 147 px kept the robot's (they disagree there), 5805 px kept because the photo disagreed, 219 see-through rim px made solid, 1 pin-holes closed, 9 specks on the sheet cleared, 1133 px changed
+    GLASS CHECK: the demo lenses did not clear (openings found: 0) -> kept off the website
+    the frame fills 57% of the photo's width
+    arms above the frame: 0.0% (below 2.5%, no note)
+    shop photo on white made (972x423)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795333497/wmnkbvs4gnllun0mr8qm.png
+  pmwrii2ox75 REJECTED, kept off the website: Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.
+White photos waiting: 21 photo(s) of 7 frame(s) -- 18 made in this run, the rest in the next runs.
     installing the hidden browser driver ...
-    white maker: pmwridldx74-front.src 1400x788 -> made in 697 ms
-    white maker: pmwridldx74-angle.src 1400x788 -> made in 204 ms
-    white maker: pmwridldx74-angle-right.src 1400x788 -> made in 251 ms
-    white maker: pmwrifd3594-front.src 1400x788 -> made in 495 ms
-    white maker: pmwrifd3594-angle.src 1400x788 -> made in 383 ms
-    white maker: pmwrifd3594-angle-right.src 1400x788 -> made in 673 ms
-    white maker: pmwrig64f76-front.src 1400x788 -> made in 391 ms
-    white maker: pmwrig64f76-angle.src 1400x788 -> made in 419 ms
-    white maker: pmwrig64f76-angle-right.src 1400x788 -> made in 380 ms
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    VG-1020 Frames front: white -- rim check OK, 548 px of rim put back from the photo (outer 0, inner 6, pads 542)
-    VG-1020 Frames angle: white -- rim check OK, 632 px of rim put back from the photo (outer 0, inner 0, pads 632)
-    VG-1020 Frames angle-right: white -- rim check OK, 572 px of rim put back from the photo (outer 0, inner 0, pads 572)
-    VG-1021 Frames front: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 17.7% of the frame's o): 53228 px of frame measured, 6749 put back from the photo, 2776 px of demo printing made white; pixel check: 0 different
-    VG-1021 Frames angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 5.2% of the frame's ou): 66404 px of frame measured, 6583 put back from the photo, 2873 px of demo printing made white; pixel check: 0 different
-    VG-1021 Frames angle-right: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 4.0% of the frame's ou): 73284 px of frame measured, 5825 put back from the photo, 3755 px of demo printing made white; pixel check: 0 different
-    VG-1022 Frames front: white -- rim check OK, 750 px of rim put back from the photo (outer 15, inner 0, pads 735)
-    VG-1022 Frames angle: white -- rim check OK, 525 px of rim put back from the photo (outer 0, inner 0, pads 525)
-    VG-1022 Frames angle-right: white -- rim check OK, 678 px of rim put back from the photo (outer 0, inner 0, pads 678)
-White photos: 9 saved.
+    white maker: pmwrigv6933-front.src 1400x788 -> made in 511 ms
+    white maker: pmwrigv6933-angle.src 1400x788 -> made in 268 ms
+    white maker: pmwrigv6933-angle-right.src 1400x788 -> made in 327 ms
+    white maker: pmwrii2ox75-front.src 1400x788 -> made in 639 ms
+    white maker: pmwrii2ox75-angle.src 1400x788 -> made in 501 ms
+    white maker: pmwrii2ox75-angle-right.src 1400x788 -> made in 844 ms
+    white maker: pmwrij1ms31-front.src 1400x788 -> made in 533 ms
+    white maker: pmwrij1ms31-angle.src 1400x788 -> made in 592 ms
+    white maker: pmwrij1ms31-angle-right.src 1400x788 -> made in 476 ms
+    white maker: pmwrijt3q10-front.src 1400x788 -> made in 529 ms
+    white maker: pmwrijt3q10-angle.src 1400x788 -> made in 506 ms
+    white maker: pmwrijt3q10-angle-right.src 1400x788 -> made in 452 ms
+    white maker: pmwriktce78-front.src 1400x788 -> made in 266 ms
+    white maker: pmwriktce78-angle.src 1400x788 -> made in 303 ms
+    white maker: pmwriktce78-angle-right.src 1400x788 -> made in 219 ms
+    white maker: pmwrilf6m74-front.src 1400x788 -> made in 255 ms
+    white maker: pmwrilf6m74-angle.src 1400x788 -> made in 224 ms
+    white maker: pmwrilf6m74-angle-right.src 1400x788 -> made in 228 ms
+    LEE BIRD 35017 front: white -- rim check OK, 3065 px of rim put back from the photo (outer 929, inner 0, pads 2136)
+    LEE BIRD 35017 angle: white -- rim check OK, 1616 px of rim put back from the photo (outer 230, inner 0, pads 1386)
+    LEE BIRD 35017 angle-right: white -- rim check OK, 2054 px of rim put back from the photo (outer 416, inner 84, pads 1554)
+    LEE BIRD 35001 front: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 6.0% of the frame's ou): 51786 px of frame measured, 5763 put back from the photo, 3832 px of demo printing made white; pixel check: 0 different
+    LEE BIRD 35001 angle: frame map not used (no closed lens found (half rim, rimless or an unusual photo) -- frame map not used)
+    LEE BIRD 35001 angle: photo as taken -- whole-rim check: the rim is still missing along 4.1% of the frame's outline (longest stretch 2.2%) -- the photo as taken is shown
+    LEE BIRD 35001 angle-right: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 5.4% of the frame's ou): 58934 px of frame measured, 6126 put back from the photo, 3559 px of demo printing made white; pixel check: 0 different
+    VG-1025 Frames front: white -- rim check OK, 1716 px of rim put back from the photo (outer 0, inner 21, pads 1695)
+    VG-1025 Frames angle: white -- rim check OK, 659 px of rim put back from the photo (outer 0, inner 0, pads 659)
+    VG-1025 Frames angle-right: white -- rim check OK, 1478 px of rim put back from the photo (outer 0, inner 0, pads 1478)
+    VG-1026 Frames front: white -- rim check OK, 928 px of rim put back from the photo (outer 0, inner 26, pads 902)
+    VG-1026 Frames angle: white -- rim check OK, 522 px of rim put back from the photo (outer 0, inner 0, pads 522)
+    VG-1026 Frames angle-right: white -- rim check OK, 1310 px of rim put back from the photo (outer 13, inner 0, pads 1297)
+    VG-1027 Frames front: white -- rim check OK, 676 px of rim put back from the photo (outer 0, inner 54, pads 622)
+    VG-1027 Frames angle: white -- rim check OK, 262 px of rim put back from the photo (outer 0, inner 0, pads 262)
+    VG-1027 Frames angle-right: white -- rim check OK, 500 px of rim put back from the photo (outer 0, inner 0, pads 500)
+    VG-1028 Frames front: white -- rim check OK, 796 px of rim put back from the photo (outer 0, inner 98, pads 698)
+    VG-1028 Frames angle: white -- rim check OK, 242 px of rim put back from the photo (outer 0, inner 0, pads 242)
+    VG-1028 Frames angle-right: white -- rim check OK, 305 px of rim put back from the photo (outer 0, inner 0, pads 305)
+White photos: 18 saved.
+  Why they were held back: 2 glass did not clear
+  Finished. Cut 3, failed 0, rejected 2, still waiting 2.  Rejected: LEE BIRD 35016: Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.; LEE BIRD 35001: Robot check: the glass did not clear fully -- part of a demo lens is still solid, so the customer would see it over their eye. Not published, needs a look.
