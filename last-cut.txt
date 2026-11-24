@@ -1,50 +1,35 @@
-Run 9168  Tue Nov 24 09:55:47 UTC 2026
+Run 9170  Tue Nov 24 10:12:25 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Catalogue: 149 frames. Waiting for a cut-out: 0.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
-White photos waiting: 48 photo(s) of 16 frame(s) -- 18 made in this run, the rest in the next runs.
+White photos waiting: 12 photo(s) of 4 frame(s).
     installing the hidden browser driver ...
-    white maker: pmwuej1g293-front.src 1400x788 -> made in 748 ms
-    white maker: pmwuej1g293-angle.src 1400x788 -> made in 469 ms
-    white maker: pmwuej1g293-angle-right.src 1400x788 -> made in 686 ms
-    white maker: pmwuejuo288-front.src 1400x788 -> made in 259 ms
-    white maker: pmwuejuo288-angle.src 1400x788 -> made in 245 ms
-    white maker: pmwuejuo288-angle-right.src 1400x788 -> made in 273 ms
-    white maker: pmwueknue97-front.src 1400x788 -> made in 255 ms
-    white maker: pmwueknue97-angle.src 1400x788 -> made in 212 ms
-    white maker: pmwueknue97-angle-right.src 1400x788 -> made in 175 ms
-    white maker: pmwuelorl82-front.src 1400x788 -> made in 401 ms
-    white maker: pmwuelorl82-angle.src 1400x788 -> made in 494 ms
-    white maker: pmwuelorl82-angle-right.src 1400x788 -> made in 407 ms
-    white maker: pmwuemqdg94-front.src 1400x788 -> made in 234 ms
-    white maker: pmwuemqdg94-angle.src 1400x788 -> made in 220 ms
-    white maker: pmwuemqdg94-angle-right.src 1400x788 -> made in 214 ms
-    white maker: pmwuenigu43-front.src 1400x788 -> made in 449 ms
-    white maker: pmwuenigu43-angle.src 1400x788 -> made in 396 ms
-    white maker: pmwuenigu43-angle-right.src 1400x788 -> made in 454 ms
+    white maker: pmwufaq7h44-front.src 1400x788 -> made in 1403 ms
+    white maker: pmwufaq7h44-angle.src 1400x788 -> made in 742 ms
+    white maker: pmwufaq7h44-angle-right.src 1400x788 -> made in 1259 ms
+    white maker: pmwufbfi414-front.src 1400x788 -> made in 763 ms
+    white maker: pmwufbfi414-angle.src 1400x788 -> made in 805 ms
+    white maker: pmwufbfi414-angle-right.src 1400x788 -> made in 674 ms
+    white maker: pmwufc1w198-front.src 1400x788 -> made in 397 ms
+    white maker: pmwufc1w198-angle.src 1400x788 -> made in 425 ms
+    white maker: pmwufc1w198-angle-right.src 1400x788 -> made in 420 ms
+    white maker: pmwufcql485-front.src 1400x788 -> made in 398 ms
+    white maker: pmwufcql485-angle.src 1400x788 -> made in 402 ms
+    white maker: pmwufcql485-angle-right.src 1400x788 -> made in 382 ms
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    GNG LUXURY 938 front: white -- rim check OK, 4809 px of rim put back from the photo (outer 1168, inner 53, pads 3588)
-    GNG LUXURY 938 angle: white -- rim check OK, 3289 px of rim put back from the photo (outer 741, inner 0, pads 2548)
-    GNG LUXURY 938 angle-right: white -- rim check OK, 4735 px of rim put back from the photo (outer 413, inner 0, pads 4322)
-    GNG LUXURY 938 front: white -- rim check OK, 1110 px of rim put back from the photo (outer 503, inner 10, pads 597)
-    GNG LUXURY 938 angle: white -- rim check OK, 3397 px of rim put back from the photo (outer 374, inner 0, pads 3023)
-    GNG LUXURY 938 angle-right: white -- rim check OK, 1311 px of rim put back from the photo (outer 131, inner 0, pads 1180)
-    GNG LUXURY 946 front: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 2.6% of the frame's ou): 44240 px of frame measured, 5445 put back from the photo, 5412 px of demo printing made white; pixel check: 0 different
-    GNG LUXURY 946 angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 4.2% of the frame's ou): 71102 px of frame measured, 4890 put back from the photo, 3268 px of demo printing made white; pixel check: 0 different
-    GNG LUXURY 946 angle-right: frame map not used (no closed lens found (half rim, rimless or an unusual photo) -- frame map not used)
-    GNG LUXURY 946 angle-right: photo as taken -- whole-rim check: the rim is still missing along 7.7% of the frame's outline (longest stretch 2.6%) -- the photo as taken is shown
-    GNG LUXURY 946 front: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 2.7% of the frame's ou): 40517 px of frame measured, 4708 put back from the photo, 8393 px of demo printing made white; pixel check: 0 different
-    GNG LUXURY 946 angle: frame map not used (no closed lens found (half rim, rimless or an unusual photo) -- frame map not used)
-    GNG LUXURY 946 angle: photo as taken -- whole-rim check: the rim is still missing along 1.9% of the frame's outline (longest stretch 1.6%) -- the photo as taken is shown
-    GNG LUXURY 946 angle-right: white -- rim check OK, 2050 px of rim put back from the photo (outer 616, inner 57, pads 1377)
-    GNG LUXURY 942 front: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 6.2% of the frame's ou): 35905 px of frame measured, 4042 put back from the photo, 8189 px of demo printing made white; pixel check: 0 different
-    GNG LUXURY 942 angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 4.5% of the frame's ou): 61144 px of frame measured, 4934 put back from the photo, 2995 px of demo printing made white; pixel check: 0 different
-    GNG LUXURY 942 angle-right: frame map not used (no closed lens found (half rim, rimless or an unusual photo) -- frame map not used)
-    GNG LUXURY 942 angle-right: photo as taken -- whole-rim check: the rim is still missing along 3.1% of the frame's outline (longest stretch 2.6%) -- the photo as taken is shown
-    GNG LUXURY 937 front: white -- rim check OK, 2946 px of rim put back from the photo (outer 1183, inner 136, pads 1627)
-    GNG LUXURY 937 angle: white -- rim check OK, 3453 px of rim put back from the photo (outer 934, inner 0, pads 2519)
-    GNG LUXURY 937 angle-right: white -- rim check OK, 3841 px of rim put back from the photo (outer 618, inner 242, pads 2981)
-White photos: 18 saved.
+    ELLEN COOPER 87804 front: white -- rim check OK, 6424 px of rim put back from the photo (outer 55, inner 248, pads 6121)
+    ELLEN COOPER 87804 angle: white -- rim check OK, 4667 px of rim put back from the photo (outer 548, inner 0, pads 4119)
+    ELLEN COOPER 87804 angle-right: white -- rim check OK, 2651 px of rim put back from the photo (outer 663, inner 35, pads 1953)
+    ELLEN COOPER 87805 front: white -- rim check OK, 5877 px of rim put back from the photo (outer 0, inner 157, pads 5720)
+    ELLEN COOPER 87805 angle: white -- rim check OK, 4034 px of rim put back from the photo (outer 412, inner 37, pads 3585)
+    ELLEN COOPER 87805 angle-right: white -- rim check OK, 1922 px of rim put back from the photo (outer 458, inner 67, pads 1397)
+    ELLEN COOPER 87803 front: white -- rim check OK, 2645 px of rim put back from the photo (outer 21, inner 104, pads 2520)
+    ELLEN COOPER 87803 angle: white -- rim check OK, 1091 px of rim put back from the photo (outer 0, inner 0, pads 1091)
+    ELLEN COOPER 87803 angle-right: white -- rim check OK, 1187 px of rim put back from the photo (outer 32, inner 0, pads 1155)
+    ELLEN COOPER 87803 front: white -- rim check OK, 2738 px of rim put back from the photo (outer 25, inner 89, pads 2624)
+    ELLEN COOPER 87803 angle: white -- rim check OK, 1164 px of rim put back from the photo (outer 12, inner 0, pads 1152)
+    ELLEN COOPER 87803 angle-right: white -- rim check OK, 1143 px of rim put back from the photo (outer 157, inner 0, pads 986)
+White photos: 12 saved.
