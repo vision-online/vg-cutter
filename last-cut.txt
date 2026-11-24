@@ -1,13 +1,12 @@
-Run 9224  Tue Nov 24 19:12:28 UTC 2026
+Run 9225  Tue Nov 24 19:20:05 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 149 frames. Waiting for a cut-out: 1.
+Catalogue: 149 frames. Waiting for a cut-out: 3.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
---- pmwn9zg9980 : COLLINS KNOA 86004
+--- pmwna69cd26 : COLLINS KNOA 86006
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    thin dark rim: about 12 px thick, edge band 4 px (was 15) so the line keeps a solid core
 /home/runner/work/vg-cutter/vg-cutter/vg_cut.py:523: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
     rim type: not set (0 clean lens holes)
@@ -24,33 +23,69 @@ Model loaded: ZhengPeng7/BiRefNet at 1024 px
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/build_sam.py:91: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
   state_dict = torch.load(f)
     MobileSAM ready
-    lens step: lenses 99742 + 99495 px (found by rim line, SAM: nothing to add); 182136 pixels of glass cleared
-    sheet-ring peel (local wall colour): 2664 px taken off the edge
-    AI outer edge: 31120 px of the outline from the AI, 42 px kept the robot's (they disagree there), 1855 px kept because the photo disagreed, 382 see-through rim px made solid, 1 pin-holes closed, 0 specks on the sheet cleared, 912 px changed
-    size check: frame works out at 136 mm (typed 53 + 21 -> about 146 mm expected)
+    lens step: lenses 62642 + 64740 px (found by rim line, SAM: +892 px of glass); 123690 pixels of glass cleared
+    sheet-ring peel (local wall colour): 21 px taken off the edge
+    AI outer edge: 28043 px of the outline from the AI, 0 px kept the robot's (they disagree there), 95 px kept because the photo disagreed, 19 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 208 px changed
+    size check: frame works out at 144 mm (typed 51 + 21 -> about 142 mm expected)
     glass check: the demo is clear (0.0% left)
-    the frame fills 65% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 96280 px of frame measured on the photo; 36143 px the cut had lost put back from the photo; check: 0 missing
-    THE TWO SIDES MATCH: 11431 px of rim that only one side's edge lines showed were measured from the other side (a clear rim on the white sheet)
-    RIM CHECK: both rims match (thinnest spot 97% of the other side)
+    the frame fills 60% of the photo's width
+    WHOLE-FRAME PIXEL CHECK: 64839 px of frame measured on the photo; 4797 px the cut had lost put back from the photo; check: 0 missing
+    ring: right lens -- rim rebuilt round the lens shape: 0 directions open, 12 thinner than the other lens (rim 27-35 px thick there)
+    ring: left lens -- rim whole all round the lens, nothing to rebuild
+    ring: no gap found whose closing makes a lens a closed ring
+    ring: 16 px of hairline cracks in the rim sealed
+    ring: 1393 px added along the outer edge of the lower rim (the cut ended inside the rim)
+    rim check after closing the ring: saved picture 71% | repaired pixels counted as solid 71%
+    trim of pale bits skipped: it would have broken or thinned the lower rim below the approval limit
+    RIM CHECK: right rim only 71% of the other side near the outer side -> kept off the website
     arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (1101x552)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795547303/mw6ypcfnf8hvyor9sld0.jpg
-    angled lens step skipped, nothing changed: the two biggest openings overlap sideways
-    AI outer edge: 28857 px of the outline from the AI, 9400 px kept the robot's (they disagree there), 2348 px kept because the photo disagreed, 1905 see-through rim px made solid, 0 pin-holes closed, 13 specks on the sheet cleared, 3966 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree left cut too
-    angled lens step skipped, nothing changed: no rim line and no two lens openings found
-    AI outer edge: 28120 px of the outline from the AI, 9199 px kept the robot's (they disagree there), 2297 px kept because the photo disagreed, 2138 see-through rim px made solid, 4 pin-holes closed, 0 specks on the sheet cleared, 4388 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795547301/inglndz6arhysyfxoy9p.png
-  Finished. Cut 1, failed 0, rejected 0, still waiting 0.
+    shop photo on white made (1027x544)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795547885/rvv7yi8wancjfrxnbmvf.png
+  pmwna69cd26 REJECTED, kept off the website: Robot check: the rim came out thinner on the right lens (outer side, 71% of the other side). Not published -- needs a look, the photo is not the problem.
+--- pmwoneyvm98 : TOM HARDY FSURE 5106
+    thin dark rim: about 4 px thick, edge band 2 px (was 15) so the line keeps a solid core
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 63274 + 64590 px (found by two openings, SAM: nothing to add); 115633 pixels of glass cleared
+    sheet-ring peel (local wall colour): 1574 px taken off the edge
+    AI outer edge: 26528 px of the outline from the AI, 0 px kept the robot's (they disagree there), 1340 px kept because the photo disagreed, 53 see-through rim px made solid, 5 pin-holes closed, 0 specks on the sheet cleared, 599 px changed
+    levelled: the frame was -0.3 degrees off, turned straight
+    size check: frame works out at 127 mm (typed 49 + 18 -> about 135 mm expected)
+    glass check: the demo is clear (0.0% left)
+    the frame fills 57% of the photo's width
+    WHOLE-FRAME PIXEL CHECK: 21087 px of frame measured on the photo; 1649 px the cut had lost put back from the photo; check: 0 missing
+    THE TWO SIDES MATCH: 231 px of rim that only one side's edge lines showed were measured from the other side (a clear rim on the white sheet)
+    ring: thin dark-wire frame (the line is about 6 px wide) -- the wire repair is used, not the plastic-rim one
+    ring: 4 px of the dark line brought back from the photo (3 directions had lost it)
+    ring: 175 px of pale fill taken away (outside the line, and the extra-wide pale band inside it)
+    rim check after closing the ring: saved picture 26% | repaired pixels counted as solid 26%
+    trim of pale bits skipped: it would have broken or thinned the lower rim below the approval limit
+    RIM CHECK: right rim only 26% of the other side near the outer side -> kept off the website
+    arms above the frame: 0.0% (below 2.5%, no note)
+    shop photo on white made (984x486)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795547927/nrpkplgutns28hrluqb6.png
+  pmwoneyvm98 REJECTED, kept off the website: Robot check: the rim came out thinner on the right lens (outer side, 26% of the other side). Not published -- needs a look, the photo is not the problem.
+--- pmwoo6l1k10 : INTACT 6084
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 48739 + 50403 px (found by rim line, SAM: nothing to add); 94537 pixels of glass cleared
+    sheet-ring peel (local wall colour): 2574 px taken off the edge
+    AI outer edge: 24661 px of the outline from the AI, 247 px kept the robot's (they disagree there), 831 px kept because the photo disagreed, 863 see-through rim px made solid, 0 pin-holes closed, 19 specks on the sheet cleared, 2467 px changed
+    levelled: the frame was 0.9 degrees off, turned straight
+    size check: frame works out at 132 mm (typed 48 + 20 -> about 135 mm expected)
+    glass check: the demo is clear (0.0% left)
+    the frame fills 57% of the photo's width
+    WHOLE-FRAME PIXEL CHECK: 44837 px of frame measured on the photo; 4008 px the cut had lost put back from the photo; check: 0 missing
+    THE TWO SIDES MATCH: 1238 px of rim that only one side's edge lines showed were measured from the other side (a clear rim on the white sheet)
+    ring: right lens -- rim rebuilt round the lens shape: 1 directions open, 3 thinner than the other lens (rim 16-20 px thick there)
+    ring: left lens -- rim rebuilt round the lens shape: 3 directions open, 2 thinner than the other lens (rim 18-20 px thick there)
+    ring: no gap found whose closing makes a lens a closed ring
+    ring: 58 px of hairline cracks in the rim sealed
+    ring: 654 px added along the outer edge of the lower rim (the cut ended inside the rim)
+    rim check after closing the ring: saved picture 73% | repaired pixels counted as solid 73%
+    trim of pale bits skipped: it would have broken or thinned the lower rim below the approval limit
+    RIM CHECK: right rim only 73% of the other side near the bottom -> kept off the website
+    arms above the frame: 0.0% (below 2.5%, no note)
+    shop photo on white made (984x448)
+    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795547990/cmymekuiwdb34vmltv2c.png
+  pmwoo6l1k10 REJECTED, kept off the website: Robot check: the rim came out thinner on the right lens (bottom, 73% of the other side). Not published -- needs a look, the photo is not the problem.
+  Why they were held back: 3 rim damaged
+  Finished. Cut 0, failed 0, rejected 3, still waiting 3.  Rejected: COLLINS KNOA 86006: Robot check: the rim came out thinner on the right lens (outer side, 71% of the other side). Not published -- needs a look, the photo is not the problem.; TOM HARDY FSURE 5106: Robot check: the rim came out thinner on the right lens (outer side, 26% of the other side). Not published -- needs a look, the photo is not the problem.; INTACT 6084: Robot check: the rim came out thinner on the right lens (bottom, 73% of the other side). Not published -- needs a look, the photo is not the problem.
