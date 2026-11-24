@@ -1,4 +1,4 @@
-Run 9122  Tue Nov 24 02:04:20 UTC 2026
+Run 9123  Tue Nov 24 02:13:59 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -15,30 +15,4 @@ Robot build 2026-11-14c (AUTO WHITE PHOTOS: the SHOOT MANY camera now makes ever
 --- what the robot did ---
 
 --- robot checks (TO CHECK) ---
-ROBOT CHECKS: 23 frame(s) in TO CHECK -- checking now.
-installing the hidden browser driver ...
-  did: picture reader MICHAL JACK FINK TR058 C7 front
-  did: picture reader MICHAL JACK FINK TR058 C7 angle -- no answer: the reader’s limit is used up for now
-  MICHAL JACK FINK TR058 C7: NEEDS A LOOK — FRONT fixed by hand — staff approve it · 30° LEFT fixed by hand — staff approve it · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  MICHAL JACK IRON TR002 C1: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:12 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:12 · 30° RIGHT arm could not be measured
-  MICHAL JACK IRON 23113 C1: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:12 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:12 · 30° RIGHT: no arm found for the try-on
-  MICHAL JACK IRON 23085 C1: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:12 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:12 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:12
-  MICHAL JACK IRON 23083 C1: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:12 · 30° LEFT arm not like the photo · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 05:12
-  EYE PLAYE 26907: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:08 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  EYE PLAYE 26908: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:08 · 30° LEFT arm could not be measured · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  EYE PLAYE 26910: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:08 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  DOVICCE 1700502: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:08 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  PROVO 53001: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:08 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  YELLOW BOYZ 60603: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader is busy) — asks again at 04:08 · 30° LEFT arm could not be measured · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  YELLOW BOYZ 60603: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:08 · 30° LEFT arm could not be measured · 30° RIGHT arm could not be measured
-  YELLOW BOYZ 60602: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
-  TOM HARDY ONACT 2703: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 03:01 · 30° LEFT picture reader: no answer (the reader is busy) — asks again at 03:01 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 03:01
-  TOM HARDY ONACT 2703: NEEDS A LOOK — FRONT picture reader: left in lens print/logo left lens and right lens · 30° LEFT picture reader: missing empty · left in part of far arm left inside left lens · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 03:01
-  DANIEL HUNTER VYOMA 18907: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 03:01 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 03:01 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 03:01
-  TOM HARDY MUBES 98511613: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09
-  MICHAL JACK JERSEY 8703: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09
-  MICHAL JACK JERSEY 8703: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09
-  MICHAL JACK JERSEY 8702: NEEDS A LOOK — FRONT picture reader: left in lens text left, lens logo right · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09
-  MICHAL JACK JERSEY 8710: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09
-  BYE BYE 260815: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09
-  BYE BYE 260815: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 04:09
+ROBOT CHECKS: 23 frame(s) in TO CHECK, nothing changed since the last check (02:04 UTC).
