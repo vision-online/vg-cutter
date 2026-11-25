@@ -1,47 +1,47 @@
-Run 9313  Wed Nov 25 10:14:57 UTC 2026
+Run 9316  Wed Nov 25 10:36:06 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Catalogue: 189 frames. Waiting for a cut-out: 0.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
-White photos waiting: 66 photo(s) of 22 frame(s) -- 18 made in this run, the rest in the next runs.
+White photos waiting: 30 photo(s) of 10 frame(s) -- 18 made in this run, the rest in the next runs.
     installing the hidden browser driver ...
-    white maker: pmwvsxohw14-front.src 1400x788 -> made in 1324 ms
-    white maker: pmwvsxohw14-angle.src 1400x788 -> made in 644 ms
-    white maker: pmwvsxohw14-angle-right.src 1400x788 -> made in 1101 ms
-    white maker: pmwvsyk4q85-front.src 1400x788 -> made in 631 ms
-    white maker: pmwvsyk4q85-angle.src 1400x788 -> made in 781 ms
-    white maker: pmwvsyk4q85-angle-right.src 1400x788 -> made in 676 ms
-    white maker: pmwvtf95f58-front.src 1400x788 -> made in 370 ms
-    white maker: pmwvtf95f58-angle.src 1400x788 -> made in 398 ms
-    white maker: pmwvtf95f58-angle-right.src 1400x788 -> made in 416 ms
-    white maker: pmwvttsyk48-front.src 1400x788 -> made in 312 ms
-    white maker: pmwvttsyk48-angle.src 1400x788 -> made in 693 ms
-    white maker: pmwvttsyk48-angle-right.src 1400x788 -> made in 657 ms
-    white maker: pmwvtupgz23-front.src 1400x788 -> made in 373 ms
-    white maker: pmwvtupgz23-angle.src 1400x788 -> made in 668 ms
-    white maker: pmwvtupgz23-angle-right.src 1400x788 -> made in 549 ms
-    white maker: pmwvtvht957-front.src 1400x788 -> made in 329 ms
-    white maker: pmwvtvht957-angle.src 1400x788 -> made in 299 ms
-    white maker: pmwvtvht957-angle-right.src 1400x788 -> made in 277 ms
+    white maker: pmwvufrj865-front.src 1400x788 -> made in 511 ms
+    white maker: pmwvufrj865-angle.src 1400x788 -> made in 248 ms
+    white maker: pmwvufrj865-angle-right.src 1400x788 -> made in 304 ms
+    white maker: pmwvugdzb28-front.src 1400x788 -> made in 240 ms
+    white maker: pmwvugdzb28-angle.src 1400x788 -> made in 255 ms
+    white maker: pmwvugdzb28-angle-right.src 1400x788 -> made in 265 ms
+    white maker: pmwvugugz11-front.src 1400x788 -> made in 257 ms
+    white maker: pmwvugugz11-angle.src 1400x788 -> made in 484 ms
+    white maker: pmwvugugz11-angle-right.src 1400x788 -> made in 503 ms
+    white maker: pmwvuhfnw54-front.src 1400x788 -> made in 633 ms
+    white maker: pmwvuhfnw54-angle.src 1400x788 -> made in 539 ms
+    white maker: pmwvuhfnw54-angle-right.src 1400x788 -> made in 568 ms
+    white maker: pmwvuoozp80-front.src 1400x788 -> made in 283 ms
+    white maker: pmwvuoozp80-angle.src 1400x788 -> made in 280 ms
+    white maker: pmwvuoozp80-angle-right.src 1400x788 -> made in 294 ms
+    white maker: pmwvuqj6f62-front.src 1400x788 -> made in 222 ms
+    white maker: pmwvuqj6f62-angle.src 1400x788 -> made in 453 ms
+    white maker: pmwvuqj6f62-angle-right.src 1400x788 -> made in 488 ms
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    VINCENT CARLO RUDIN 80025 front: white -- rim check OK, 3948 px of rim put back from the photo (outer 869, inner 2535, pads 544)
-    VINCENT CARLO RUDIN 80025 angle: white -- rim check OK, 3586 px of rim put back from the photo (outer 2276, inner 1188, pads 122)
-    VINCENT CARLO RUDIN 80025 angle-right: white -- rim check OK, 3993 px of rim put back from the photo (outer 1244, inner 2340, pads 409)
-    MIGHTY QUEEN front: white -- rim check OK, 3510 px of rim put back from the photo (outer 975, inner 1983, pads 552)
-    MIGHTY QUEEN angle: white -- rim check OK, 2497 px of rim put back from the photo (outer 398, inner 1980, pads 119)
-    MIGHTY QUEEN angle-right: white -- rim check OK, 2793 px of rim put back from the photo (outer 1001, inner 1504, pads 288)
-    VINCENT CARLO RUDIN 80021 front: white -- rim check OK, 855 px of rim put back from the photo (outer 363, inner 73, pads 419)
-    VINCENT CARLO RUDIN 80021 angle: white -- rim check OK, 1273 px of rim put back from the photo (outer 235, inner 783, pads 255)
-    VINCENT CARLO RUDIN 80021 angle-right: white -- rim check OK, 1116 px of rim put back from the photo (outer 349, inner 662, pads 105)
-    SPARKS MOD 17 front: white -- rim check OK, 1379 px of rim put back from the photo (outer 739, inner 125, pads 515)
-    SPARKS MOD 17 angle: white -- rim check OK, 1527 px of rim put back from the photo (outer 346, inner 103, pads 1078)
-    SPARKS MOD 17 angle-right: white -- rim check OK, 2515 px of rim put back from the photo (outer 578, inner 790, pads 1147)
-    SPARKS MOD 17 front: white -- rim check OK, 1070 px of rim put back from the photo (outer 227, inner 759, pads 84)
-    SPARKS MOD 17 angle: white -- rim check OK, 417 px of rim put back from the photo (outer 60, inner 290, pads 67)
-    SPARKS MOD 17 angle-right: white -- rim check OK, 672 px of rim put back from the photo (outer 130, inner 487, pads 55)
-    SPARKS MOD 14 front: white -- rim check OK, 1258 px of rim put back from the photo (outer 713, inner 23, pads 522)
-    SPARKS MOD 14 angle: white -- rim check OK, 1794 px of rim put back from the photo (outer 341, inner 390, pads 1063)
-    SPARKS MOD 14 angle-right: white -- rim check OK, 2035 px of rim put back from the photo (outer 712, inner 470, pads 853)
+    SPARKS 009 front: white -- rim check OK, 2615 px of rim put back from the photo (outer 1983, inner 605, pads 27)
+    SPARKS 009 angle: white -- rim check OK, 2081 px of rim put back from the photo (outer 1024, inner 814, pads 243)
+    SPARKS 009 angle-right: white -- rim check OK, 1281 px of rim put back from the photo (outer 856, inner 387, pads 38)
+    SPARKS 001 front: white -- rim check OK, 3972 px of rim put back from the photo (outer 3140, inner 645, pads 187)
+    SPARKS 001 angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 3.8% of the frame's ou): 54199 px of frame measured, 4322 put back from the photo, 1054 px of demo printing made white; pixel check: 0 different
+    SPARKS 001 angle-right: white -- rim check OK, 1802 px of rim put back from the photo (outer 1182, inner 335, pads 285)
+    SPARKS 118 front: white -- rim check OK, 3207 px of rim put back from the photo (outer 2544, inner 356, pads 307)
+    SPARKS 118 angle: white -- rim check OK, 3106 px of rim put back from the photo (outer 1018, inner 1333, pads 755)
+    SPARKS 118 angle-right: white -- rim check OK, 4338 px of rim put back from the photo (outer 1324, inner 1201, pads 1813)
+    SPARKS 102 front: white -- rim check OK, 4727 px of rim put back from the photo (outer 2993, inner 882, pads 852)
+    SPARKS 102 angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 4.7% of the frame's ou): 60159 px of frame measured, 5991 put back from the photo, 1012 px of demo printing made white; pixel check: 0 different
+    SPARKS 102 angle-right: white -- rim check OK, 4344 px of rim put back from the photo (outer 1589, inner 1784, pads 971)
+    CA ESSENTIAL 860 front: white -- rim check OK, 3217 px of rim put back from the photo (outer 2513, inner 562, pads 142)
+    CA ESSENTIAL 860 angle: white -- rim check OK, 3311 px of rim put back from the photo (outer 2347, inner 111, pads 853)
+    CA ESSENTIAL 860 angle-right: white -- rim check OK, 3781 px of rim put back from the photo (outer 2395, inner 1216, pads 170)
+    SPARKS 009 front: white -- rim check OK, 3032 px of rim put back from the photo (outer 2402, inner 568, pads 62)
+    SPARKS 009 angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 2.6% of the frame's ou): 56559 px of frame measured, 3767 put back from the photo, 1205 px of demo printing made white; pixel check: 0 different
+    SPARKS 009 angle-right: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 4.0% of the frame's ou): 61519 px of frame measured, 5011 put back from the photo, 2521 px of demo printing made white; pixel check: 0 different
 White photos: 18 saved.
