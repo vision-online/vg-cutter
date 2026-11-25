@@ -1,91 +1,35 @@
-Run 9225  Tue Nov 24 19:20:05 UTC 2026
+Run 9296  Wed Nov 25 07:10:18 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 149 frames. Waiting for a cut-out: 3.
+Catalogue: 153 frames. Waiting for a cut-out: 0.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
---- pmwna69cd26 : COLLINS KNOA 86006
+White photos waiting: 12 photo(s) of 4 frame(s).
+    installing the hidden browser driver ...
+    white maker: pmwvry5t470-front.src 1400x788 -> made in 486 ms
+    white maker: pmwvry5t470-angle.src 1400x788 -> made in 268 ms
+    white maker: pmwvry5t470-angle-right.src 1400x788 -> made in 315 ms
+    white maker: pmwvrz1kk83-front.src 1400x788 -> made in 269 ms
+    white maker: pmwvrz1kk83-angle.src 1400x788 -> made in 257 ms
+    white maker: pmwvrz1kk83-angle-right.src 1400x788 -> made in 283 ms
+    white maker: pmwvrzswq41-front.src 1400x788 -> made in 238 ms
+    white maker: pmwvrzswq41-angle.src 1400x788 -> made in 218 ms
+    white maker: pmwvrzswq41-angle-right.src 1400x788 -> made in 251 ms
+    white maker: pmwvs2lsm73-front.src 1400x788 -> made in 228 ms
+    white maker: pmwvs2lsm73-angle.src 1400x788 -> made in 217 ms
+    white maker: pmwvs2lsm73-angle-right.src 1400x788 -> made in 211 ms
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
-/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:523: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
-  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
-    rim type: not set (0 clean lens holes)
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_5m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_11m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_11m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_384 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_384. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_512 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_512. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
-  return register_model(fn_wrapper)
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/build_sam.py:91: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-  state_dict = torch.load(f)
-    MobileSAM ready
-    lens step: lenses 62642 + 64740 px (found by rim line, SAM: +892 px of glass); 123690 pixels of glass cleared
-    sheet-ring peel (local wall colour): 21 px taken off the edge
-    AI outer edge: 28043 px of the outline from the AI, 0 px kept the robot's (they disagree there), 95 px kept because the photo disagreed, 19 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 208 px changed
-    size check: frame works out at 144 mm (typed 51 + 21 -> about 142 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 60% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 64839 px of frame measured on the photo; 4797 px the cut had lost put back from the photo; check: 0 missing
-    ring: right lens -- rim rebuilt round the lens shape: 0 directions open, 12 thinner than the other lens (rim 27-35 px thick there)
-    ring: left lens -- rim whole all round the lens, nothing to rebuild
-    ring: no gap found whose closing makes a lens a closed ring
-    ring: 16 px of hairline cracks in the rim sealed
-    ring: 1393 px added along the outer edge of the lower rim (the cut ended inside the rim)
-    rim check after closing the ring: saved picture 71% | repaired pixels counted as solid 71%
-    trim of pale bits skipped: it would have broken or thinned the lower rim below the approval limit
-    RIM CHECK: right rim only 71% of the other side near the outer side -> kept off the website
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (1027x544)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795547885/rvv7yi8wancjfrxnbmvf.png
-  pmwna69cd26 REJECTED, kept off the website: Robot check: the rim came out thinner on the right lens (outer side, 71% of the other side). Not published -- needs a look, the photo is not the problem.
---- pmwoneyvm98 : TOM HARDY FSURE 5106
-    thin dark rim: about 4 px thick, edge band 2 px (was 15) so the line keeps a solid core
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 63274 + 64590 px (found by two openings, SAM: nothing to add); 115633 pixels of glass cleared
-    sheet-ring peel (local wall colour): 1574 px taken off the edge
-    AI outer edge: 26528 px of the outline from the AI, 0 px kept the robot's (they disagree there), 1340 px kept because the photo disagreed, 53 see-through rim px made solid, 5 pin-holes closed, 0 specks on the sheet cleared, 599 px changed
-    levelled: the frame was -0.3 degrees off, turned straight
-    size check: frame works out at 127 mm (typed 49 + 18 -> about 135 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 57% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 21087 px of frame measured on the photo; 1649 px the cut had lost put back from the photo; check: 0 missing
-    THE TWO SIDES MATCH: 231 px of rim that only one side's edge lines showed were measured from the other side (a clear rim on the white sheet)
-    ring: thin dark-wire frame (the line is about 6 px wide) -- the wire repair is used, not the plastic-rim one
-    ring: 4 px of the dark line brought back from the photo (3 directions had lost it)
-    ring: 175 px of pale fill taken away (outside the line, and the extra-wide pale band inside it)
-    rim check after closing the ring: saved picture 26% | repaired pixels counted as solid 26%
-    trim of pale bits skipped: it would have broken or thinned the lower rim below the approval limit
-    RIM CHECK: right rim only 26% of the other side near the outer side -> kept off the website
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (984x486)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795547927/nrpkplgutns28hrluqb6.png
-  pmwoneyvm98 REJECTED, kept off the website: Robot check: the rim came out thinner on the right lens (outer side, 26% of the other side). Not published -- needs a look, the photo is not the problem.
---- pmwoo6l1k10 : INTACT 6084
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 48739 + 50403 px (found by rim line, SAM: nothing to add); 94537 pixels of glass cleared
-    sheet-ring peel (local wall colour): 2574 px taken off the edge
-    AI outer edge: 24661 px of the outline from the AI, 247 px kept the robot's (they disagree there), 831 px kept because the photo disagreed, 863 see-through rim px made solid, 0 pin-holes closed, 19 specks on the sheet cleared, 2467 px changed
-    levelled: the frame was 0.9 degrees off, turned straight
-    size check: frame works out at 132 mm (typed 48 + 20 -> about 135 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 57% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 44837 px of frame measured on the photo; 4008 px the cut had lost put back from the photo; check: 0 missing
-    THE TWO SIDES MATCH: 1238 px of rim that only one side's edge lines showed were measured from the other side (a clear rim on the white sheet)
-    ring: right lens -- rim rebuilt round the lens shape: 1 directions open, 3 thinner than the other lens (rim 16-20 px thick there)
-    ring: left lens -- rim rebuilt round the lens shape: 3 directions open, 2 thinner than the other lens (rim 18-20 px thick there)
-    ring: no gap found whose closing makes a lens a closed ring
-    ring: 58 px of hairline cracks in the rim sealed
-    ring: 654 px added along the outer edge of the lower rim (the cut ended inside the rim)
-    rim check after closing the ring: saved picture 73% | repaired pixels counted as solid 73%
-    trim of pale bits skipped: it would have broken or thinned the lower rim below the approval limit
-    RIM CHECK: right rim only 73% of the other side near the bottom -> kept off the website
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (984x448)
-    draft kept for FIX IT: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795547990/cmymekuiwdb34vmltv2c.png
-  pmwoo6l1k10 REJECTED, kept off the website: Robot check: the rim came out thinner on the right lens (bottom, 73% of the other side). Not published -- needs a look, the photo is not the problem.
-  Why they were held back: 3 rim damaged
-  Finished. Cut 0, failed 0, rejected 3, still waiting 3.  Rejected: COLLINS KNOA 86006: Robot check: the rim came out thinner on the right lens (outer side, 71% of the other side). Not published -- needs a look, the photo is not the problem.; TOM HARDY FSURE 5106: Robot check: the rim came out thinner on the right lens (outer side, 26% of the other side). Not published -- needs a look, the photo is not the problem.; INTACT 6084: Robot check: the rim came out thinner on the right lens (bottom, 73% of the other side). Not published -- needs a look, the photo is not the problem.
+    VG-1020 Frames front: white -- rim check OK, 704 px of rim put back from the photo (outer 211, inner 191, pads 302)
+    VG-1020 Frames angle: white -- rim check OK, 919 px of rim put back from the photo (outer 62, inner 479, pads 378)
+    VG-1020 Frames angle-right: white -- rim check OK, 660 px of rim put back from the photo (outer 140, inner 213, pads 307)
+    VG-1021 Frames front: white -- rim check OK, 1358 px of rim put back from the photo (outer 499, inner 314, pads 545)
+    VG-1021 Frames angle: white -- rim check OK, 1316 px of rim put back from the photo (outer 519, inner 143, pads 654)
+    VG-1021 Frames angle-right: white -- rim check OK, 1421 px of rim put back from the photo (outer 611, inner 422, pads 388)
+    VG-1022 Frames front: white -- rim check OK, 923 px of rim put back from the photo (outer 334, inner 182, pads 407)
+    VG-1022 Frames angle: white -- rim check OK, 902 px of rim put back from the photo (outer 279, inner 172, pads 451)
+    VG-1022 Frames angle-right: white -- rim check OK, 1315 px of rim put back from the photo (outer 363, inner 311, pads 641)
+    VG-1023 Frames front: white -- rim check OK, 1222 px of rim put back from the photo (outer 647, inner 0, pads 575)
+    VG-1023 Frames angle: white -- rim check OK, 958 px of rim put back from the photo (outer 145, inner 667, pads 146)
+    VG-1023 Frames angle-right: white -- rim check OK, 1550 px of rim put back from the photo (outer 288, inner 652, pads 610)
+White photos: 12 saved.
