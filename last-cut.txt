@@ -1,47 +1,41 @@
-Run 9316  Wed Nov 25 10:36:06 UTC 2026
+Run 9322  Wed Nov 25 11:31:42 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Catalogue: 189 frames. Waiting for a cut-out: 0.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
-White photos waiting: 30 photo(s) of 10 frame(s) -- 18 made in this run, the rest in the next runs.
-    installing the hidden browser driver ...
-    white maker: pmwvufrj865-front.src 1400x788 -> made in 511 ms
-    white maker: pmwvufrj865-angle.src 1400x788 -> made in 248 ms
-    white maker: pmwvufrj865-angle-right.src 1400x788 -> made in 304 ms
-    white maker: pmwvugdzb28-front.src 1400x788 -> made in 240 ms
-    white maker: pmwvugdzb28-angle.src 1400x788 -> made in 255 ms
-    white maker: pmwvugdzb28-angle-right.src 1400x788 -> made in 265 ms
-    white maker: pmwvugugz11-front.src 1400x788 -> made in 257 ms
-    white maker: pmwvugugz11-angle.src 1400x788 -> made in 484 ms
-    white maker: pmwvugugz11-angle-right.src 1400x788 -> made in 503 ms
-    white maker: pmwvuhfnw54-front.src 1400x788 -> made in 633 ms
-    white maker: pmwvuhfnw54-angle.src 1400x788 -> made in 539 ms
-    white maker: pmwvuhfnw54-angle-right.src 1400x788 -> made in 568 ms
-    white maker: pmwvuoozp80-front.src 1400x788 -> made in 283 ms
-    white maker: pmwvuoozp80-angle.src 1400x788 -> made in 280 ms
-    white maker: pmwvuoozp80-angle-right.src 1400x788 -> made in 294 ms
-    white maker: pmwvuqj6f62-front.src 1400x788 -> made in 222 ms
-    white maker: pmwvuqj6f62-angle.src 1400x788 -> made in 453 ms
-    white maker: pmwvuqj6f62-angle-right.src 1400x788 -> made in 488 ms
+--- pmwna3say60 : COLLINS KNOA 86007 (views for a hand-published frame)
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    SPARKS 009 front: white -- rim check OK, 2615 px of rim put back from the photo (outer 1983, inner 605, pads 27)
-    SPARKS 009 angle: white -- rim check OK, 2081 px of rim put back from the photo (outer 1024, inner 814, pads 243)
-    SPARKS 009 angle-right: white -- rim check OK, 1281 px of rim put back from the photo (outer 856, inner 387, pads 38)
-    SPARKS 001 front: white -- rim check OK, 3972 px of rim put back from the photo (outer 3140, inner 645, pads 187)
-    SPARKS 001 angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 3.8% of the frame's ou): 54199 px of frame measured, 4322 put back from the photo, 1054 px of demo printing made white; pixel check: 0 different
-    SPARKS 001 angle-right: white -- rim check OK, 1802 px of rim put back from the photo (outer 1182, inner 335, pads 285)
-    SPARKS 118 front: white -- rim check OK, 3207 px of rim put back from the photo (outer 2544, inner 356, pads 307)
-    SPARKS 118 angle: white -- rim check OK, 3106 px of rim put back from the photo (outer 1018, inner 1333, pads 755)
-    SPARKS 118 angle-right: white -- rim check OK, 4338 px of rim put back from the photo (outer 1324, inner 1201, pads 1813)
-    SPARKS 102 front: white -- rim check OK, 4727 px of rim put back from the photo (outer 2993, inner 882, pads 852)
-    SPARKS 102 angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 4.7% of the frame's ou): 60159 px of frame measured, 5991 put back from the photo, 1012 px of demo printing made white; pixel check: 0 different
-    SPARKS 102 angle-right: white -- rim check OK, 4344 px of rim put back from the photo (outer 1589, inner 1784, pads 971)
-    CA ESSENTIAL 860 front: white -- rim check OK, 3217 px of rim put back from the photo (outer 2513, inner 562, pads 142)
-    CA ESSENTIAL 860 angle: white -- rim check OK, 3311 px of rim put back from the photo (outer 2347, inner 111, pads 853)
-    CA ESSENTIAL 860 angle-right: white -- rim check OK, 3781 px of rim put back from the photo (outer 2395, inner 1216, pads 170)
-    SPARKS 009 front: white -- rim check OK, 3032 px of rim put back from the photo (outer 2402, inner 568, pads 62)
-    SPARKS 009 angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 2.6% of the frame's ou): 56559 px of frame measured, 3767 put back from the photo, 1205 px of demo printing made white; pixel check: 0 different
-    SPARKS 009 angle-right: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 4.0% of the frame's ou): 61519 px of frame measured, 5011 put back from the photo, 2521 px of demo printing made white; pixel check: 0 different
-White photos: 18 saved.
+/home/runner/work/vg-cutter/vg-cutter/vg_cut.py:523: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
+  a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    angled lens step skipped, nothing changed: no rim line and no two lens openings found
+    AI outer edge: 32576 px of the outline from the AI, 2659 px kept the robot's (they disagree there), 453 px kept because the photo disagreed, 238 see-through rim px made solid, 0 pin-holes closed, 5 specks on the sheet cleared, 951 px changed
+    rim heal: lens openings not found -- left as cut
+    lens clean: lens openings not found -- left as cut
+    bottom rim: lenses not found, left as is
+    nose pads: lenses not found, left as is
+    45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
+    45 degree left cut too
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_5m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_11m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_11m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_384 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_384. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_21m_512 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_21m_512. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/build_sam.py:91: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  state_dict = torch.load(f)
+    MobileSAM ready
+    angled lens step: lenses 12218 + 25486 px (found by two openings, SAM: nothing to add); 35224 pixels of glass cleared
+    AI outer edge: 33288 px of the outline from the AI, 2143 px kept the robot's (they disagree there), 946 px kept because the photo disagreed, 2267 see-through rim px made solid, 0 pin-holes closed, 9 specks on the sheet cleared, 4175 px changed
+    rim heal: 143 break pixels closed, 0 faint rim pixels made solid, 223 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 1548 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: nothing to do
+    nose pads: rim 93 px thick (not a thin metal rim) -- nothing put back
+    45 degree right fit points: bridge at (153,174), lens height 187 px, near lens on the right
+    45 degree right cut too
+Nothing to do.
