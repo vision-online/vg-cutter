@@ -1,122 +1,122 @@
-Run 9297  Wed Nov 25 07:40:42 UTC 2026
+Run 9305  Wed Nov 25 09:35:16 UTC 2026
 
-    AI outer edge: 29088 px of the outline from the AI, 513 px kept the robot's (they disagree there), 1394 px kept because the photo disagreed, 1102 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 2977 px changed
-    rim heal: 152 break pixels closed, 246 faint rim pixels made solid, 280 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 12256 pixels seen through the lenses cleared; no bar behind the bridge; far temple kept 27 px behind the hinge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 36 px thick (not a thin metal rim) -- nothing put back
-    45 degree right fit points: bridge at (240,145), lens height 239 px, near lens on the right
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795591340/itjztbwppjvqvqm7gqtl.png
---- pmwvs2lsm73 : WINDY 180292
-    thin dark rim: about 6 px thick, edge band 2 px (was 15) so the line keeps a solid core
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 64250 + 69043 px (found by two openings, SAM: nothing to add); 116620 pixels of glass cleared
-    sheet-ring peel (local wall colour): 1559 px taken off the edge
-    AI outer edge: 26997 px of the outline from the AI, 22 px kept the robot's (they disagree there), 1194 px kept because the photo disagreed, 48 see-through rim px made solid, 13 pin-holes closed, 0 specks on the sheet cleared, 773 px changed
-    size check: frame works out at 119 mm (typed 47 + 17 -> about 130 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 56% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 25437 px of frame measured on the photo; 2574 px the cut had lost put back from the photo; check: 0 missing
-    RIM CHECK: both rims match (thinnest spot 89% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (953x431)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795591527/clgzdczij4zjt9zctnnq.jpg
-    angled lens step: lenses 26714 + 9648 px (found by two openings, SAM: nothing to add); 33104 pixels of glass cleared
-    AI outer edge: 33987 px of the outline from the AI, 6031 px kept the robot's (they disagree there), 2070 px kept because the photo disagreed, 655 see-through rim px made solid, 21 pin-holes closed, 45 specks on the sheet cleared, 1775 px changed
-    rim heal: 123 break pixels closed, 166 faint rim pixels made solid, 166 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 3963 pixels seen through the lenses cleared; far temple behind the bridge removed (1 bar)
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
     45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree left cut too
-    angled lens step: lenses 23576 + 40560 px (found by two openings, SAM: nothing to add); 57792 pixels of glass cleared
-    AI outer edge: 28837 px of the outline from the AI, 5209 px kept the robot's (they disagree there), 1252 px kept because the photo disagreed, 1223 see-through rim px made solid, 1 pin-holes closed, 46 specks on the sheet cleared, 2298 px changed
+    45 degree left cut too (glass not found -- the shop keeps the photo for this view)
+    angled lens step skipped, nothing changed: no rim line and no two lens openings found
     rim heal: lens openings not found -- left as cut
     lens clean: lens openings not found -- left as cut
     bottom rim: lenses not found, left as is
     nose pads: lenses not found, left as is
     45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
     45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795591526/fcuhq8j7hbnjpr4zq7mk.png
---- pmwvs97bm93 : WINDY 180293
-    thin dark rim: about 6 px thick, edge band 2 px (was 15) so the line keeps a solid core
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795597978/zjczzh4cl6y4f9nzbaqa.png
+--- pmwvugugz11 : SPARKS 118
     rim type: not set (0 clean lens holes)
-    lens step skipped, nothing changed: could not find both lenses
-    sheet-ring peel (local wall colour): 9142 px taken off the edge
-    AI outer edge: 24022 px of the outline from the AI, 34 px kept the robot's (they disagree there), 421 px kept because the photo disagreed, 52 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 720 px changed
-    levelled: the frame was -1.1 degrees off, turned straight
-    size check: frame works out at 119 mm (typed 47 + 16 -> about 129 mm expected)
-    glass check: two openings found in the finished cut
-    the frame fills 52% of the photo's width
-    whole-frame pixel check not used: no closed lens opening found in the photo
-    RIM CHECK: both rims match (thinnest spot 88% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (909x431)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795591743/onhwtikczva5yjmmbnli.jpg
-    angled lens step: lenses 28030 + 12666 px (found by two openings, SAM: nothing to add); 37599 pixels of glass cleared
-    AI outer edge: 26594 px of the outline from the AI, 499 px kept the robot's (they disagree there), 1072 px kept because the photo disagreed, 1516 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 4170 px changed
-    rim heal: 125 break pixels closed, 242 faint rim pixels made solid, 150 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 5806 pixels seen through the lenses cleared; far temple behind the bridge removed (1 bar)
-    bottom rim smoothed: rim 9.0 px, 1113 px evened
-    nose pads: rim 42 px thick (not a thin metal rim) -- nothing put back
-    45 degree left fit points: bridge at (730,123), lens height 196 px, near lens on the left
-    45 degree left cut too
-    angled lens step: lenses 15747 + 36631 px (found by two openings, SAM: nothing to add); 48049 pixels of glass cleared
-    AI outer edge: 29340 px of the outline from the AI, 6680 px kept the robot's (they disagree there), 1311 px kept because the photo disagreed, 482 see-through rim px made solid, 0 pin-holes closed, 14 specks on the sheet cleared, 1458 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795591743/b6pnwrtkym3k6fwjuup0.png
---- pmwvsa4oc50 : WINDY 180297
-    thin dark rim: about 6 px thick, edge band 2 px (was 15) so the line keeps a solid core
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 62982 + 63843 px (found by two openings, SAM: nothing to add); 110217 pixels of glass cleared
-    sheet-ring peel (local wall colour): 1674 px taken off the edge
-    AI outer edge: 25870 px of the outline from the AI, 45 px kept the robot's (they disagree there), 1317 px kept because the photo disagreed, 49 see-through rim px made solid, 1 pin-holes closed, 0 specks on the sheet cleared, 857 px changed
-    levelled: the frame was -1.1 degrees off, turned straight
-    size check: frame works out at 128 mm (typed 49 + 18 -> about 135 mm expected)
-    glass check: the demo is clear (0.0% left)
+half-rim: 50 enclosed pieces, 2 candidates, rejected {'size': 48, 'shape': 0, 'place': 0, 'solid': 0, 'touch': 0}
+    supra: 5348 px of the lens edge and nose pads put back after the clean-ups
+    lens edge line drawn (half-rim / rimless): 4587 px at 80%
+    a little tint left on the demo (half-rim / rimless): 94456 px
+    levelled: the frame was -1.6 degrees off, turned straight
+    size check: frame works out at 128 mm (typed 50 + 20 -> about 139 mm expected)
     the frame fills 54% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 23848 px of frame measured on the photo; 2896 px the cut had lost put back from the photo; check: 0 missing
-    THE TWO SIDES MATCH: 188 px of rim that only one side's edge lines showed were measured from the other side (a clear rim on the white sheet)
-    RIM CHECK: both rims match (thinnest spot 87% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (931x474)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795591934/lsirjfh0zfdbc4faljmo.jpg
-    angled lens step: lenses 38287 + 19354 px (found by two openings, SAM: nothing to add); 53093 pixels of glass cleared
-    AI outer edge: 34207 px of the outline from the AI, 12665 px kept the robot's (they disagree there), 2693 px kept because the photo disagreed, 2451 see-through rim px made solid, 16 pin-holes closed, 126 specks on the sheet cleared, 4992 px changed
-    rim heal: 662 break pixels closed, 451 faint rim pixels made solid, 563 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 10291 pixels seen through the lenses cleared; no bar behind the bridge; far temple kept 30 px behind the hinge
+    demo edge copied from the photo (half-rim / rimless)
+    shop photo on white made (933x406)
+    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795598238/hhaihd3fyzedci7ihzuq.jpg
+    angled lens step skipped, nothing changed: no rim line and no two lens openings found
+    rim heal: lens openings not found -- left as cut
+    lens clean: lens openings not found -- left as cut
     bottom rim: lenses not found, left as is
     nose pads: lenses not found, left as is
     45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
     45 degree left cut too
-    angled lens step: lenses 19539 + 37072 px (found by two openings, SAM: nothing to add); 51143 pixels of glass cleared
-    AI outer edge: 28923 px of the outline from the AI, 12717 px kept the robot's (they disagree there), 1999 px kept because the photo disagreed, 886 see-through rim px made solid, 0 pin-holes closed, 71 specks on the sheet cleared, 2651 px changed
+    angled lens step skipped, nothing changed: no rim line and no two lens openings found
     rim heal: lens openings not found -- left as cut
     lens clean: lens openings not found -- left as cut
     bottom rim: lenses not found, left as is
     nose pads: lenses not found, left as is
     45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
     45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795591934/hzc3vy7hk8nawve7j45d.png
-White photos waiting: 6 photo(s) of 2 frame(s).
-    installing the hidden browser driver ...
-    white maker: pmwvs97bm93-front.src 1400x788 -> made in 318 ms
-    white maker: pmwvs97bm93-angle.src 1400x788 -> made in 246 ms
-    white maker: pmwvs97bm93-angle-right.src 1400x788 -> made in 305 ms
-    white maker: pmwvsa4oc50-front.src 1400x788 -> made in 613 ms
-    white maker: pmwvsa4oc50-angle.src 1400x788 -> made in 286 ms
-    white maker: pmwvsa4oc50-angle-right.src 1400x788 -> made in 312 ms
-    WINDY 180293 front: white -- rim check OK, 1018 px of rim put back from the photo (outer 381, inner 305, pads 332)
-    WINDY 180293 angle: white -- rim check OK, 1371 px of rim put back from the photo (outer 291, inner 580, pads 500)
-    WINDY 180293 angle-right: white -- rim check OK, 964 px of rim put back from the photo (outer 184, inner 397, pads 383)
-    WINDY 180297 front: white -- rim check OK, 1479 px of rim put back from the photo (outer 702, inner 284, pads 493)
-    WINDY 180297 angle: white -- rim check OK, 2525 px of rim put back from the photo (outer 905, inner 802, pads 818)
-    WINDY 180297 angle-right: white -- rim check OK, 1989 px of rim put back from the photo (outer 577, inner 902, pads 510)
-White photos: 6 saved.
-  Finished. Cut 6, failed 0, rejected 0, still waiting 0.
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795598237/s3scdnqldsxszzqtdh4b.png
+--- pmwvuhfnw54 : SPARKS 102
+    rim type: not set (0 clean lens holes)
+half-rim: 42 enclosed pieces, 1 candidates, rejected {'size': 41, 'shape': 0, 'place': 0, 'solid': 0, 'touch': 0}
+half-rim: 1 lens piece(s) kept after the shadow trim -- need 2
+    half-rim / rimless: lens edge not traced on the photo; lenses from the AI's shape: 2 lenses, 47836 and 46406 px
+    rimless: 11953 px of sheet round the lenses cleared (only lenses, metal and nose pads stay)
+    supra: 7094 px of the lens edge and nose pads put back after the clean-ups
+    lens edge line drawn (half-rim / rimless): 4468 px at 80%
+    a little tint left on the demo (half-rim / rimless): 87601 px
+    levelled: the frame was -1.4 degrees off, turned straight
+    size check: frame works out at 140 mm (typed 52 + 20 -> about 143 mm expected)
+    the frame fills 57% of the photo's width
+    demo edge could not be copied (lenses from the AI's shape -- one drawn line) -- drawn instead
+    shop photo on white made (989x411)
+    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795598466/jgbbdo4etrkvlhd8v6lk.jpg
+    angled lens step skipped, nothing changed: no rim line and no two lens openings found
+    rim heal: lens openings not found -- left as cut
+    lens clean: lens openings not found -- left as cut
+    bottom rim: lenses not found, left as is
+    nose pads: lenses not found, left as is
+    45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
+    45 degree left cut too
+    angled lens step skipped, nothing changed: no rim line and no two lens openings found
+    rim heal: lens openings not found -- left as cut
+    lens clean: lens openings not found -- left as cut
+    bottom rim: lenses not found, left as is
+    nose pads: lenses not found, left as is
+    45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
+    45 degree right cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795598466/wvtusnx98k1wxy0clfke.png
+--- pmwvuoozp80 : CA ESSENTIAL 860
+    thin dark rim: about 4 px thick, edge band 2 px (was 15) so the line keeps a solid core
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 66403 + 63544 px (found by rim line, right lens: glass cut off by an arm joined (+4379 px), SAM: nothing to add); 122003 pixels of glass cleared
+    sheet-ring peel (local wall colour): 1131 px taken off the edge
+    AI outer edge: 25578 px of the outline from the AI, 0 px kept the robot's (they disagree there), 1668 px kept because the photo disagreed, 55 see-through rim px made solid, 9 pin-holes closed, 0 specks on the sheet cleared, 691 px changed
+    size check: frame works out at 131 mm (typed 50 + 20 -> about 139 mm expected)
+    glass check: the demo is clear (0.0% left)
+    the frame fills 57% of the photo's width
+    WHOLE-FRAME PIXEL CHECK: 51706 px of frame measured on the photo; 6312 px the cut had lost put back from the photo; check: 0 missing
+    THE TWO SIDES MATCH: 909 px of rim that only one side's edge lines showed were measured from the other side (a clear rim on the white sheet)
+    RIM CHECK: both rims match (thinnest spot 84% of the other side)
+    arms above the frame: 0.0% (below 2.5%, no note)
+    shop photo on white made (973x475)
+    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795598683/pffferrttq4lv0vmsquz.jpg
+    angled lens step: lenses 29811 + 14295 px (found by two openings, SAM: nothing to add); 39865 pixels of glass cleared
+    AI outer edge: 33840 px of the outline from the AI, 13 px kept the robot's (they disagree there), 2365 px kept because the photo disagreed, 1502 see-through rim px made solid, 1 pin-holes closed, 35 specks on the sheet cleared, 4061 px changed
+    rim heal: 27 break pixels closed, 109 faint rim pixels made solid, 0 glare dots removed, 60 shadow pixels under the rim removed
+    lens clean: 788 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: nothing to do
+    nose pads: rim 19 px thick (not a thin metal rim) -- nothing put back
+    45 degree left fit points: bridge at (758,131), lens height 245 px, near lens on the left
+    45 degree left cut too
+    angled lens step skipped, nothing changed: the two biggest openings are not level
+    AI outer edge: 31769 px of the outline from the AI, 4739 px kept the robot's (they disagree there), 1482 px kept because the photo disagreed, 517 see-through rim px made solid, 5 pin-holes closed, 38 specks on the sheet cleared, 1983 px changed
+    rim heal: 60 break pixels closed, 112 faint rim pixels made solid, 0 glare dots removed, 3876 shadow pixels under the rim removed
+    lens clean: 469 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: nothing to do
+    nose pads put back from the photo: 3 dark pieces (515 px), clear pads 944 px; far temple left out (1); pale patch under the bridge cleared (5681 px)
+    45 degree right fit points: bridge at (146,164), lens height 202 px, near lens on the right
+    45 degree right cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795598682/t6ox33bpg1hvdtacoc42.png
+--- pmwvuqj6f62 : SPARKS 009
+    rim type: not set (0 clean lens holes)
+half-rim: 46 enclosed pieces, 2 candidates, rejected {'size': 44, 'shape': 0, 'place': 0, 'solid': 0, 'touch': 0}
+half-rim: right lens took the glass cut off by an arm (+2057 px)
+half-rim: two pieces found but they overlap or differ too much (68272 vs 15590)
+    half-rim / rimless: lens edge not traced on the photo; lenses from the AI's shape: 2 lenses, 56132 and 54931 px
+    rimless: 24395 px of sheet round the lenses cleared (only lenses, metal and nose pads stay)
+    supra: 6616 px of the lens edge and nose pads put back after the clean-ups
+    lens edge line drawn (half-rim / rimless): 4622 px at 80%
+    a little tint left on the demo (half-rim / rimless): 105337 px
+    levelled: the frame was -0.7 degrees off, turned straight
+    size check: frame works out at 122 mm (typed 50 + 20 -> about 139 mm expected)
+    the frame fills 53% of the photo's width
+    demo edge could not be copied (lenses from the AI's shape -- one drawn line) -- drawn instead
+    shop photo on white made (915x441)
+    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795598966/gi1dqb32ldadnqljv2vu.jpg
+    time is up -- this frame's other views are made on the next run
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795598966/i65nvwfclwggaqie39lo.png
+Time is up for this run; the rest go in the next one.
+  Why they were held back: 3 rim damaged
+  Finished. Cut 13, failed 0, rejected 3, still waiting 7.  Rejected: VINCENT CARLO RUDIN 80021: Robot check: the rim came out thinner on the left lens (bottom, 69% of the other side). Not published -- needs a look, the photo is not the problem.; SPARKS 235: Robot check: the rim came out thinner on the left lens (top, 73% of the other side). Not published -- needs a look, the photo is not the problem.; SPARKS 009: Robot check: the rim came out thinner on the right lens (top, 16% of the other side). Not published -- needs a look, the photo is not the problem.
