@@ -1,47 +1,19 @@
-Run 9456  Thu Nov 26 09:45:00 UTC 2026
+Run 9458  Thu Nov 26 09:57:51 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
 Catalogue: 229 frames. Waiting for a cut-out: 0.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
-White photos waiting: 40 photo(s) of 14 frame(s) -- 18 made in this run, the rest in the next runs.
+White photos waiting: 4 photo(s) of 2 frame(s).
     installing the hidden browser driver ...
-    white maker: pmwx89rek53-angle-right.src 1400x788 -> made in 693 ms
-    white maker: pmwx8anwn83-front.src 1400x788 -> made in 480 ms
-    white maker: pmwx8anwn83-angle.src 1400x788 -> made in 958 ms
-    white maker: pmwx8anwn83-angle-right.src 1400x788 -> made in 488 ms
-    white maker: pmwx8bqll63-front.src 1400x788 -> made in 635 ms
-    white maker: pmwx8bqll63-angle.src 1400x788 -> made in 441 ms
-    white maker: pmwx8bqll63-angle-right.src 1400x788 -> made in 547 ms
-    white maker: pmwx8cl7592-front.src 1400x788 -> made in 278 ms
-    white maker: pmwx8cl7592-angle.src 1400x788 -> made in 545 ms
-    white maker: pmwx8cl7592-angle-right.src 1400x788 -> made in 522 ms
-    white maker: pmwx8dlgi16-front.src 1400x788 -> made in 226 ms
-    white maker: pmwx8dlgi16-angle.src 1400x788 -> made in 287 ms
-    white maker: pmwx8dlgi16-angle-right.src 1400x788 -> made in 494 ms
-    white maker: pmwx8ehtf45-front.src 1400x788 -> made in 564 ms
-    white maker: pmwx8ehtf45-angle.src 1400x788 -> made in 509 ms
-    white maker: pmwx8ehtf45-angle-right.src 1400x788 -> made in 659 ms
-    white maker: pmwx8hdxt67-front.src 1400x788 -> made in 295 ms
-    white maker: pmwx8hdxt67-angle.src 1400x788 -> made in 242 ms
+    white maker: pmwx8n9y922-angle-right.src 1400x788 -> made in 644 ms
+    white maker: pmwx8o2aa85-front.src 1400x788 -> made in 265 ms
+    white maker: pmwx8o2aa85-angle.src 1400x788 -> made in 301 ms
+    white maker: pmwx8o2aa85-angle-right.src 1400x788 -> made in 260 ms
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    12X WIRE 511 angle-right: white -- rim check OK, 349 px of rim put back from the photo (outer 24, inner 144, pads 181)
-    12X PRO 5703 front: white -- rim check OK, 580 px of rim put back from the photo (outer 20, inner 550, pads 10)
-    12X PRO 5703 angle: white -- rim check OK, 303 px of rim put back from the photo (outer 17, inner 257, pads 29)
-    12X PRO 5703 angle-right: white -- rim check OK, 540 px of rim put back from the photo (outer 0, inner 442, pads 98)
-    12X PRO 5703 front: white -- rim check OK, 478 px of rim put back from the photo (outer 0, inner 433, pads 45)
-    12X PRO 5703 angle: white -- rim check OK, 347 px of rim put back from the photo (outer 0, inner 326, pads 21)
-    12X PRO 5703 angle-right: white -- rim check OK, 96 px of rim put back from the photo (outer 0, inner 81, pads 15)
-    12X PRO 5703 front: white -- rim check OK, 4208 px of rim put back from the photo (outer 3183, inner 96, pads 929)
-    12X PRO 5703 angle: white -- rim check OK, 119 px of rim put back from the photo (outer 108, inner 11, pads 0)
-    12X PRO 5703 angle-right: white -- rim check OK, 1050 px of rim put back from the photo (outer 637, inner 393, pads 20)
-    CARNIVAL WONDER 9909 front: white -- rim check OK, 68 px of rim put back from the photo (outer 0, inner 68, pads 0)
-    CARNIVAL WONDER 9909 angle: white -- rim check OK, 588 px of rim put back from the photo (outer 317, inner 50, pads 221)
-    CARNIVAL WONDER 9909 angle-right: white -- rim check OK, 428 px of rim put back from the photo (outer 197, inner 40, pads 191)
-    CARNIVAL WONDER 9909 front: white -- rim check OK, 2162 px of rim put back from the photo (outer 208, inner 1317, pads 637)
-    CARNIVAL WONDER 9909 angle: white -- rim check OK, 2835 px of rim put back from the photo (outer 160, inner 2490, pads 185)
-    CARNIVAL WONDER 9909 angle-right: white -- rim check OK, 1491 px of rim put back from the photo (outer 294, inner 809, pads 388)
-    12X LITE 1901 front: white -- rim check OK, 101 px of rim put back from the photo (outer 43, inner 58, pads 0)
-    12X LITE 1901 angle: white -- rim check OK, 107 px of rim put back from the photo (outer 26, inner 81, pads 0)
-White photos: 18 saved.
+    12X MINI GIANIZ 624 angle-right: white -- rim check OK, 117 px of rim put back from the photo (outer 0, inner 108, pads 9)
+    12X MINI GIANIZ 614 front: white -- rim check OK, 97 px of rim put back from the photo (outer 0, inner 90, pads 7)
+    12X MINI GIANIZ 614 angle: white -- rim check OK, 74 px of rim put back from the photo (outer 0, inner 74, pads 0)
+    12X MINI GIANIZ 614 angle-right: white -- rim check OK, 26 px of rim put back from the photo (outer 0, inner 26, pads 0)
+White photos: 4 saved.
