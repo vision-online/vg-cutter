@@ -1,14 +1,16 @@
-Run 9434  Thu Nov 26 06:15:51 UTC 2026
+Run 9438  Thu Nov 26 06:48:40 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 189 frames. Waiting for a cut-out: 0.
+Catalogue: 198 frames. Waiting for a cut-out: 1.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
---- pmwq4hylv82 : MICHAL JACK IRON TR008 C5 (views for a hand-published frame)
+--- pmwx60jct34 : SPARKS MOD - 23
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
+    thin dark rim: about 8 px thick, edge band 2 px (was 15) so the line keeps a solid core
 /home/runner/work/vg-cutter/vg-cutter/vg_cut.py:523: UserWarning: Image values should be in [0, 1], but image.max() is 1.0000000298023224.
   a = estimate_alpha_lkm(rgb_s, tri_s.astype(np.float64))
+    rim type: not set (0 clean lens holes)
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_5m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
   return register_model(fn_wrapper)
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/modeling/tiny_vit_sam.py:656: UserWarning: Overwriting tiny_vit_11m_224 in registry with mobile_sam.modeling.tiny_vit_sam.tiny_vit_11m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
@@ -22,71 +24,75 @@ Model loaded: ZhengPeng7/BiRefNet at 1024 px
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/mobile_sam/build_sam.py:91: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
   state_dict = torch.load(f)
     MobileSAM ready
-    angled lens step: lenses 25271 + 23316 px (found by two openings, SAM: nothing to add); 44976 pixels of glass cleared
-    AI outer edge: 25608 px of the outline from the AI, 5261 px kept the robot's (they disagree there), 733 px kept because the photo disagreed, 1243 see-through rim px made solid, 0 pin-holes closed, 73 specks on the sheet cleared, 2472 px changed
-    rim heal: lens openings not found -- left as cut
-    lens clean: lens openings not found -- left as cut
-    bottom rim: lenses not found, left as is
-    nose pads: lenses not found, left as is
-    45 degree left fit points: the two lens openings were not found -- the try-on will use the picture's box
+    lens step: lenses 63565 + 67920 px (found by two openings, SAM: nothing to add); 114335 pixels of glass cleared
+    sheet-ring peel (local wall colour): 822 px taken off the edge
+    AI outer edge: 27729 px of the outline from the AI, 6 px kept the robot's (they disagree there), 746 px kept because the photo disagreed, 40 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 975 px changed
+    levelled: the frame was -1.4 degrees off, turned straight
+    size check: frame works out at 129 mm (typed 50 + 20 -> about 139 mm expected)
+    glass check: the demo is clear (0.0% left)
+    the frame fills 62% of the photo's width
+    WHOLE-FRAME PIXEL CHECK: 39446 px of frame measured on the photo; 8329 px the cut had lost put back from the photo; check: 0 missing
+    THE TWO SIDES MATCH: 847 px of rim that only one side's edge lines showed were measured from the other side (a clear rim on the white sheet)
+    RIM CHECK: both rims match (thinnest spot 86% of the other side)
+    arms above the frame: 0.0% (below 2.5%, no note)
+    shop photo on white made (1073x466)
+    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795674895/mtqki3flczerbja9xihk.jpg
+    angled lens step: lenses 36359 + 12457 px (found by two openings, SAM: nothing to add); 43316 pixels of glass cleared
+    AI outer edge: 32652 px of the outline from the AI, 6107 px kept the robot's (they disagree there), 1263 px kept because the photo disagreed, 811 see-through rim px made solid, 0 pin-holes closed, 255 specks on the sheet cleared, 1824 px changed
+    rim heal: 504 break pixels closed, 573 faint rim pixels made solid, 337 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 4798 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: nothing to do
+    nose pads: rim 33 px thick (not a thin metal rim) -- nothing put back
+    45 degree left fit points: bridge at (771,124), lens height 209 px, near lens on the left
     45 degree left cut too
-    angled lens step: lenses 25118 + 25712 px (found by two openings, SAM: nothing to add); 46888 pixels of glass cleared
-    AI outer edge: 29401 px of the outline from the AI, 10266 px kept the robot's (they disagree there), 881 px kept because the photo disagreed, 1546 see-through rim px made solid, 10 pin-holes closed, 172 specks on the sheet cleared, 3476 px changed
+    angled lens step: lenses 11408 + 34824 px (found by two openings, SAM: nothing to add); 40988 pixels of glass cleared
+    AI outer edge: 30543 px of the outline from the AI, 7031 px kept the robot's (they disagree there), 467 px kept because the photo disagreed, 243 see-through rim px made solid, 0 pin-holes closed, 71 specks on the sheet cleared, 931 px changed
     rim heal: lens openings not found -- left as cut
     lens clean: lens openings not found -- left as cut
     bottom rim: lenses not found, left as is
     nose pads: lenses not found, left as is
     45 degree right fit points: the two lens openings were not found -- the try-on will use the picture's box
     45 degree right cut too
---- pmwrij1ms31 : LEE BIRD 35015 (views for a hand-published frame)
-    angled lens step: lenses 33260 + 12753 px (found by two openings, SAM: nothing to add); 43252 pixels of glass cleared
-    AI outer edge: 32328 px of the outline from the AI, 8 px kept the robot's (they disagree there), 352 px kept because the photo disagreed, 561 see-through rim px made solid, 5 pin-holes closed, 17 specks on the sheet cleared, 1434 px changed
-    rim heal: 532 break pixels closed, 27 faint rim pixels made solid, 122 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 2575 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: rim 17.2 px, 1415 px evened
-    nose pads: rim 17 px thick (not a thin metal rim) -- nothing put back
-    45 degree left fit points: bridge at (745,125), lens height 218 px, near lens on the left
-    45 degree left cut too
-    angled lens step: lenses 16491 + 25408 px (found by two openings, SAM: nothing to add); 39263 pixels of glass cleared
-    AI outer edge: 31002 px of the outline from the AI, 0 px kept the robot's (they disagree there), 353 px kept because the photo disagreed, 376 see-through rim px made solid, 15 pin-holes closed, 46 specks on the sheet cleared, 1248 px changed
-    rim heal: 4 break pixels closed, 46 faint rim pixels made solid, 0 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 2976 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 75 px thick (not a thin metal rim) -- nothing put back
-    45 degree right fit points: bridge at (203,148), lens height 176 px, near lens on the right
-    45 degree right cut too
---- pmwrilf6m74 : DANIEL HUNTER 28028 (views for a hand-published frame)
-    angled lens step: lenses 19844 + 13641 px (found by two openings, SAM: nothing to add); 30901 pixels of glass cleared
-    AI outer edge: 32585 px of the outline from the AI, 0 px kept the robot's (they disagree there), 404 px kept because the photo disagreed, 186 see-through rim px made solid, 6 pin-holes closed, 2 specks on the sheet cleared, 560 px changed
-    rim heal: 13 break pixels closed, 58 faint rim pixels made solid, 0 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 741 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 102 px thick (not a thin metal rim) -- nothing put back
-    45 degree left fit points: bridge at (719,173), lens height 166 px, near lens on the left
-    45 degree left cut too
-    angled lens step: lenses 11525 + 17127 px (found by two openings, SAM: nothing to add); 26320 pixels of glass cleared
-    AI outer edge: 32078 px of the outline from the AI, 0 px kept the robot's (they disagree there), 615 px kept because the photo disagreed, 228 see-through rim px made solid, 11 pin-holes closed, 1 specks on the sheet cleared, 652 px changed
-    rim heal: 24 break pixels closed, 77 faint rim pixels made solid, 0 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 469 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 103 px thick (not a thin metal rim) -- nothing put back
-    45 degree right fit points: bridge at (184,173), lens height 159 px, near lens on the right
-    45 degree right cut too
---- pmwsyyc0f67 : MICHAL JACK JERSEY 8703 (views for a hand-published frame)
-    angled lens step: lenses 15797 + 8000 px (found by two openings, SAM: nothing to add); 21555 pixels of glass cleared
-    AI outer edge: 32389 px of the outline from the AI, 15 px kept the robot's (they disagree there), 341 px kept because the photo disagreed, 476 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 1263 px changed
-    rim heal: 108 break pixels closed, 107 faint rim pixels made solid, 38 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 2201 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 40 px thick (not a thin metal rim) -- nothing put back
-    45 degree left fit points: bridge at (817,125), lens height 177 px, near lens on the left
-    45 degree left cut too
-    angled lens step: lenses 13851 + 26207 px (found by two openings, SAM: nothing to add); 37422 pixels of glass cleared
-    AI outer edge: 33996 px of the outline from the AI, 0 px kept the robot's (they disagree there), 399 px kept because the photo disagreed, 524 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 1142 px changed
-    rim heal: 270 break pixels closed, 188 faint rim pixels made solid, 34 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 751 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 21 px thick (not a thin metal rim) -- nothing put back
-    45 degree right fit points: bridge at (178,124), lens height 204 px, near lens on the right
-    45 degree right cut too
-Nothing to do.
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795674895/qt2sdbcwbemecbzdj5zl.png
+White photos waiting: 27 photo(s) of 9 frame(s) -- 18 made in this run, the rest in the next runs.
+    installing the hidden browser driver ...
+    white maker: pmwx60jct34-front.src 1400x788 -> made in 745 ms
+    white maker: pmwx60jct34-angle.src 1400x788 -> made in 323 ms
+    white maker: pmwx60jct34-angle-right.src 1400x788 -> made in 409 ms
+    white maker: pmwx61m2x56-front.src 1400x788 -> made in 352 ms
+    white maker: pmwx61m2x56-angle.src 1400x788 -> made in 345 ms
+    white maker: pmwx61m2x56-angle-right.src 1400x788 -> made in 369 ms
+    white maker: pmwx62c3a93-front.src 1400x788 -> made in 913 ms
+    white maker: pmwx62c3a93-angle.src 1400x788 -> made in 591 ms
+    white maker: pmwx62c3a93-angle-right.src 1400x788 -> made in 968 ms
+    white maker: pmwx633hm51-front.src 1400x788 -> made in 376 ms
+    white maker: pmwx633hm51-angle.src 1400x788 -> made in 598 ms
+    white maker: pmwx633hm51-angle-right.src 1400x788 -> made in 746 ms
+    white maker: pmwx64n8r85-front.src 1400x788 -> made in 450 ms
+    white maker: pmwx64n8r85-angle.src 1400x788 -> made in 385 ms
+    white maker: pmwx64n8r85-angle-right.src 1400x788 -> made in 455 ms
+    white maker: pmwx65f7m57-front.src 1400x788 -> made in 420 ms
+    white maker: pmwx65f7m57-angle.src 1400x788 -> made in 412 ms
+    white maker: pmwx65f7m57-angle-right.src 1400x788 -> made in 417 ms
+    SPARKS MOD - 23 front: white -- rim check OK, 494 px of rim put back from the photo (outer 193, inner 130, pads 171)
+    SPARKS MOD - 23 angle: white -- rim check OK, 509 px of rim put back from the photo (outer 73, inner 179, pads 257)
+    SPARKS MOD - 23 angle-right: white -- rim check OK, 1348 px of rim put back from the photo (outer 240, inner 915, pads 193)
+    VG-1021 Frames front: white -- rim check OK, 480 px of rim put back from the photo (outer 133, inner 299, pads 48)
+    VG-1021 Frames angle: white -- rim check OK, 582 px of rim put back from the photo (outer 250, inner 0, pads 332)
+    VG-1021 Frames angle-right: white -- rim check OK, 878 px of rim put back from the photo (outer 7, inner 507, pads 364)
+    VG-1022 Frames front: white -- rim check OK, 409 px of rim put back from the photo (outer 220, inner 31, pads 158)
+    VG-1022 Frames angle: white -- rim check OK, 606 px of rim put back from the photo (outer 239, inner 280, pads 87)
+    VG-1022 Frames angle-right: frame map not used (no closed lens found (half rim, rimless or an unusual photo) -- frame map not used)
+    VG-1022 Frames angle-right: photo as taken -- whole-rim check: the rim is still missing along 2.0% of the frame's outline (longest stretch 1.8%) -- the photo as taken is shown
+    VG-1023 Frames front: white -- rim check OK, 557 px of rim put back from the photo (outer 123, inner 387, pads 47)
+    VG-1023 Frames angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 1.9% of the frame's ou): 71172 px of frame measured, 5323 put back from the photo, 2153 px of demo printing made white; pixel check: 0 different
+    VG-1023 Frames angle-right: frame map not used (no closed lens found (half rim, rimless or an unusual photo) -- frame map not used)
+    VG-1023 Frames angle-right: photo as taken -- whole-rim check: the rim is still missing along 1.9% of the frame's outline (longest stretch 1.9%) -- the photo as taken is shown
+    VG-1024 Frames front: white -- rim check OK, 544 px of rim put back from the photo (outer 273, inner 125, pads 146)
+    VG-1024 Frames angle: white -- rim check OK, 766 px of rim put back from the photo (outer 35, inner 389, pads 342)
+    VG-1024 Frames angle-right: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 2.5% of the frame's ou): 72244 px of frame measured, 5932 put back from the photo, 3059 px of demo printing made white; pixel check: 0 different
+    VG-1025 Frames front: white -- rim check OK, 289 px of rim put back from the photo (outer 129, inner 100, pads 60)
+    VG-1025 Frames angle: white -- rim check OK, 424 px of rim put back from the photo (outer 180, inner 158, pads 86)
+    VG-1025 Frames angle-right: white -- rim check OK, 1008 px of rim put back from the photo (outer 194, inner 610, pads 204)
+White photos: 18 saved.
+  Finished. Cut 1, failed 0, rejected 0, still waiting 0.
