@@ -1,122 +1,47 @@
-Run 9442  Thu Nov 26 08:18:15 UTC 2026
+Run 9454  Thu Nov 26 09:25:54 UTC 2026
 
-    glass check: the demo is clear (0.0% left)
-    the frame fills 54% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 44551 px of frame measured on the photo; 2098 px the cut had lost put back from the photo; check: 0 missing
-    RIM CHECK: both rims match (thinnest spot 94% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (931x422)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795680001/yacnkalntzuxjz0eivbk.jpg
-    angled lens step: lenses 22592 + 9065 px (found by two openings, SAM: nothing to add); 29435 pixels of glass cleared
-    AI outer edge: 31430 px of the outline from the AI, 0 px kept the robot's (they disagree there), 351 px kept because the photo disagreed, 508 see-through rim px made solid, 0 pin-holes closed, 36 specks on the sheet cleared, 1054 px changed
-    rim heal: 148 break pixels closed, 0 faint rim pixels made solid, 90 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 1074 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 50 px thick (not a thin metal rim) -- nothing put back
-    45 degree left fit points: bridge at (684,125), lens height 174 px, near lens on the left
-    45 degree left cut too
-    angled lens step: lenses 7559 + 16809 px (found by two openings, SAM: nothing to add); 22234 pixels of glass cleared
-    AI outer edge: 29814 px of the outline from the AI, 0 px kept the robot's (they disagree there), 307 px kept because the photo disagreed, 275 see-through rim px made solid, 0 pin-holes closed, 3 specks on the sheet cleared, 635 px changed
-    rim heal: 403 break pixels closed, 42 faint rim pixels made solid, 106 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 3137 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 18 px thick (not a thin metal rim) -- nothing put back
-    45 degree right fit points: bridge at (120,115), lens height 197 px, near lens on the right
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795680000/oz3qbg7zavsaukms8myc.png
---- pmwx762dk27 : TOM & HERRY HD 1554
-    thin dark rim: about 4 px thick, edge band 2 px (was 15) so the line keeps a solid core
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 45175 + 47287 px (found by two openings, SAM: nothing to add); 85916 pixels of glass cleared
-    sheet-ring peel (local wall colour): 1283 px taken off the edge
-    AI outer edge: 23465 px of the outline from the AI, 0 px kept the robot's (they disagree there), 1069 px kept because the photo disagreed, 154 see-through rim px made solid, 13 pin-holes closed, 0 specks on the sheet cleared, 1139 px changed
-    levelled: the frame was -0.6 degrees off, turned straight
-    size check: frame works out at 128 mm (typed 49 + 18 -> about 135 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 54% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 41348 px of frame measured on the photo; 4969 px the cut had lost put back from the photo; check: 0 missing
-    THE TWO SIDES MATCH: 735 px of rim that only one side's edge lines showed were measured from the other side (a clear rim on the white sheet)
-    RIM CHECK: both rims match (thinnest spot 75% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (936x393)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795680184/rwczgpwcda9cdtkrrhnn.jpg
-    angled lens step: lenses 26334 + 12655 px (found by two openings, SAM: nothing to add); 36569 pixels of glass cleared
-    AI outer edge: 25281 px of the outline from the AI, 931 px kept the robot's (they disagree there), 970 px kept because the photo disagreed, 2261 see-through rim px made solid, 6 pin-holes closed, 1 specks on the sheet cleared, 5525 px changed
-    rim heal: 141 break pixels closed, 49 faint rim pixels made solid, 0 glare dots removed, 2694 shadow pixels under the rim removed
-    lens clean: 112 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: none found in the photo (pale patch under the bridge cleared: 2293 px)
-    45 degree left fit points: bridge at (709,104), lens height 172 px, near lens on the left
-    45 degree left cut too
-    angled lens step: lenses 10822 + 22548 px (found by two openings, SAM: nothing to add); 31198 pixels of glass cleared
-    AI outer edge: 30951 px of the outline from the AI, 236 px kept the robot's (they disagree there), 1051 px kept because the photo disagreed, 575 see-through rim px made solid, 42 pin-holes closed, 1 specks on the sheet cleared, 2865 px changed
-    rim heal: 91 break pixels closed, 167 faint rim pixels made solid, 0 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 74 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 35 px thick (not a thin metal rim) -- nothing put back
-    45 degree right fit points: bridge at (161,116), lens height 153 px, near lens on the right
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795680183/k6kpgokiv3jmj8fjpvm8.png
---- pmwx76qxo46 : TOM & HERRY HD 1554
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 42060 + 41386 px (found by rim line, SAM: nothing to add); 79834 pixels of glass cleared
-    sheet-ring peel (local wall colour): 754 px taken off the edge
-    AI outer edge: 23200 px of the outline from the AI, 0 px kept the robot's (they disagree there), 314 px kept because the photo disagreed, 78 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 1171 px changed
-    levelled: the frame was -1.2 degrees off, turned straight
-    size check: frame works out at 135 mm (typed 49 + 18 -> about 135 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 53% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 42777 px of frame measured on the photo; 2259 px the cut had lost put back from the photo; check: 0 missing
-    RIM CHECK: both rims match (thinnest spot 90% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (917x398)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795680398/oymehuh9mwchrpeadbtu.jpg
-    angled lens step: lenses 22390 + 10822 px (found by two openings, SAM: nothing to add); 30969 pixels of glass cleared
-    AI outer edge: 30815 px of the outline from the AI, 0 px kept the robot's (they disagree there), 384 px kept because the photo disagreed, 335 see-through rim px made solid, 0 pin-holes closed, 11 specks on the sheet cleared, 832 px changed
-    rim heal: 315 break pixels closed, 0 faint rim pixels made solid, 127 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 339 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 35 px thick (not a thin metal rim) -- nothing put back
-    45 degree left fit points: bridge at (675,109), lens height 158 px, near lens on the left
-    45 degree left cut too
-    angled lens step: lenses 7909 + 19590 px (found by two openings, SAM: nothing to add); 25467 pixels of glass cleared
-    AI outer edge: 29252 px of the outline from the AI, 0 px kept the robot's (they disagree there), 364 px kept because the photo disagreed, 301 see-through rim px made solid, 0 pin-holes closed, 18 specks on the sheet cleared, 762 px changed
-    rim heal: 339 break pixels closed, 0 faint rim pixels made solid, 74 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 715 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 29 px thick (not a thin metal rim) -- nothing put back
-    45 degree right fit points: bridge at (124,103), lens height 166 px, near lens on the right
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795680397/ptoknouwzqtkrjnmi1uv.png
---- pmwx81whu19 : TOM & HERRY HD 2406
-    rim type: not set (0 clean lens holes)
-    lens step: lenses 55495 + 55862 px (found by rim line, SAM: nothing to add); 107213 pixels of glass cleared
-    sheet-ring peel (local wall colour): 1498 px taken off the edge
-    AI outer edge: 25271 px of the outline from the AI, 0 px kept the robot's (they disagree there), 360 px kept because the photo disagreed, 135 see-through rim px made solid, 0 pin-holes closed, 0 specks on the sheet cleared, 1523 px changed
-    levelled: the frame was -1.1 degrees off, turned straight
-    size check: frame works out at 136 mm (typed 50 + 18 -> about 137 mm expected)
-    glass check: the demo is clear (0.0% left)
-    the frame fills 56% of the photo's width
-    WHOLE-FRAME PIXEL CHECK: 46856 px of frame measured on the photo; 2208 px the cut had lost put back from the photo; check: 0 missing
-    RIM CHECK: both rims match (thinnest spot 96% of the other side)
-    arms above the frame: 0.0% (below 2.5%, no note)
-    shop photo on white made (969x460)
-    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795680585/vhhbfuntw1zxsa2epasy.jpg
-    angled lens step: lenses 22684 + 16479 px (found by two openings, SAM: nothing to add); 36612 pixels of glass cleared
-    AI outer edge: 31429 px of the outline from the AI, 0 px kept the robot's (they disagree there), 459 px kept because the photo disagreed, 127 see-through rim px made solid, 0 pin-holes closed, 4 specks on the sheet cleared, 460 px changed
-    rim heal: 240 break pixels closed, 54 faint rim pixels made solid, 157 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 1285 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 91 px thick (not a thin metal rim) -- nothing put back
-    45 degree left fit points: bridge at (672,156), lens height 166 px, near lens on the left
-    45 degree left cut too
-    angled lens step: lenses 11973 + 21045 px (found by two openings, SAM: nothing to add); 30682 pixels of glass cleared
-    AI outer edge: 33925 px of the outline from the AI, 0 px kept the robot's (they disagree there), 360 px kept because the photo disagreed, 386 see-through rim px made solid, 0 pin-holes closed, 9 specks on the sheet cleared, 824 px changed
-    rim heal: 695 break pixels closed, 0 faint rim pixels made solid, 120 glare dots removed, 0 shadow pixels under the rim removed
-    lens clean: 741 pixels seen through the lenses cleared; no bar behind the bridge
-    bottom rim smoothed: nothing to do
-    nose pads: rim 83 px thick (not a thin metal rim) -- nothing put back
-    45 degree right fit points: bridge at (166,152), lens height 167 px, near lens on the right
-    45 degree right cut too
-    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795680584/wlgenzjsksh7f36xvdq4.png
-  Finished. Cut 15, failed 0, rejected 0, still waiting 0.
+Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
+Catalogue: 229 frames. Waiting for a cut-out: 0.
+Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
+White photos waiting: 76 photo(s) of 26 frame(s) -- 18 made in this run, the rest in the next runs.
+    installing the hidden browser driver ...
+    white maker: pmwx701dz82-angle-right.src 1400x788 -> made in 425 ms
+    white maker: pmwx7152537-front.src 1400x788 -> made in 611 ms
+    white maker: pmwx7152537-angle.src 1400x788 -> made in 544 ms
+    white maker: pmwx7152537-angle-right.src 1400x788 -> made in 823 ms
+    white maker: pmwx71yc183-front.src 1400x788 -> made in 500 ms
+    white maker: pmwx71yc183-angle.src 1400x788 -> made in 296 ms
+    white maker: pmwx71yc183-angle-right.src 1400x788 -> made in 517 ms
+    white maker: pmwx72z0l91-front.src 1400x788 -> made in 497 ms
+    white maker: pmwx72z0l91-angle.src 1400x788 -> made in 319 ms
+    white maker: pmwx72z0l91-angle-right.src 1400x788 -> made in 289 ms
+    white maker: pmwx73s7d70-front.src 1400x788 -> made in 587 ms
+    white maker: pmwx73s7d70-angle.src 1400x788 -> made in 495 ms
+    white maker: pmwx73s7d70-angle-right.src 1400x788 -> made in 538 ms
+    white maker: pmwx74khf57-front.src 1400x788 -> made in 509 ms
+    white maker: pmwx74khf57-angle.src 1400x788 -> made in 556 ms
+    white maker: pmwx74khf57-angle-right.src 1400x788 -> made in 488 ms
+    white maker: pmwx75cif94-front.src 1400x788 -> made in 291 ms
+    white maker: pmwx75cif94-angle.src 1400x788 -> made in 236 ms
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Model loaded: ZhengPeng7/BiRefNet at 1024 px
+    TOM & HERRY HD 2413 angle-right: white -- rim check OK, 162 px of rim put back from the photo (outer 0, inner 162, pads 0)
+    TOM & HERRY HD 1551 front: white -- rim check OK, 192 px of rim put back from the photo (outer 0, inner 192, pads 0)
+    TOM & HERRY HD 1551 angle: white -- rim check OK, 5426 px of rim put back from the photo (outer 3672, inner 1017, pads 737)
+    TOM & HERRY HD 1551 angle-right: white -- rim check OK, 6152 px of rim put back from the photo (outer 3653, inner 2283, pads 216)
+    TOM & HERRY HD 1575 front: white -- rim check OK, 291 px of rim put back from the photo (outer 0, inner 286, pads 5)
+    TOM & HERRY HD 1575 angle: white -- rim check OK, 445 px of rim put back from the photo (outer 0, inner 298, pads 147)
+    TOM & HERRY HD 1575 angle-right: white -- rim check OK, 21 px of rim put back from the photo (outer 0, inner 21, pads 0)
+    TOM & HERRY HD 2402 front: white -- rim check OK, 3683 px of rim put back from the photo (outer 2304, inner 923, pads 456)
+    TOM & HERRY HD 2402 angle: white -- rim check OK, 1945 px of rim put back from the photo (outer 926, inner 870, pads 149)
+    TOM & HERRY HD 2402 angle-right: white -- rim check OK, 681 px of rim put back from the photo (outer 415, inner 165, pads 101)
+    TOM & HERRY HD 2401 front: white -- rim check OK, 255 px of rim put back from the photo (outer 69, inner 127, pads 59)
+    TOM & HERRY HD 2401 angle: white -- rim check OK, 508 px of rim put back from the photo (outer 39, inner 388, pads 81)
+    TOM & HERRY HD 2401 angle-right: white -- rim check OK, 82 px of rim put back from the photo (outer 28, inner 28, pads 26)
+    TOM & HERRY HD 1551 front: white -- rim check OK, 279 px of rim put back from the photo (outer 0, inner 261, pads 18)
+    TOM & HERRY HD 1551 angle: white -- rim check OK, 1726 px of rim put back from the photo (outer 167, inner 844, pads 715)
+    TOM & HERRY HD 1551 angle-right: white -- rim check OK, 1325 px of rim put back from the photo (outer 343, inner 268, pads 714)
+    TOM & HERRY HD 1575 front: white -- rim check OK, 112 px of rim put back from the photo (outer 0, inner 112, pads 0)
+    TOM & HERRY HD 1575 angle: white -- rim check OK, 351 px of rim put back from the photo (outer 0, inner 251, pads 100)
+White photos: 18 saved.
