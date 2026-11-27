@@ -1,17 +1,47 @@
-Run 9588  Fri Nov 27 07:23:16 UTC 2026
+Run 9589  Fri Nov 27 07:38:50 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 245 frames. Waiting for a cut-out: 0.
+Catalogue: 257 frames. Waiting for a cut-out: 0.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
-White photos waiting: 3 photo(s) of 1 frame(s).
+White photos waiting: 36 photo(s) of 12 frame(s) -- 18 made in this run, the rest in the next runs.
     installing the hidden browser driver ...
-    white maker: pmwynhd6y46-front.src 1400x788 -> made in 413 ms
-    white maker: pmwynhd6y46-angle.src 1400x788 -> made in 259 ms
-    white maker: pmwynhd6y46-angle-right.src 1400x788 -> made in 299 ms
+    white maker: pmwynjj9k0-front.src 1400x788 -> made in 919 ms
+    white maker: pmwynjj9k0-angle.src 1400x788 -> made in 523 ms
+    white maker: pmwynjj9k0-angle-right.src 1400x788 -> made in 731 ms
+    white maker: pmwynkekd16-front.src 1400x788 -> made in 485 ms
+    white maker: pmwynkekd16-angle.src 1400x788 -> made in 443 ms
+    white maker: pmwynkekd16-angle-right.src 1400x788 -> made in 433 ms
+    white maker: pmwynm6xb91-front.src 1400x788 -> made in 487 ms
+    white maker: pmwynm6xb91-angle.src 1400x788 -> made in 260 ms
+    white maker: pmwynm6xb91-angle-right.src 1400x788 -> made in 225 ms
+    white maker: pmwynn3hc88-front.src 1400x788 -> made in 281 ms
+    white maker: pmwynn3hc88-angle.src 1400x788 -> made in 291 ms
+    white maker: pmwynn3hc88-angle-right.src 1400x788 -> made in 238 ms
+    white maker: pmwyno14b91-front.src 1400x788 -> made in 215 ms
+    white maker: pmwyno14b91-angle.src 1400x788 -> made in 219 ms
+    white maker: pmwyno14b91-angle-right.src 1400x788 -> made in 198 ms
+    white maker: pmwynphma31-front.src 1400x788 -> made in 211 ms
+    white maker: pmwynphma31-angle.src 1400x788 -> made in 234 ms
+    white maker: pmwynphma31-angle-right.src 1400x788 -> made in 422 ms
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    VG-1020 Frames front: white -- rim check OK, 1579 px of rim put back from the photo (outer 1190, inner 293, pads 96)
-    VG-1020 Frames angle: white -- rim check OK, 2044 px of rim put back from the photo (outer 953, inner 568, pads 523)
-    VG-1020 Frames angle-right: white -- rim check OK, 7913 px of rim put back from the photo (outer 2541, inner 4605, pads 767)
-White photos: 3 saved.
+    VG-1021 Frames front: white -- rim check OK, 451 px of rim put back from the photo (outer 0, inner 414, pads 37)
+    VG-1021 Frames angle: white -- rim check OK, 98 px of rim put back from the photo (outer 0, inner 83, pads 15)
+    VG-1021 Frames angle-right: white -- rim check OK, 579 px of rim put back from the photo (outer 0, inner 532, pads 47)
+    VG-1022 Frames front: white -- rim check OK, 348 px of rim put back from the photo (outer 0, inner 297, pads 51)
+    VG-1022 Frames angle: white -- rim check OK, 172 px of rim put back from the photo (outer 0, inner 159, pads 13)
+    VG-1022 Frames angle-right: white -- rim check OK, 423 px of rim put back from the photo (outer 16, inner 233, pads 174)
+    VG-1023 Frames front: white -- rim check OK, 430 px of rim put back from the photo (outer 225, inner 204, pads 1)
+    VG-1023 Frames angle: white -- rim check OK, 405 px of rim put back from the photo (outer 201, inner 144, pads 60)
+    VG-1023 Frames angle-right: white -- rim check OK, 665 px of rim put back from the photo (outer 73, inner 166, pads 426)
+    VG-1024 Frames front: white -- rim check OK, 62 px of rim put back from the photo (outer 30, inner 32, pads 0)
+    VG-1024 Frames angle: white -- rim check OK, 448 px of rim put back from the photo (outer 0, inner 258, pads 190)
+    VG-1024 Frames angle-right: white -- rim check OK, 839 px of rim put back from the photo (outer 24, inner 693, pads 122)
+    VG-1025 Frames front: white -- rim check OK, 991 px of rim put back from the photo (outer 916, inner 75, pads 0)
+    VG-1025 Frames angle: white -- rim check OK, 284 px of rim put back from the photo (outer 226, inner 48, pads 10)
+    VG-1025 Frames angle-right: white -- rim check OK, 2042 px of rim put back from the photo (outer 1521, inner 13, pads 508)
+    VG-1026 Frames front: white -- rim check OK, 162 px of rim put back from the photo (outer 0, inner 75, pads 87)
+    VG-1026 Frames angle: white -- rim check OK, 93 px of rim put back from the photo (outer 0, inner 93, pads 0)
+    VG-1026 Frames angle-right: white -- rim check OK, 516 px of rim put back from the photo (outer 26, inner 310, pads 180)
+White photos: 18 saved.
