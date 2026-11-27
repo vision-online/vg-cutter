@@ -1,4 +1,4 @@
-Run 9586  Fri Nov 27 07:00:49 UTC 2026
+Run 9587  Fri Nov 27 07:10:46 UTC 2026
 Trigger: workflow_dispatch
 
 --- what the robot found ---
@@ -15,6 +15,8 @@ Robot build 2026-11-26a (TRY-ON FROM THE GREY PHOTO -- TEST FIRST: since 24 Nov 
 --- what the robot did ---
 
 --- robot checks (TO CHECK) ---
+  YELLOW BOYZ 60602: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT fixed by hand — staff approve it · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
+  BULLET 261703: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 03:56 · 30° LEFT arm not like the photo · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
   NEVASLLE 852703: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 03:56 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 03:56 · 30° RIGHT arm not like the photo
   NEVASLLE 852704: NEEDS A LOOK — 30° side view: tap ON FACE to check · FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 06:16 · 30° LEFT arm not like the photo · 30° RIGHT arm not like the photo
   ELLEN COOPER 87805: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 06:16 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 06:16 · 30° RIGHT: no lens openings found (thin rim?) — tap ON FACE to check
@@ -53,5 +55,3 @@ Robot build 2026-11-26a (TRY-ON FROM THE GREY PHOTO -- TEST FIRST: since 24 Nov 
   12X BLACK 4805: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27
   12X BLACK 4805: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27
   12X AIRR 3016: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27 · 30° LEFT: no lens openings found (thin rim?) — tap ON FACE to check · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27
-  12X LITE 1907: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27
-  12X LITE 1902: NEEDS A LOOK — FRONT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27 · 30° LEFT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27 · 30° RIGHT picture reader: no answer (the reader’s limit is used up for now) — asks again at 07:27
