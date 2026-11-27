@@ -1,17 +1,122 @@
-Run 9609  Fri Nov 27 10:54:27 UTC 2026
+Run 9610  Fri Nov 27 11:28:40 UTC 2026
 
-Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 279 frames. Waiting for a cut-out: 0.
-Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
-White photos waiting: 3 photo(s) of 1 frame(s).
+    rim heal: 19 break pixels closed, 81 faint rim pixels made solid, 0 glare dots removed, 291 shadow pixels under the rim removed
+    lens clean: 571 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: rim 14.9 px, 764 px evened
+    nose pads: rim 14 px thick (not a thin metal rim) -- nothing put back
+    45 degree left fit points: bridge at (711,91), lens height 160 px, near lens on the left
+    45 degree left cut too
+    angled lens step skipped, nothing changed: lens size out of range (2%, 8% of the frame box)
+    AI outer edge: 28154 px of the outline from the AI, 292 px kept the robot's (they disagree there), 4063 px kept because the photo disagreed, 1186 see-through rim px made solid, 40 pin-holes closed, 24 specks on the sheet cleared, 5271 px changed
+    rim heal: 274 break pixels closed, 39 faint rim pixels made solid, 0 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 1055 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: nothing to do
+    nose pads: rim 34 px thick (not a thin metal rim) -- nothing put back
+    45 degree right fit points: bridge at (108,96), lens height 135 px, near lens on the right
+    45 degree right cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795777882/d9cvvjx0cspcn10letkn.png
+--- pmwyuqjrt54 : 12X MINI GIANIZ 601
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 43165 + 40446 px (found by rim line, SAM: nothing to add); 79898 pixels of glass cleared
+    sheet-ring peel (local wall colour): 2396 px taken off the edge
+    AI outer edge: 22411 px of the outline from the AI, 0 px kept the robot's (they disagree there), 369 px kept because the photo disagreed, 167 see-through rim px made solid, 0 pin-holes closed, 3 specks on the sheet cleared, 1741 px changed
+    levelled: the frame was -0.4 degrees off, turned straight
+    size check: frame works out at 129 mm (typed 46 + 20 -> about 131 mm expected)
+    glass check: the demo is clear (0.0% left)
+    the frame fills 52% of the photo's width
+    WHOLE-FRAME PIXEL CHECK: 35632 px of frame measured on the photo; 4496 px the cut had lost put back from the photo; check: 0 missing
+    THE TWO SIDES MATCH: 2839 px of rim that only one side's edge lines showed were measured from the other side (a clear rim on the white sheet)
+    RIM CHECK: both rims match (thinnest spot 93% of the other side)
+    arms above the frame: 0.0% (below 2.5%, no note)
+    shop photo on white made (904x368)
+    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795778061/umf3guo2vdtqj1spbx7w.jpg
+    angled lens step: lenses 27183 + 13827 px (found by two openings, SAM: nothing to add); 38472 pixels of glass cleared
+    AI outer edge: 24355 px of the outline from the AI, 187 px kept the robot's (they disagree there), 493 px kept because the photo disagreed, 264 see-through rim px made solid, 0 pin-holes closed, 35 specks on the sheet cleared, 932 px changed
+    rim heal: 299 break pixels closed, 139 faint rim pixels made solid, 101 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 2660 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: rim 19.3 px, 1720 px evened; rim 10.5 px, 1898 px evened
+    nose pads: rim 19 px thick (not a thin metal rim) -- nothing put back
+    45 degree left fit points: bridge at (574,96), lens height 164 px, near lens on the left
+    45 degree left cut too
+    angled lens step: lenses 14721 + 27571 px (found by two openings, SAM: nothing to add); 39555 pixels of glass cleared
+    AI outer edge: 25880 px of the outline from the AI, 203 px kept the robot's (they disagree there), 493 px kept because the photo disagreed, 75 see-through rim px made solid, 0 pin-holes closed, 13 specks on the sheet cleared, 924 px changed
+    rim heal: 508 break pixels closed, 68 faint rim pixels made solid, 217 glare dots removed, 60 shadow pixels under the rim removed
+    lens clean: 2429 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: rim 12.1 px, 1950 px evened
+    nose pads: rim 25 px thick (not a thin metal rim) -- nothing put back
+    45 degree right fit points: bridge at (185,99), lens height 179 px, near lens on the right
+    45 degree right cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795778059/liv44m4efrwlvffsmqye.png
+--- pmwyurhmj68 : 12X MINI GIANIZ 601
+    thin dark rim: about 3 px thick, edge band 2 px (was 15) so the line keeps a solid core
+    rim type: not set (0 clean lens holes)
+    lens step: lenses 44185 + 41269 px (found by two openings, SAM: nothing to add); 81716 pixels of glass cleared
+    sheet-ring peel (local wall colour): 807 px taken off the edge
+    AI outer edge: 23170 px of the outline from the AI, 28 px kept the robot's (they disagree there), 989 px kept because the photo disagreed, 98 see-through rim px made solid, 8 pin-holes closed, 0 specks on the sheet cleared, 654 px changed
+    levelled: the frame was -0.6 degrees off, turned straight
+    size check: frame works out at 128 mm (typed 46 + 20 -> about 131 mm expected)
+    glass check: the demo is clear (0.0% left)
+    the frame fills 53% of the photo's width
+    WHOLE-FRAME PIXEL CHECK: 37072 px of frame measured on the photo; 5634 px the cut had lost put back from the photo; check: 0 missing
+    THE TWO SIDES MATCH: 4360 px of rim that only one side's edge lines showed were measured from the other side (a clear rim on the white sheet)
+    RIM CHECK: both rims match (thinnest spot 80% of the other side)
+    arms above the frame: 0.0% (below 2.5%, no note)
+    shop photo on white made (925x374)
+    shop photo on white: https://res.cloudinary.com/jpf6kf5g/image/upload/v1795778209/mpyfe561kpi3yoxq6hqf.jpg
+    angled lens step: lenses 33899 + 15204 px (found by two openings, SAM: nothing to add); 45121 pixels of glass cleared
+    AI outer edge: 31800 px of the outline from the AI, 9839 px kept the robot's (they disagree there), 2793 px kept because the photo disagreed, 548 see-through rim px made solid, 25 pin-holes closed, 4 specks on the sheet cleared, 3360 px changed
+    rim heal: 223 break pixels closed, 310 faint rim pixels made solid, 0 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 78 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: rim 13.5 px, 1019 px evened
+    nose pads: rim 13 px thick (not a thin metal rim) -- nothing put back
+    45 degree left fit points: bridge at (673,106), lens height 172 px, near lens on the left
+    45 degree left cut too
+    angled lens step: lenses 10250 + 23965 px (found by two openings, SAM: nothing to add); 31166 pixels of glass cleared
+    AI outer edge: 22287 px of the outline from the AI, 3998 px kept the robot's (they disagree there), 1292 px kept because the photo disagreed, 625 see-through rim px made solid, 2 pin-holes closed, 116 specks on the sheet cleared, 1860 px changed
+    rim heal: 178 break pixels closed, 239 faint rim pixels made solid, 0 glare dots removed, 0 shadow pixels under the rim removed
+    lens clean: 117 pixels seen through the lenses cleared; no bar behind the bridge
+    bottom rim smoothed: nothing to do
+    nose pads: rim 16 px thick (not a thin metal rim) -- nothing put back
+    45 degree right fit points: bridge at (147,100), lens height 157 px, near lens on the right
+    45 degree right cut too
+    done -> https://res.cloudinary.com/jpf6kf5g/image/upload/v1795778207/ggezwsq7cske3tbkbvjx.png
+White photos waiting: 18 photo(s) of 6 frame(s).
     installing the hidden browser driver ...
-    white maker: pmwyurhmj68-front.src 1400x788 -> made in 651 ms
-    white maker: pmwyurhmj68-angle.src 1400x788 -> made in 209 ms
-    white maker: pmwyurhmj68-angle-right.src 1400x788 -> made in 249 ms
-/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
-  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    VG-1025 Frames front: white -- rim check OK, 1285 px of rim put back from the photo (outer 1136, inner 143, pads 6)
-    VG-1025 Frames angle: white -- rim check OK, 2649 px of rim put back from the photo (outer 844, inner 330, pads 1475)
-    VG-1025 Frames angle-right: white -- rim check OK, 1210 px of rim put back from the photo (outer 900, inner 230, pads 80)
-White photos: 3 saved.
+    white maker: pmwyv497j43-front.src 1400x788 -> made in 604 ms
+    white maker: pmwyv497j43-angle.src 1400x788 -> made in 423 ms
+    white maker: pmwyv497j43-angle-right.src 1400x788 -> made in 567 ms
+    white maker: pmwyv5w7q24-front.src 1400x788 -> made in 254 ms
+    white maker: pmwyv5w7q24-angle.src 1400x788 -> made in 235 ms
+    white maker: pmwyv5w7q24-angle-right.src 1400x788 -> made in 221 ms
+    white maker: pmwyv6hw39-front.src 1400x788 -> made in 381 ms
+    white maker: pmwyv6hw39-angle.src 1400x788 -> made in 407 ms
+    white maker: pmwyv6hw39-angle-right.src 1400x788 -> made in 381 ms
+    white maker: pmwyv7fiz88-front.src 1400x788 -> made in 253 ms
+    white maker: pmwyv7fiz88-angle.src 1400x788 -> made in 226 ms
+    white maker: pmwyv7fiz88-angle-right.src 1400x788 -> made in 179 ms
+    white maker: pmwyv9tjr44-front.src 1400x788 -> made in 369 ms
+    white maker: pmwyv9tjr44-angle.src 1400x788 -> made in 389 ms
+    white maker: pmwyv9tjr44-angle-right.src 1400x788 -> made in 387 ms
+    white maker: pmwyvajtv97-front.src 1400x788 -> made in 264 ms
+    white maker: pmwyvajtv97-angle.src 1400x788 -> made in 225 ms
+    white maker: pmwyvajtv97-angle-right.src 1400x788 -> made in 162 ms
+    VG-1026 Frames front: white -- rim check OK, 179 px of rim put back from the photo (outer 0, inner 144, pads 35)
+    VG-1026 Frames angle: white -- rim check OK, 72 px of rim put back from the photo (outer 0, inner 72, pads 0)
+    VG-1026 Frames angle-right: white -- rim check OK, 48 px of rim put back from the photo (outer 35, inner 13, pads 0)
+    VG-1027 Frames front: white -- rim check OK, 2694 px of rim put back from the photo (outer 1429, inner 457, pads 808)
+    VG-1027 Frames angle: white -- rim check OK, 3471 px of rim put back from the photo (outer 783, inner 1501, pads 1187)
+    VG-1027 Frames angle-right: white -- rim check OK, 3342 px of rim put back from the photo (outer 732, inner 596, pads 2014)
+    VG-1028 Frames front: white -- rim check OK, 36 px of rim put back from the photo (outer 0, inner 36, pads 0)
+    VG-1028 Frames angle: white -- rim check OK, 528 px of rim put back from the photo (outer 337, inner 190, pads 1)
+    VG-1028 Frames angle-right: white -- rim check OK, 414 px of rim put back from the photo (outer 314, inner 86, pads 14)
+    VG-1029 Frames front: white -- rim check OK, 2146 px of rim put back from the photo (outer 1486, inner 482, pads 178)
+    VG-1029 Frames angle: white -- rim check OK, 956 px of rim put back from the photo (outer 203, inner 541, pads 212)
+    VG-1029 Frames angle-right: white -- rim check OK, 1424 px of rim put back from the photo (outer 290, inner 978, pads 156)
+    VG-1030 Frames front: white -- rim check OK, 208 px of rim put back from the photo (outer 0, inner 187, pads 21)
+    VG-1030 Frames angle: white -- rim check OK, 0 px of rim put back from the photo (outer 0, inner 0, pads 0)
+    VG-1030 Frames angle-right: white -- rim check OK, 97 px of rim put back from the photo (outer 0, inner 59, pads 38)
+    VG-1031 Frames front: white -- rim check OK, 843 px of rim put back from the photo (outer 0, inner 553, pads 290)
+    VG-1031 Frames angle: white -- rim check OK, 761 px of rim put back from the photo (outer 620, inner 32, pads 109)
+    VG-1031 Frames angle-right: white -- rim check OK, 599 px of rim put back from the photo (outer 582, inner 0, pads 17)
+White photos: 18 saved.
+  Finished. Cut 6, failed 0, rejected 0, still waiting 0.
