@@ -1,0 +1,16 @@
+# Re-cut from the grey photo
+
+Run 9750, 28 Nov 2026 10:15 UTC: 12 frame(s) marked (patches). Each is cut again from its grey photo and waits in TO CHECK.
+
+- TOM HARDY DANLL 91307
+- WINDY 180292
+- VINCENT CARLO RUDIN 22219
+- VINCENT CARLO RUDIN 22212
+- SPARKS MOD - 23
+- SPARKS MOD 15
+- TOM & HERRY HD 2406
+- TOM & HERRY HD 2402
+- TOM & HERRY HD 1554
+- TOM & HERRY HD 1554
+- 12X WIRE 511
+- 12X MINI GIANIZ 611
