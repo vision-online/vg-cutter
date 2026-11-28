@@ -1,47 +1,47 @@
-Run 9739  Sat Nov 28 08:26:15 UTC 2026
+Run 9740  Sat Nov 28 08:36:34 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 312 frames. Waiting for a cut-out: 0.
+Catalogue: 319 frames. Waiting for a cut-out: 0.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
-White photos waiting: 24 photo(s) of 8 frame(s) -- 18 made in this run, the rest in the next runs.
+White photos waiting: 27 photo(s) of 9 frame(s) -- 18 made in this run, the rest in the next runs.
     installing the hidden browser driver ...
-    white maker: pmx04sfgq34-front.src 1400x788 -> made in 438 ms
-    white maker: pmx04sfgq34-angle.src 1400x788 -> made in 327 ms
-    white maker: pmx04sfgq34-angle-right.src 1400x788 -> made in 390 ms
-    white maker: pmx04uuyk14-front.src 1400x788 -> made in 362 ms
-    white maker: pmx04uuyk14-angle.src 1400x788 -> made in 346 ms
-    white maker: pmx04uuyk14-angle-right.src 1400x788 -> made in 369 ms
-    white maker: pmx04vqjg21-front.src 1400x788 -> made in 387 ms
-    white maker: pmx04vqjg21-angle.src 1400x788 -> made in 333 ms
-    white maker: pmx04vqjg21-angle-right.src 1400x788 -> made in 307 ms
-    white maker: pmx04wpx889-front.src 1400x788 -> made in 326 ms
-    white maker: pmx04wpx889-angle.src 1400x788 -> made in 358 ms
-    white maker: pmx04wpx889-angle-right.src 1400x788 -> made in 392 ms
-    white maker: pmx04xqz053-front.src 1400x788 -> made in 366 ms
-    white maker: pmx04xqz053-angle.src 1400x788 -> made in 397 ms
-    white maker: pmx04xqz053-angle-right.src 1400x788 -> made in 368 ms
-    white maker: pmx04yepw1-front.src 1400x788 -> made in 338 ms
-    white maker: pmx04yepw1-angle.src 1400x788 -> made in 281 ms
-    white maker: pmx04yepw1-angle-right.src 1400x788 -> made in 303 ms
+    white maker: pmx04zbts33-front.src 1400x788 -> made in 720 ms
+    white maker: pmx04zbts33-angle.src 1400x788 -> made in 265 ms
+    white maker: pmx04zbts33-angle-right.src 1400x788 -> made in 328 ms
+    white maker: pmx05083645-front.src 1400x788 -> made in 280 ms
+    white maker: pmx05083645-angle.src 1400x788 -> made in 274 ms
+    white maker: pmx05083645-angle-right.src 1400x788 -> made in 295 ms
+    white maker: pmx050yb055-front.src 1400x788 -> made in 329 ms
+    white maker: pmx050yb055-angle.src 1400x788 -> made in 285 ms
+    white maker: pmx050yb055-angle-right.src 1400x788 -> made in 276 ms
+    white maker: pmx05263l61-front.src 1400x788 -> made in 644 ms
+    white maker: pmx05263l61-angle.src 1400x788 -> made in 591 ms
+    white maker: pmx05263l61-angle-right.src 1400x788 -> made in 924 ms
+    white maker: pmx052vnk12-front.src 1400x788 -> made in 325 ms
+    white maker: pmx052vnk12-angle.src 1400x788 -> made in 337 ms
+    white maker: pmx052vnk12-angle-right.src 1400x788 -> made in 304 ms
+    white maker: pmx056kwd96-front.src 1400x788 -> made in 273 ms
+    white maker: pmx056kwd96-angle.src 1400x788 -> made in 527 ms
+    white maker: pmx056kwd96-angle-right.src 1400x788 -> made in 510 ms
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    VG-1022 Frames front: white -- rim check OK, 665 px of rim put back from the photo (outer 49, inner 391, pads 225)
-    VG-1022 Frames angle: white -- rim check OK, 970 px of rim put back from the photo (outer 366, inner 407, pads 197)
-    VG-1022 Frames angle-right: white -- rim check OK, 500 px of rim put back from the photo (outer 4, inner 259, pads 237)
-    VG-1023 Frames front: white -- rim check OK, 1357 px of rim put back from the photo (outer 178, inner 853, pads 326)
-    VG-1023 Frames angle: white -- rim check OK, 1637 px of rim put back from the photo (outer 278, inner 973, pads 386)
-    VG-1023 Frames angle-right: white -- rim check OK, 1634 px of rim put back from the photo (outer 110, inner 1216, pads 308)
-    VG-1024 Frames front: white -- rim check OK, 298 px of rim put back from the photo (outer 14, inner 235, pads 49)
-    VG-1024 Frames angle: white -- rim check OK, 1348 px of rim put back from the photo (outer 288, inner 737, pads 323)
-    VG-1024 Frames angle-right: white -- rim check OK, 329 px of rim put back from the photo (outer 148, inner 181, pads 0)
-    VG-1025 Frames front: white -- rim check OK, 533 px of rim put back from the photo (outer 75, inner 249, pads 209)
-    VG-1025 Frames angle: white -- rim check OK, 766 px of rim put back from the photo (outer 200, inner 334, pads 232)
-    VG-1025 Frames angle-right: white -- rim check OK, 236 px of rim put back from the photo (outer 10, inner 68, pads 158)
-    VG-1026 Frames front: white -- rim check OK, 683 px of rim put back from the photo (outer 43, inner 420, pads 220)
-    VG-1026 Frames angle: white -- rim check OK, 576 px of rim put back from the photo (outer 280, inner 195, pads 101)
-    VG-1026 Frames angle-right: white -- rim check OK, 826 px of rim put back from the photo (outer 258, inner 228, pads 340)
-    VG-1027 Frames front: white -- rim check OK, 488 px of rim put back from the photo (outer 287, inner 16, pads 185)
-    VG-1027 Frames angle: white -- rim check OK, 657 px of rim put back from the photo (outer 52, inner 425, pads 180)
-    VG-1027 Frames angle-right: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 2.2% of the frame's ou): 59388 px of frame measured, 5032 put back from the photo, 1382 px of demo printing made white; pixel check: 0 different
+    VG-1028 Frames front: white -- rim check OK, 1704 px of rim put back from the photo (outer 581, inner 747, pads 376)
+    VG-1028 Frames angle: white -- rim check OK, 743 px of rim put back from the photo (outer 127, inner 440, pads 176)
+    VG-1028 Frames angle-right: white -- rim check OK, 1392 px of rim put back from the photo (outer 449, inner 845, pads 98)
+    VG-1029 Frames front: white -- rim check OK, 1082 px of rim put back from the photo (outer 651, inner 182, pads 249)
+    VG-1029 Frames angle: white -- rim check OK, 1669 px of rim put back from the photo (outer 279, inner 1204, pads 186)
+    VG-1029 Frames angle-right: white -- rim check OK, 490 px of rim put back from the photo (outer 208, inner 188, pads 94)
+    VG-1030 Frames front: white -- rim check OK, 896 px of rim put back from the photo (outer 311, inner 402, pads 183)
+    VG-1030 Frames angle: white -- rim check OK, 497 px of rim put back from the photo (outer 146, inner 276, pads 75)
+    VG-1030 Frames angle-right: white -- rim check OK, 410 px of rim put back from the photo (outer 71, inner 271, pads 68)
+    VG-1031 Frames front: white -- rim check OK, 1938 px of rim put back from the photo (outer 507, inner 1058, pads 373)
+    VG-1031 Frames angle: white -- rim check OK, 2593 px of rim put back from the photo (outer 500, inner 1907, pads 186)
+    VG-1031 Frames angle-right: white -- rim check OK, 2063 px of rim put back from the photo (outer 612, inner 1314, pads 137)
+    VG-1032 Frames front: white -- rim check OK, 788 px of rim put back from the photo (outer 614, inner 21, pads 153)
+    VG-1032 Frames angle: white -- rim check OK, 2049 px of rim put back from the photo (outer 448, inner 1414, pads 187)
+    VG-1032 Frames angle-right: white -- rim check OK, 810 px of rim put back from the photo (outer 533, inner 229, pads 48)
+    VG-1033 Frames front: white -- rim check OK, 2857 px of rim put back from the photo (outer 1128, inner 1118, pads 611)
+    VG-1033 Frames angle: white -- rim check OK, 3413 px of rim put back from the photo (outer 1610, inner 1654, pads 149)
+    VG-1033 Frames angle-right: white -- rim check OK, 2471 px of rim put back from the photo (outer 1430, inner 748, pads 293)
 White photos: 18 saved.
