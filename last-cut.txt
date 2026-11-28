@@ -1,31 +1,47 @@
-Run 9729  Sat Nov 28 06:41:35 UTC 2026
+Run 9730  Sat Nov 28 06:55:53 UTC 2026
 
 Database: https://oscpunukbyosckrmopeh.supabase.co  key: service_role
-Catalogue: 290 frames. Waiting for a cut-out: 0.
+Catalogue: 301 frames. Waiting for a cut-out: 0.
 Cloudinary accepted a test upload: cloud jpf6kf5g (from secret), upload preset from secret (its name is kept out of the report).
-White photos waiting: 9 photo(s) of 3 frame(s).
+White photos waiting: 33 photo(s) of 11 frame(s) -- 18 made in this run, the rest in the next runs.
     installing the hidden browser driver ...
-    white maker: pmx01bc0e39-front.src 1400x788 -> made in 1814 ms
-    white maker: pmx01bc0e39-angle.src 1400x788 -> made in 636 ms
-    white maker: pmx01bc0e39-angle-right.src 1400x788 -> made in 771 ms
-    white maker: pmx01cl1a7-front.src 1400x788 -> made in 301 ms
-    white maker: pmx01cl1a7-angle.src 1400x788 -> made in 286 ms
-    white maker: pmx01cl1a7-angle-right.src 1400x788 -> made in 279 ms
-    white maker: pmx01dmha58-front.src 1400x788 -> made in 310 ms
-    white maker: pmx01dmha58-angle.src 1400x788 -> made in 500 ms
-    white maker: pmx01dmha58-angle-right.src 1400x788 -> made in 661 ms
+    white maker: pmx01erhd47-front.src 1400x788 -> made in 850 ms
+    white maker: pmx01erhd47-angle.src 1400x788 -> made in 462 ms
+    white maker: pmx01erhd47-angle-right.src 1400x788 -> made in 787 ms
+    white maker: pmx01gc397-front.src 1400x788 -> made in 479 ms
+    white maker: pmx01gc397-angle.src 1400x788 -> made in 534 ms
+    white maker: pmx01gc397-angle-right.src 1400x788 -> made in 472 ms
+    white maker: pmx01i65o54-front.src 1400x788 -> made in 314 ms
+    white maker: pmx01i65o54-angle.src 1400x788 -> made in 527 ms
+    white maker: pmx01i65o54-angle-right.src 1400x788 -> made in 537 ms
+    white maker: pmx01jjxf24-front.src 1400x788 -> made in 572 ms
+    white maker: pmx01jjxf24-angle.src 1400x788 -> made in 491 ms
+    white maker: pmx01jjxf24-angle-right.src 1400x788 -> made in 563 ms
+    white maker: pmx01kji967-front.src 1400x788 -> made in 471 ms
+    white maker: pmx01kji967-angle.src 1400x788 -> made in 471 ms
+    white maker: pmx01kji967-angle-right.src 1400x788 -> made in 533 ms
+    white maker: pmx01loyv5-front.src 1400x788 -> made in 272 ms
+    white maker: pmx01loyv5-angle.src 1400x788 -> made in 454 ms
+    white maker: pmx01loyv5-angle-right.src 1400x788 -> made in 505 ms
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/kornia/feature/lightglue.py:44: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
   @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
 Model loaded: ZhengPeng7/BiRefNet at 1024 px
-    VG-1020 Frames front: white -- rim check OK, 333 px of rim put back from the photo (outer 109, inner 221, pads 3)
-    VG-1020 Frames angle: white -- rim check OK, 1752 px of rim put back from the photo (outer 364, inner 1144, pads 244)
-    VG-1020 Frames angle-right: white -- rim check OK, 1718 px of rim put back from the photo (outer 393, inner 1160, pads 165)
-    VG-1021 Frames front: white -- rim check OK, 7694 px of rim put back from the photo (outer 4438, inner 2427, pads 829)
-    VG-1021 Frames angle: frame map not used (no closed lens found (half rim, rimless or an unusual photo) -- frame map not used)
-    VG-1021 Frames angle: photo as taken -- whole-rim check: the rim is still missing along 3.9% of the frame's outline (longest stretch 2.4%) -- the photo as taken is shown
-    VG-1021 Frames angle-right: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 3.1% of the frame's ou): 47921 px of frame measured, 5359 put back from the photo, 3307 px of demo printing made white; pixel check: 0 different
-    VG-1022 Frames front: white -- rim check OK, 10665 px of rim put back from the photo (outer 5078, inner 4492, pads 1095)
-    VG-1022 Frames angle: white -- rim check OK, 5670 px of rim put back from the photo (outer 2290, inner 2641, pads 739)
-    VG-1022 Frames angle-right: frame map not used (no closed lens found (half rim, rimless or an unusual photo) -- frame map not used)
-    VG-1022 Frames angle-right: photo as taken -- whole-rim check: the rim is still missing along 6.3% of the frame's outline (longest stretch 2.7%) -- the photo as taken is shown
-White photos: 9 saved.
+    VG-1023 Frames front: white -- rim check OK, 10653 px of rim put back from the photo (outer 3924, inner 4747, pads 1982)
+    VG-1023 Frames angle: white -- rim check OK, 6001 px of rim put back from the photo (outer 2093, inner 2795, pads 1113)
+    VG-1023 Frames angle-right: white -- rim check OK, 6529 px of rim put back from the photo (outer 1866, inner 3534, pads 1129)
+    VG-1024 Frames front: white -- rim check OK, 9239 px of rim put back from the photo (outer 4437, inner 3990, pads 812)
+    VG-1024 Frames angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 3.3% of the frame's ou): 50875 px of frame measured, 6629 put back from the photo, 280 px of demo printing made white; pixel check: 0 different
+    VG-1024 Frames angle-right: white -- rim check OK, 7223 px of rim put back from the photo (outer 3631, inner 2866, pads 726)
+    VG-1025 Frames front: white -- rim check OK, 551 px of rim put back from the photo (outer 158, inner 327, pads 66)
+    VG-1025 Frames angle: white -- rim check OK, 809 px of rim put back from the photo (outer 119, inner 562, pads 128)
+    VG-1025 Frames angle-right: white -- rim check OK, 305 px of rim put back from the photo (outer 109, inner 179, pads 17)
+    VG-1026 Frames front: white -- rim check OK, 492 px of rim put back from the photo (outer 0, inner 480, pads 12)
+    VG-1026 Frames angle: white -- rim check OK, 1066 px of rim put back from the photo (outer 482, inner 555, pads 29)
+    VG-1026 Frames angle-right: white -- rim check OK, 2243 px of rim put back from the photo (outer 908, inner 1257, pads 78)
+    VG-1027 Frames front: white -- rim check OK, 3478 px of rim put back from the photo (outer 1403, inner 1626, pads 449)
+    VG-1027 Frames angle: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 4.3% of the frame's ou): 51268 px of frame measured, 5031 put back from the photo, 18 px of demo printing made white; pixel check: 0 different
+    VG-1027 Frames angle-right: white -- FRAME MAP (the old rim check said: whole-rim check: the rim is still missing along 4.3% of the frame's ou): 51784 px of frame measured, 7352 put back from the photo, 3078 px of demo printing made white; pixel check: 0 different
+    VG-1028 Frames front: white -- rim check OK, 6969 px of rim put back from the photo (outer 2070, inner 3709, pads 1190)
+    VG-1028 Frames angle: white -- rim check OK, 5541 px of rim put back from the photo (outer 2154, inner 2766, pads 621)
+    VG-1028 Frames angle-right: white -- rim check OK, 3819 px of rim put back from the photo (outer 2206, inner 747, pads 866)
+White photos: 18 saved.
